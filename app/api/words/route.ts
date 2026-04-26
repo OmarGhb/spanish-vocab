@@ -86,5 +86,6 @@ export async function POST(request: Request) {
     word,
     definition: wordData.definition,
     examples: wordData.examples,
+    distractors: wordData.distractors,
   })
 }

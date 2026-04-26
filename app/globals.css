@@ -1,26 +1,34 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
   --font-serif: var(--font-lora);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Chaleureuse palette */
+  --color-page:   oklch(0.96 0.025  80);
+  --color-card:   oklch(0.99 0.01   75);
+  --color-ink:    oklch(0.22 0.04   55);
+  --color-muted:  oklch(0.50 0.04   55);
+  --color-line:   oklch(0.86 0.04   75);
+  --color-accent: oklch(0.50 0.15   20);
+  --color-tint:   oklch(0.94 0.05   20);
+  --color-ok:     oklch(0.50 0.17  145);
+  --color-err:    oklch(0.50 0.18   10);
+
+  /* Rating buttons — Anki convention (darkest = hardest) */
+  --color-again:  oklch(0.50 0.18   10);
+  --color-hard:   oklch(0.55 0.14   55);
+  --color-good:   oklch(0.48 0.16  240);
+  --color-easy:   oklch(0.50 0.17  145);
+
+  /* Card chrome */
+  --radius-card:  12px;
+  --shadow-card:  0 1px 3px oklch(0.22 0.04 55 / 0.08),
+                  0 4px 16px oklch(0.22 0.04 55 / 0.06);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background-color: var(--color-page);
+  color: var(--color-ink);
   font-family: var(--font-sans), sans-serif;
 }

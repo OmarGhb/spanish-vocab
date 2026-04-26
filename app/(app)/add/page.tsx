@@ -3,7 +3,12 @@
 import { useState } from 'react'
 
 type Example = { es: string; fr: string }
-type WordResult = { word: string; definition: string; examples: Example[] }
+type WordResult = {
+  word: string
+  definition: string
+  examples: Example[]
+  distractors: string[]
+}
 
 export default function AddPage() {
   const [word, setWord] = useState('')
@@ -12,7 +17,7 @@ export default function AddPage() {
   const [loading, setLoading] = useState(false)
   const [revealed, setRevealed] = useState<boolean[]>([])
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault()
     setLoading(true)
     setError(null)
@@ -45,67 +50,82 @@ export default function AddPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-6">
-      <div className="w-full max-w-lg bg-white rounded border p-8">
-        <h1 className="text-2xl font-semibold mb-6 text-gray-900">Ajouter un mot</h1>
+    <div className="flex flex-col gap-6 p-6">
+      <h1 className="font-serif text-2xl text-ink">Ajouter un mot</h1>
 
-        {!result ? (
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <input
-              type="text"
-              placeholder="Mot en espagnol"
-              value={word}
-              onChange={(e) => setWord(e.target.value)}
-              required
-              className="border rounded px-3 py-2 text-sm placeholder:text-gray-500"
-            />
-            {error && <p className="text-red-600 text-sm">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-black text-white rounded px-4 py-2 text-sm disabled:opacity-50"
-            >
-              {loading ? 'Recherche en cours…' : 'Ajouter'}
-            </button>
-          </form>
-        ) : (
-          <div className="flex flex-col gap-6">
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900">{result.word}</h2>
-              <p className="mt-2 text-gray-700 text-sm leading-relaxed font-serif">{result.definition}</p>
-            </div>
-            <div>
-              <h3 className="font-medium mb-3 text-sm uppercase tracking-wide text-gray-500">
-                Exemples
-              </h3>
-              <ul className="flex flex-col gap-4">
-                {result.examples.map((ex, i) => (
-                  <li key={i} className="border-l-2 border-gray-200 pl-4">
-                    <p className="font-serif text-sm text-gray-700">{ex.fr}</p>
-                    {revealed[i] ? (
-                      <p className="font-serif font-medium text-sm text-gray-900 mt-1">{ex.es}</p>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setRevealed((prev) => prev.map((v, j) => (j === i ? true : v)))}
-                        className="text-xs text-gray-400 mt-1 hover:text-gray-600"
-                      >
-                        Voir l&apos;original
-                      </button>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <button
-              onClick={handleAddAnother}
-              className="bg-black text-white rounded px-4 py-2 text-sm"
-            >
-              Ajouter un autre mot
-            </button>
+      {!result ? (
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <input
+            type="text"
+            placeholder="Mot en espagnol"
+            value={word}
+            onChange={(e) => setWord(e.target.value)}
+            required
+            className="border border-line rounded-lg px-3 py-2.5 text-sm bg-card text-ink placeholder:text-muted focus:outline-none focus:border-accent"
+          />
+          {error && <p className="text-err text-sm">{error}</p>}
+          <button
+            type="submit"
+            disabled={loading}
+            className="bg-accent text-white rounded-lg px-4 py-2.5 text-sm disabled:opacity-50"
+          >
+            {loading ? 'Recherche en cours…' : 'Ajouter'}
+          </button>
+        </form>
+      ) : (
+        <div className="bg-card rounded-card shadow-card p-5 flex flex-col gap-5">
+          <div>
+            <h2 className="font-serif text-xl text-ink">{result.word}</h2>
+            <p className="mt-2 font-serif italic text-sm text-ink leading-relaxed">
+              {result.definition}
+            </p>
           </div>
-        )}
-      </div>
-    </main>
+
+          <div>
+            <p className="text-xs uppercase tracking-wide text-muted mb-3">Exemples</p>
+            <ul className="flex flex-col gap-4">
+              {result.examples.map((ex, i) => (
+                <li key={i} className="border-l-2 border-line pl-4">
+                  <p className="font-serif text-sm text-muted">{ex.fr}</p>
+                  {revealed[i] ? (
+                    <p className="font-serif text-sm text-ink mt-1">{ex.es}</p>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setRevealed((prev) => prev.map((v, j) => (j === i ? true : v)))}
+                      className="text-xs text-muted mt-1 hover:text-ink"
+                    >
+                      Voir l&apos;original
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {result.distractors.length > 0 && (
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted mb-2">
+                Mots à ne pas confondre
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {result.distractors.map((d) => (
+                  <span key={d} className="bg-tint text-accent text-xs px-2.5 py-1 rounded-full">
+                    {d}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={handleAddAnother}
+            className="bg-accent text-white rounded-lg px-4 py-2.5 text-sm"
+          >
+            Ajouter un autre mot
+          </button>
+        </div>
+      )}
+    </div>
   )
 }

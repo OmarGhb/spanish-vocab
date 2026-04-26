@@ -4,6 +4,7 @@ import type React from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { computeRating, type RatingResult } from '@/lib/rating'
 import type { ReviewCard } from './page'
+import RatingButtons from './RatingButtons'
 
 type Props = {
   card: ReviewCard
@@ -11,13 +12,6 @@ type Props = {
   // read here only inside event handlers — never during render.
   cardStartRef: React.RefObject<number>
   onRate: (rating: 1 | 2 | 3 | 4, timeMs: number, hintUsed: boolean) => void
-}
-
-const RATING_LABELS: Record<1 | 2 | 3 | 4, string> = {
-  1: 'À revoir',
-  2: 'Difficile',
-  3: 'Bien',
-  4: 'Facile',
 }
 
 function shuffle<T>(arr: T[], seed: number): T[] {
@@ -91,22 +85,22 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
   }
 
   function optionStyle(option: string): string {
-    const base = 'w-full text-left rounded border px-4 py-2.5 text-sm'
-    if (!result) return `${base} hover:border-gray-400 text-gray-800`
-    if (option === word) return `${base} border-black bg-black text-white`
-    if (option === chosen && chosen !== word) return `${base} border-red-400 text-red-700`
-    return `${base} text-gray-400`
+    const base = 'w-full text-left rounded-lg border px-4 py-3 text-sm transition-colors'
+    if (!result) return `${base} border-line bg-card text-ink hover:border-accent`
+    if (option === word) return `${base} border-ok bg-ok/10 text-ok`
+    if (option === chosen && chosen !== word) return `${base} border-err bg-err/10 text-err`
+    return `${base} border-line text-muted opacity-50`
   }
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         {prompt.type === 'definition' ? (
-          <p className="font-serif text-sm text-gray-700 leading-relaxed">{prompt.text}</p>
+          <p className="font-serif text-sm text-ink leading-relaxed">{prompt.text}</p>
         ) : (
           <>
-            <p className="font-serif text-base text-gray-900 leading-relaxed">{prompt.es}</p>
-            <p className="font-serif text-sm text-gray-500 mt-1">{prompt.fr}</p>
+            <p className="font-serif text-base text-ink leading-relaxed">{prompt.es}</p>
+            <p className="font-serif text-sm text-muted mt-1">{prompt.fr}</p>
           </>
         )}
       </div>
@@ -120,27 +114,7 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
       </div>
 
       {result && (
-        <div>
-          <p className="text-xs text-gray-500 mb-2">
-            Suggéré : {RATING_LABELS[result.rating]} · {result.reason} · Modifiez si nécessaire
-          </p>
-          <div className="flex gap-2">
-            {([1, 2, 3, 4] as const).map((r) => (
-              <button
-                key={r}
-                onClick={() => setSelectedRating(r)}
-                className={`flex-1 rounded border py-1.5 text-xs ${
-                  r === selectedRating
-                    ? 'bg-black text-white border-black'
-                    : 'text-gray-600 hover:border-gray-400'
-                }`}
-              >
-                {RATING_LABELS[r]}
-              </button>
-            ))}
-          </div>
-          <p className="text-xs text-gray-400 mt-2">Appuyez sur Entrée pour valider.</p>
-        </div>
+        <RatingButtons result={result} selectedRating={selectedRating} onSelect={setSelectedRating} />
       )}
     </div>
   )

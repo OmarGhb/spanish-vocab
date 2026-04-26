@@ -58,24 +58,18 @@ export default async function ReviewPage() {
 
   if (cards.length === 0) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-6">
-        <div className="w-full max-w-lg bg-white rounded border p-8 text-center">
-          <p className="text-gray-700 mb-4">
-            Tout est à jour pour aujourd&apos;hui — vous pouvez toujours ajouter de nouveaux mots.
+      <div className="flex items-center justify-center min-h-[70vh] p-6">
+        <div className="bg-card rounded-card shadow-card p-8 text-center w-full">
+          <p className="font-serif text-base text-ink mb-3">
+            Tout est à jour pour aujourd&apos;hui.
           </p>
-          <Link href="/add" className="text-sm underline text-gray-500 hover:text-gray-800">
-            Ajouter un mot
+          <Link href="/add" className="text-sm text-accent">
+            Ajouter un mot →
           </Link>
         </div>
-      </main>
+      </div>
     )
   }
 
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-6">
-      <div className="w-full max-w-lg">
-        <ReviewSession cards={cards} />
-      </div>
-    </main>
-  )
+  return <ReviewSession cards={cards} />
 }

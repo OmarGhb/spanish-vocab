@@ -5,6 +5,7 @@ import type React from 'react'
 import { computeRating, type RatingResult } from '@/lib/rating'
 import { maskSentence } from '@/lib/mask'
 import type { ReviewCard } from './page'
+import RatingButtons from './RatingButtons'
 
 type Props = {
   card: ReviewCard
@@ -12,13 +13,6 @@ type Props = {
   // read here only inside event handlers — never during render.
   cardStartRef: React.RefObject<number>
   onRate: (rating: 1 | 2 | 3 | 4, timeMs: number, hintUsed: boolean) => void
-}
-
-const RATING_LABELS: Record<1 | 2 | 3 | 4, string> = {
-  1: 'À revoir',
-  2: 'Difficile',
-  3: 'Bien',
-  4: 'Facile',
 }
 
 // Deterministic example selection: server and client use the same seed so the
@@ -96,17 +90,29 @@ export default function FillInBlank({ card, cardStartRef, onRate }: Props) {
     setSelectedRating(rating.rating)
   }
 
+  const isCorrect = answer.trim().toLowerCase() === word.trim().toLowerCase()
+
   return (
-    <div className="flex flex-col gap-6">
-      {/* Prompt: masked sentence if one was found, definition otherwise */}
-      {picked ? (
-        <div>
-          <p className="font-serif text-base text-gray-900 leading-relaxed">{picked.masked}</p>
-          <p className="font-serif text-sm text-gray-500 mt-1">{picked.example.fr}</p>
-        </div>
-      ) : (
-        <p className="font-serif text-sm text-gray-700 leading-relaxed">{definition}</p>
-      )}
+    <div className="flex flex-col gap-4">
+      {/* Word name + exercise label */}
+      <div>
+        <p className="font-serif text-2xl font-bold text-ink">{word}</p>
+        <p className="text-xs uppercase tracking-widest text-muted mt-2">
+          {picked ? 'Complétez la phrase' : 'Définition'}
+        </p>
+      </div>
+
+      {/* Sentence / definition card */}
+      <div className="bg-card rounded-card shadow-card p-5">
+        {picked ? (
+          <>
+            <p className="font-serif text-lg text-ink leading-relaxed">{picked.masked}</p>
+            <p className="font-serif italic text-sm text-muted mt-3">{picked.example.fr}</p>
+          </>
+        ) : (
+          <p className="font-serif text-sm text-ink leading-relaxed">{definition}</p>
+        )}
+      </div>
 
       {!result ? (
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -117,68 +123,51 @@ export default function FillInBlank({ card, cardStartRef, onRate }: Props) {
             onChange={(e) => setAnswer(e.target.value)}
             placeholder="Votre réponse…"
             required
-            className="border rounded px-3 py-2 text-sm placeholder:text-gray-500"
+            className="w-full border border-line rounded-card px-4 py-4 text-sm bg-card text-ink placeholder:text-muted focus:outline-none focus:border-accent"
           />
-          <div className="flex gap-2">
-            {/* Hint shows only "Indice" until clicked — the first letter is revealed after. */}
+          <div className="grid grid-cols-3 gap-2">
             {!hintUsed ? (
               <button
                 type="button"
                 onClick={handleHint}
-                className="text-xs text-gray-400 hover:text-gray-600 border rounded px-3 py-1.5"
+                className="col-span-1 text-sm text-ink border border-line rounded-card py-4 bg-card"
               >
                 Indice
               </button>
             ) : (
-              <span className="text-xs text-gray-500 border rounded px-3 py-1.5">
-                Première lettre : {word[0]}
+              <span className="col-span-1 flex items-center justify-center text-sm text-muted border border-line rounded-card py-4 bg-card">
+                {word[0]}…
               </span>
             )}
             <button
               type="submit"
-              className="ml-auto bg-black text-white rounded px-4 py-1.5 text-sm"
+              className="col-span-2 bg-accent text-white rounded-card py-4 text-sm font-medium"
             >
-              Valider
+              Valider →
             </button>
           </div>
         </form>
       ) : (
         <div className="flex flex-col gap-4">
           {/* Always show both the user's answer and the correct answer side-by-side. */}
-          <div className="flex gap-6 text-sm">
+          <div className="bg-card rounded-card shadow-card p-5 flex gap-6 text-sm">
             <div>
-              <p className="text-xs uppercase tracking-wide text-gray-400 mb-1">Votre réponse</p>
-              <p className="font-serif text-gray-900">{answer || '—'}</p>
+              <p className="text-xs uppercase tracking-wide text-muted mb-1">Votre réponse</p>
+              <p className={`font-serif font-medium ${isCorrect ? 'text-ok' : 'text-err'}`}>
+                {answer || '—'}
+              </p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wide text-gray-400 mb-1">Correct</p>
-              <p className="font-serif font-medium text-gray-900">{word}</p>
+              <p className="text-xs uppercase tracking-wide text-muted mb-1">Correct</p>
+              <p className="font-serif font-medium text-ink">{word}</p>
             </div>
           </div>
           {picked && (
-            <p className="font-serif text-sm text-gray-500 leading-relaxed">{picked.example.es}</p>
-          )}
-          <div>
-            <p className="text-xs text-gray-500 mb-2">
-              Suggéré : {RATING_LABELS[result.rating]} · {result.reason} · Modifiez si nécessaire
+            <p className="font-serif italic text-sm text-muted leading-relaxed px-1">
+              {picked.example.es}
             </p>
-            <div className="flex gap-2">
-              {([1, 2, 3, 4] as const).map((r) => (
-                <button
-                  key={r}
-                  onClick={() => setSelectedRating(r)}
-                  className={`flex-1 rounded border py-1.5 text-xs ${
-                    r === selectedRating
-                      ? 'bg-black text-white border-black'
-                      : 'text-gray-600 hover:border-gray-400'
-                  }`}
-                >
-                  {RATING_LABELS[r]}
-                </button>
-              ))}
-            </div>
-            <p className="text-xs text-gray-400 mt-2">Appuyez sur Entrée pour valider.</p>
-          </div>
+          )}
+          <RatingButtons result={result} selectedRating={selectedRating} onSelect={setSelectedRating} />
         </div>
       )}
     </div>

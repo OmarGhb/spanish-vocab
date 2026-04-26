@@ -48,11 +48,21 @@ export default function ReviewSession({ cards }: Props) {
 
   if (done) {
     return (
-      <div className="bg-white rounded border p-8 text-center">
-        <p className="text-gray-900 font-semibold mb-4">Révision terminée.</p>
-        <Link href="/add" className="text-sm underline text-gray-500 hover:text-gray-800">
-          Ajouter un mot
-        </Link>
+      <div className="px-5 flex items-center justify-center min-h-[70vh]">
+        <div className="bg-card rounded-card shadow-card p-8 text-center flex flex-col gap-4 w-full">
+          <p className="font-serif text-xl text-ink">Bonne session !</p>
+          <p className="text-sm text-muted">
+            {cards.length} carte{cards.length > 1 ? 's' : ''} révisée{cards.length > 1 ? 's' : ''}.
+          </p>
+          <div className="flex flex-col gap-2 pt-2">
+            <Link href="/" className="bg-accent text-white text-sm rounded-lg px-4 py-2.5 text-center">
+              Retour à l&apos;accueil
+            </Link>
+            <Link href="/add" className="text-sm text-muted hover:text-ink">
+              Ajouter un mot
+            </Link>
+          </div>
+        </div>
       </div>
     )
   }
@@ -61,30 +71,32 @@ export default function ReviewSession({ cards }: Props) {
   const mode = chooseMode(card, index)
 
   return (
-    <div className="bg-white rounded border p-8">
-      <div className="flex justify-between items-center mb-6">
-        <span className="text-xs text-gray-400">
+    <div className="px-5 pt-5 pb-8">
+      {/* Header: × | 1/N | ÉCRITURE */}
+      <div className="flex justify-between items-center mb-3">
+        <Link href="/" className="text-2xl text-muted hover:text-ink leading-none select-none">
+          ×
+        </Link>
+        <span className="text-sm text-ink">
           {index + 1} / {cards.length}
         </span>
-        <span className="text-xs text-gray-400 uppercase tracking-wide">
-          {mode === 'blank' ? 'Complétez' : 'Choisissez'}
+        <span className="text-xs text-accent font-semibold uppercase tracking-widest">
+          {mode === 'blank' ? 'Écriture' : 'QCM'}
         </span>
       </div>
 
+      {/* Progress bar */}
+      <div className="h-0.5 bg-line rounded-full mb-8">
+        <div
+          className="h-0.5 bg-accent rounded-full transition-all duration-300"
+          style={{ width: `${((index + 1) / cards.length) * 100}%` }}
+        />
+      </div>
+
       {mode === 'blank' ? (
-        <FillInBlank
-          key={card.id}
-          card={card}
-          cardStartRef={cardStartRef}
-          onRate={handleRate}
-        />
+        <FillInBlank key={card.id} card={card} cardStartRef={cardStartRef} onRate={handleRate} />
       ) : (
-        <MultipleChoice
-          key={card.id}
-          card={card}
-          cardStartRef={cardStartRef}
-          onRate={handleRate}
-        />
+        <MultipleChoice key={card.id} card={card} cardStartRef={cardStartRef} onRate={handleRate} />
       )}
     </div>
   )

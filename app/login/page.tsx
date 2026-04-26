@@ -11,7 +11,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault()
     setLoading(true)
     setError(null)
@@ -26,20 +26,23 @@ export default function LoginPage() {
       return
     }
 
-    router.push('/add')
+    router.push('/')
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-sm bg-white p-8 rounded border">
-        <h1 className="text-2xl font-semibold">Connexion</h1>
+    <main className="flex min-h-screen items-center justify-center p-6">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-4 w-full max-w-sm bg-card p-8 rounded-card shadow-card"
+      >
+        <h1 className="font-serif text-2xl text-ink">Vocabulario</h1>
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="border rounded px-3 py-2 text-sm"
+          className="border border-line rounded-lg px-3 py-2.5 text-sm bg-card text-ink placeholder:text-muted focus:outline-none focus:border-accent"
         />
         <input
           type="password"
@@ -47,13 +50,13 @@ export default function LoginPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="border rounded px-3 py-2 text-sm"
+          className="border border-line rounded-lg px-3 py-2.5 text-sm bg-card text-ink placeholder:text-muted focus:outline-none focus:border-accent"
         />
-        {error && <p className="text-red-600 text-sm">{error}</p>}
+        {error && <p className="text-err text-sm">{error}</p>}
         <button
           type="submit"
           disabled={loading}
-          className="bg-black text-white rounded px-4 py-2 text-sm disabled:opacity-50"
+          className="bg-accent text-white rounded-lg px-4 py-2.5 text-sm disabled:opacity-50"
         >
           {loading ? 'Connexion…' : 'Se connecter'}
         </button>
