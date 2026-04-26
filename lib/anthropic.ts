@@ -6,14 +6,10 @@ const client = new Anthropic()
 const WordDataSchema = z.object({
   definition: z.string().min(1),
   examples: z
-    .array(
-      z.object({
-        es: z.string().min(1),
-        fr: z.string().min(1),
-      })
-    )
+    .array(z.object({ es: z.string().min(1), fr: z.string().min(1) }))
     .min(2)
     .max(3),
+  distractors: z.array(z.string().min(1)).min(3).max(3),
 })
 
 export type WordData = z.infer<typeof WordDataSchema>
@@ -26,7 +22,8 @@ Return ONLY valid JSON — no markdown, no code blocks, no explanation. Match th
   "examples": [
     { "es": "...", "fr": "..." },
     { "es": "...", "fr": "..." }
-  ]
+  ],
+  "distractors": ["...", "...", "..."]
 }
 
 Rules:
@@ -34,7 +31,13 @@ Rules:
   - Register: formal, informal, vulgar, literary.
   - Regional differences: Spain vs. Latin America (e.g. "bocadillo" = sandwich en Espagne, petite friandise en Amérique latine).
   - False friends with French (e.g. "embarazada" ≠ embarrassée — ça veut dire enceinte).
-- "examples": 2–3 natural, intermediate-level Spanish sentences, each with a fluent French translation. Real everyday usage, not textbook fillers.`
+- "examples": 2–3 natural, intermediate-level Spanish sentences, each with a fluent French translation. Real everyday usage, not textbook fillers.
+- "distractors": exactly 3 Spanish words that are plausible wrong answers in a multiple-choice exercise. They must:
+  - Be the same part of speech as the target word.
+  - Come from the same semantic field and register.
+  - Be words a learner at this level would plausibly confuse with the target.
+  - Be distinct from the target word and from each other.
+  - Never be random unrelated fillers.`
 
 export async function getWordData(word: string): Promise<WordData> {
   const message = await client.messages.create({
