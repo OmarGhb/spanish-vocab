@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type React from 'react'
 import { computeRating, type RatingResult } from '@/lib/rating'
+import { maskSentence } from '@/lib/mask'
 import type { ReviewCard } from './page'
 
 type Props = {
@@ -13,23 +14,50 @@ type Props = {
   onRate: (rating: 1 | 2 | 3 | 4, timeMs: number, hintUsed: boolean) => void
 }
 
-function maskWord(sentence: string, word: string): string {
-  const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  return sentence.replace(new RegExp(escaped, 'i'), '_____')
+const RATING_LABELS: Record<1 | 2 | 3 | 4, string> = {
+  1: 'À revoir',
+  2: 'Difficile',
+  3: 'Bien',
+  4: 'Facile',
+}
+
+// Deterministic example selection: server and client use the same seed so the
+// rendered sentence is identical during SSR and hydration (no mismatch).
+// We try examples starting from the seeded index, wrapping around, and take the
+// first one where maskSentence() succeeds. If none mask, `picked` is null and
+// the component falls back to showing the definition as the prompt.
+function pickExample(card: ReviewCard) {
+  const { examples, word, id } = card
+  if (examples.length === 0) return null
+
+  // Derive a stable seed from the UUID — same value on server and client.
+  const seed = parseInt(id.replace(/-/g, '').slice(0, 8), 16) || id.charCodeAt(0)
+  const start = seed % examples.length
+
+  for (let i = 0; i < examples.length; i++) {
+    const ex = examples[(start + i) % examples.length]
+    const masked = maskSentence(ex.es, word)
+    if (masked !== null) return { example: ex, masked }
+  }
+
+  // Fix #6 verification: if we reach here, none of the examples matched even
+  // via stem. This should not happen for "El amanecer en las montañas…" since
+  // strategy 1 (exact case-insensitive) catches verbatim occurrences.
+  return null
 }
 
 export default function FillInBlank({ card, cardStartRef, onRate }: Props) {
-  const { word, examples } = card
+  const { word, definition } = card
 
-  // Lazy initializer runs once on mount, not on every render.
-  const [example] = useState(() => examples[Math.floor(Math.random() * examples.length)])
-  const masked = maskWord(example.es, word)
+  // Computed once on mount via lazy initializer — stable across re-renders.
+  const [picked] = useState(() => pickExample(card))
 
   const [answer, setAnswer] = useState('')
   const [hintUsed, setHintUsed] = useState(false)
   const [result, setResult] = useState<RatingResult | null>(null)
-  // timeMs is frozen at submit so handleRate uses the correct elapsed time,
-  // not the time after the result card has been displayed.
+  // selectedRating tracks the user's current choice (auto-set, then overridable).
+  const [selectedRating, setSelectedRating] = useState<1 | 2 | 3 | 4 | null>(null)
+  // timeMs frozen at submit — not recomputed when the user taps a rating.
   const [frozenTimeMs, setFrozenTimeMs] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -37,11 +65,24 @@ export default function FillInBlank({ card, cardStartRef, onRate }: Props) {
     inputRef.current?.focus()
   }, [])
 
+  // Enter key confirms the currently selected rating and advances.
+  useEffect(() => {
+    if (!result || selectedRating === null) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        onRate(selectedRating, frozenTimeMs, hintUsed)
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [result, selectedRating, frozenTimeMs, hintUsed, onRate])
+
   function handleHint() {
     setHintUsed(true)
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault()
     if (result) return
     // Timer stops here. cardStartRef.current was set on card mount by ReviewSession.
@@ -49,18 +90,20 @@ export default function FillInBlank({ card, cardStartRef, onRate }: Props) {
     setFrozenTimeMs(timeMs)
     const rating = computeRating({ correctWord: word, userAnswer: answer, timeMs, hintUsed, mode: 'blank' })
     setResult(rating)
-  }
-
-  function handleRate(override?: 1 | 2 | 3 | 4) {
-    onRate(override ?? result!.rating, frozenTimeMs, hintUsed)
+    setSelectedRating(rating.rating)
   }
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <p className="font-serif text-base text-gray-900 leading-relaxed">{masked}</p>
-        <p className="font-serif text-sm text-gray-500 mt-1">{example.fr}</p>
-      </div>
+      {/* Prompt: masked sentence if one was found, definition otherwise */}
+      {picked ? (
+        <div>
+          <p className="font-serif text-base text-gray-900 leading-relaxed">{picked.masked}</p>
+          <p className="font-serif text-sm text-gray-500 mt-1">{picked.example.fr}</p>
+        </div>
+      ) : (
+        <p className="font-serif text-sm text-gray-700 leading-relaxed">{definition}</p>
+      )}
 
       {!result ? (
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -74,18 +117,18 @@ export default function FillInBlank({ card, cardStartRef, onRate }: Props) {
             className="border rounded px-3 py-2 text-sm placeholder:text-gray-500"
           />
           <div className="flex gap-2">
-            {!hintUsed && (
+            {/* Hint shows only "Indice" until clicked — the first letter is revealed after. */}
+            {!hintUsed ? (
               <button
                 type="button"
                 onClick={handleHint}
                 className="text-xs text-gray-400 hover:text-gray-600 border rounded px-3 py-1.5"
               >
-                Indice — première lettre : {word[0]}
+                Indice
               </button>
-            )}
-            {hintUsed && (
-              <span className="text-xs text-gray-400 border rounded px-3 py-1.5">
-                Indice utilisé
+            ) : (
+              <span className="text-xs text-gray-500 border rounded px-3 py-1.5">
+                Première lettre : {word[0]}
               </span>
             )}
             <button
@@ -109,20 +152,29 @@ export default function FillInBlank({ card, cardStartRef, onRate }: Props) {
               <p className="font-serif font-medium text-gray-900">{word}</p>
             </div>
           </div>
-          <p className="font-serif text-sm text-gray-500 leading-relaxed">{example.es}</p>
+          {picked && (
+            <p className="font-serif text-sm text-gray-500 leading-relaxed">{picked.example.es}</p>
+          )}
           <div>
-            <p className="text-xs text-gray-400 mb-2">{result.reason}</p>
+            <p className="text-xs text-gray-500 mb-2">
+              Suggéré : {RATING_LABELS[result.rating]} · {result.reason} · Modifiez si nécessaire
+            </p>
             <div className="flex gap-2">
               {([1, 2, 3, 4] as const).map((r) => (
                 <button
                   key={r}
-                  onClick={() => handleRate(r)}
-                  className={`flex-1 rounded border py-1.5 text-xs ${r === result.rating ? 'bg-black text-white border-black' : 'text-gray-600 hover:border-gray-400'}`}
+                  onClick={() => setSelectedRating(r)}
+                  className={`flex-1 rounded border py-1.5 text-xs ${
+                    r === selectedRating
+                      ? 'bg-black text-white border-black'
+                      : 'text-gray-600 hover:border-gray-400'
+                  }`}
                 >
-                  {r === 1 ? 'À revoir' : r === 2 ? 'Difficile' : r === 3 ? 'Bien' : 'Facile'}
+                  {RATING_LABELS[r]}
                 </button>
               ))}
             </div>
+            <p className="text-xs text-gray-400 mt-2">Appuyez sur Entrée pour valider.</p>
           </div>
         </div>
       )}

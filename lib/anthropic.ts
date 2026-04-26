@@ -31,7 +31,7 @@ Rules:
   - Register: formal, informal, vulgar, literary.
   - Regional differences: Spain vs. Latin America (e.g. "bocadillo" = sandwich en Espagne, petite friandise en Amérique latine).
   - False friends with French (e.g. "embarazada" ≠ embarrassée — ça veut dire enceinte).
-- "examples": 2–3 natural, intermediate-level Spanish sentences, each with a fluent French translation. Real everyday usage, not textbook fillers.
+- "examples": 2–3 natural, intermediate-level Spanish sentences, each with a fluent French translation. Each sentence must include enough surrounding context that the target word is the only natural fit for the blank — not a close synonym or related word. Use specific imagery, actions, or situations that rule out semantic neighbours. Avoid generic frames where a related word could substitute (e.g. for "atardecer", "Nos sentamos a ver el atardecer mientras el sol se hundía en el mar" is good — the sinking sun rules out "amanecer"; "Vimos el atardecer" is too weak). The target word must appear verbatim in the Spanish sentence.
 - "distractors": exactly 3 Spanish words that are plausible wrong answers in a multiple-choice exercise. They must:
   - Be the same part of speech as the target word.
   - Come from the same semantic field and register.

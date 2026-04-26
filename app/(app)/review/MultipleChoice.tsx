@@ -1,7 +1,7 @@
 'use client'
 
 import type React from 'react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { computeRating, type RatingResult } from '@/lib/rating'
 import type { ReviewCard } from './page'
 
@@ -11,6 +11,13 @@ type Props = {
   // read here only inside event handlers — never during render.
   cardStartRef: React.RefObject<number>
   onRate: (rating: 1 | 2 | 3 | 4, timeMs: number, hintUsed: boolean) => void
+}
+
+const RATING_LABELS: Record<1 | 2 | 3 | 4, string> = {
+  1: 'À revoir',
+  2: 'Difficile',
+  3: 'Bien',
+  4: 'Facile',
 }
 
 function shuffle<T>(arr: T[], seed: number): T[] {
@@ -24,30 +31,52 @@ function shuffle<T>(arr: T[], seed: number): T[] {
   return a
 }
 
+// Derive a stable numeric seed from a UUID string — same value on server and client,
+// preventing React hydration mismatches from Math.random() in lazy initializers.
+function seedFromId(id: string): number {
+  return parseInt(id.replace(/-/g, '').slice(0, 8), 16) || id.charCodeAt(0)
+}
+
 export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
   const { word, definition, examples, distractors } = card
 
-  // Lazy initializers run once on mount, not on every render.
-  const [seed] = useState(() => (Math.random() * 1e9) | 0)
+  // Deterministic seed — stable across SSR and hydration.
+  const seed = useMemo(() => seedFromId(card.id), [card.id])
+
+  // Prompt chosen deterministically once: definition or masked example.
   const [prompt] = useState<
     { type: 'definition'; text: string } | { type: 'example'; es: string; fr: string }
   >(() => {
     if (examples.length === 0) return { type: 'definition', text: definition }
-    const useExample = Math.random() < 0.5
+    const useExample = seed % 2 === 0
     if (!useExample) return { type: 'definition', text: definition }
-    const ex = examples[(Math.random() * examples.length) | 0]
+    const ex = examples[seed % examples.length]
     const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     return { type: 'example', es: ex.es.replace(new RegExp(escaped, 'i'), '_____'), fr: ex.fr }
   })
 
-  // Stable shuffle across re-renders, using the seed captured at mount.
+  // Stable shuffle across re-renders, keyed on seed.
   const options = useMemo(() => shuffle([word, ...distractors], seed), [word, distractors, seed])
 
   const [chosen, setChosen] = useState<string | null>(null)
   const [result, setResult] = useState<RatingResult | null>(null)
-  // timeMs is frozen at pick so handleRate uses the correct elapsed time,
-  // not the time after the result has been displayed.
+  // selectedRating tracks the user's current choice (auto-set, then overridable).
+  const [selectedRating, setSelectedRating] = useState<1 | 2 | 3 | 4 | null>(null)
+  // timeMs frozen at pick — not recomputed when the user taps a rating.
   const [frozenTimeMs, setFrozenTimeMs] = useState(0)
+
+  // Enter key confirms the currently selected rating and advances.
+  useEffect(() => {
+    if (!result || selectedRating === null) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        onRate(selectedRating, frozenTimeMs, false)
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [result, selectedRating, frozenTimeMs, onRate])
 
   function handlePick(option: string) {
     if (result) return
@@ -58,10 +87,7 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
     setFrozenTimeMs(timeMs)
     const rating = computeRating({ correctWord: word, userAnswer: option, timeMs, hintUsed: false, mode: 'mc' })
     setResult(rating)
-  }
-
-  function handleRate(override?: 1 | 2 | 3 | 4) {
-    onRate(override ?? result!.rating, frozenTimeMs, false)
+    setSelectedRating(rating.rating)
   }
 
   function optionStyle(option: string): string {
@@ -95,18 +121,25 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
 
       {result && (
         <div>
-          <p className="text-xs text-gray-400 mb-2">{result.reason}</p>
+          <p className="text-xs text-gray-500 mb-2">
+            Suggéré : {RATING_LABELS[result.rating]} · {result.reason} · Modifiez si nécessaire
+          </p>
           <div className="flex gap-2">
             {([1, 2, 3, 4] as const).map((r) => (
               <button
                 key={r}
-                onClick={() => handleRate(r)}
-                className={`flex-1 rounded border py-1.5 text-xs ${r === result.rating ? 'bg-black text-white border-black' : 'text-gray-600 hover:border-gray-400'}`}
+                onClick={() => setSelectedRating(r)}
+                className={`flex-1 rounded border py-1.5 text-xs ${
+                  r === selectedRating
+                    ? 'bg-black text-white border-black'
+                    : 'text-gray-600 hover:border-gray-400'
+                }`}
               >
-                {r === 1 ? 'À revoir' : r === 2 ? 'Difficile' : r === 3 ? 'Bien' : 'Facile'}
+                {RATING_LABELS[r]}
               </button>
             ))}
           </div>
+          <p className="text-xs text-gray-400 mt-2">Appuyez sur Entrée pour valider.</p>
         </div>
       )}
     </div>
