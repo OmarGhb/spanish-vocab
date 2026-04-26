@@ -10,6 +10,7 @@ export default function AddPage() {
   const [result, setResult] = useState<WordResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [revealed, setRevealed] = useState<boolean[]>([])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -32,6 +33,7 @@ export default function AddPage() {
     }
 
     setResult(data)
+    setRevealed(new Array(data.examples.length).fill(false))
     setLoading(false)
   }
 
@@ -39,6 +41,7 @@ export default function AddPage() {
     setWord('')
     setResult(null)
     setError(null)
+    setRevealed([])
   }
 
   return (
@@ -54,7 +57,7 @@ export default function AddPage() {
               value={word}
               onChange={(e) => setWord(e.target.value)}
               required
-              className="border rounded px-3 py-2 text-sm"
+              className="border rounded px-3 py-2 text-sm placeholder:text-gray-500"
             />
             {error && <p className="text-red-600 text-sm">{error}</p>}
             <button
@@ -69,7 +72,7 @@ export default function AddPage() {
           <div className="flex flex-col gap-6">
             <div>
               <h2 className="text-xl font-semibold text-gray-900">{result.word}</h2>
-              <p className="mt-2 text-gray-700 text-sm leading-relaxed">{result.definition}</p>
+              <p className="mt-2 text-gray-700 text-sm leading-relaxed font-serif">{result.definition}</p>
             </div>
             <div>
               <h3 className="font-medium mb-3 text-sm uppercase tracking-wide text-gray-500">
@@ -78,8 +81,18 @@ export default function AddPage() {
               <ul className="flex flex-col gap-4">
                 {result.examples.map((ex, i) => (
                   <li key={i} className="border-l-2 border-gray-200 pl-4">
-                    <p className="font-medium text-sm">{ex.es}</p>
-                    <p className="text-gray-500 text-sm mt-0.5">{ex.fr}</p>
+                    <p className="font-serif text-sm text-gray-700">{ex.fr}</p>
+                    {revealed[i] ? (
+                      <p className="font-serif font-medium text-sm text-gray-900 mt-1">{ex.es}</p>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setRevealed((prev) => prev.map((v, j) => (j === i ? true : v)))}
+                        className="text-xs text-gray-400 mt-1 hover:text-gray-600"
+                      >
+                        Voir l&apos;original
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>
