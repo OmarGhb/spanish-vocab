@@ -38,11 +38,14 @@ function pickExample(card: ReviewCard) {
     const ex = examples[(start + i) % examples.length]
     const masked = maskSentence(ex.es, word)
     if (masked !== null) return { example: ex, masked }
+    // [diagnostic] remove once masking is confirmed working
+    console.log(`[mask] miss — word="${word}" es="${ex.es}" fr="${ex.fr}"`)
   }
 
-  // Fix #6 verification: if we reach here, none of the examples matched even
-  // via stem. This should not happen for "El amanecer en las montañas…" since
-  // strategy 1 (exact case-insensitive) catches verbatim occurrences.
+  // If we reach here no example contained the word (or a 4-char stem match).
+  // Likely cause: examples were generated before the updated prompt required
+  // the target word to appear verbatim. Re-adding the word will fix it.
+  console.log(`[mask] all examples failed for word="${word}" — falling back to definition`)
   return null
 }
 
