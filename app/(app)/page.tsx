@@ -11,96 +11,128 @@ function statusLabel(reps: number, due: string): string {
   return `Dans ${daysUntil}j`
 }
 
-function labelClass(label: string): string {
-  if (label === 'Nouvelle') return 'bg-tint text-accent'
-  if (label === 'À réviser') return 'bg-err/10 text-err'
-  return 'border border-line text-muted'
-}
-
 export default async function HomePage() {
   const supabase = await createClient()
 
-  const [{ count: wordCount }, { count: dueCount }, { data: cards }] = await Promise.all([
-    supabase.from('words').select('*', { count: 'exact', head: true }),
-    supabase
-      .from('review_cards')
-      .select('*', { count: 'exact', head: true })
-      .lte('due', new Date().toISOString()),
-    supabase
-      .from('review_cards')
-      .select('reps, due, words(id, word, definition)')
-      .order('due', { ascending: true })
-      .limit(50),
-  ])
+  const [{ count: wordCount }, { count: dueCount }, { count: newCount }, { data: cards }] =
+    await Promise.all([
+      supabase.from('words').select('*', { count: 'exact', head: true }),
+      supabase
+        .from('review_cards')
+        .select('*', { count: 'exact', head: true })
+        .lte('due', new Date().toISOString()),
+      supabase
+        .from('review_cards')
+        .select('*', { count: 'exact', head: true })
+        .eq('reps', 0),
+      supabase
+        .from('review_cards')
+        .select('reps, due, words(id, word, definition)')
+        .order('due', { ascending: true })
+        .limit(50),
+    ])
 
   const entries = (cards ?? []).map((c) => {
     const w = c.words as unknown as WordRow
-    return {
-      id: w.id,
-      word: w.word,
-      definition: w.definition,
-      label: statusLabel(c.reps as number, c.due as string),
-    }
+    const reps = c.reps as number
+    const label = statusLabel(reps, c.due as string)
+    return { id: w.id, word: w.word, definition: w.definition, label, reps }
   })
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      {/* Header */}
-      <div>
-        <h1 className="font-serif text-2xl text-ink">Vocabulario</h1>
-        <p className="text-sm text-muted mt-1">es → fr</p>
-        <p className="text-xs text-muted mt-0.5">{wordCount ?? 0} mots enregistrés</p>
-      </div>
-
-      {/* Due banner */}
-      {(dueCount ?? 0) > 0 ? (
-        <Link
-          href="/review"
-          className="bg-err/10 border border-err/20 rounded-card px-5 py-4 block"
-        >
-          <p className="text-xs text-err uppercase tracking-wide mb-1">Révision disponible</p>
-          <p className="font-serif text-xl text-err">
-            {dueCount} mot{(dueCount ?? 0) !== 1 ? 's' : ''} à revoir
-          </p>
-        </Link>
-      ) : (
-        <div className="bg-ok/10 border border-ok/20 rounded-card px-5 py-4">
-          <p className="text-xs text-ok uppercase tracking-wide mb-1">À jour</p>
-          <p className="font-serif text-base text-ok">Aucune révision en attente.</p>
-        </div>
-      )}
-
-      {/* Word list */}
-      {entries.length > 0 ? (
+    <div className="flex flex-col min-h-screen">
+      {/* Scrollable content */}
+      <div className="flex-1 p-5 flex flex-col gap-5">
+        {/* Header */}
         <div>
-          <p className="text-xs uppercase tracking-wide text-muted mb-3">Mes mots</p>
+          <div className="flex items-baseline gap-2">
+            <h1 className="font-serif text-2xl font-bold text-ink">Vocabulario</h1>
+            <span className="text-sm text-muted">es → fr</span>
+          </div>
+          <p className="text-sm text-muted mt-1">{wordCount ?? 0} mots enregistrés</p>
+        </div>
+
+        {/* Due banner */}
+        {(dueCount ?? 0) > 0 ? (
+          <Link
+            href="/review"
+            className="bg-err/10 border border-err/30 rounded-card px-5 py-4 flex justify-between items-center"
+          >
+            <div>
+              <p className="text-xs text-err uppercase tracking-wide font-semibold mb-1">
+                Révision disponible
+              </p>
+              <p className="font-serif text-xl text-err">
+                {dueCount} mot{(dueCount ?? 0) !== 1 ? 's' : ''} à revoir
+              </p>
+            </div>
+            <span className="text-err text-xl">→</span>
+          </Link>
+        ) : (
+          <div className="bg-ok/10 border border-ok/20 rounded-card px-5 py-4">
+            <p className="text-xs text-ok uppercase tracking-wide font-semibold mb-1">À jour</p>
+            <p className="font-serif text-base text-ok">Aucune révision en attente.</p>
+          </div>
+        )}
+
+        {/* Word list */}
+        {entries.length > 0 ? (
           <ul className="flex flex-col gap-2">
             {entries.map((e) => {
-              const badge = labelClass(e.label)
+              const isOverdue = e.label === 'À réviser'
               return (
                 <li key={e.id} className="bg-card rounded-card shadow-card px-4 py-3">
                   <div className="flex justify-between items-start gap-3">
-                    <p className="font-serif text-sm font-medium text-ink">{e.word}</p>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 ${badge}`}>
-                      {e.label}
-                    </span>
+                    <div className="min-w-0">
+                      <p className="font-serif text-sm font-bold text-ink">{e.word}</p>
+                      <p className="text-xs text-muted mt-0.5 line-clamp-1">{e.definition}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className={`text-xs font-semibold uppercase tracking-wide ${isOverdue ? 'text-err' : 'text-muted'}`}>
+                        {e.label}
+                      </p>
+                      {e.reps > 0 && (
+                        <p className="text-[10px] text-muted mt-0.5">
+                          {e.reps} révision{e.reps > 1 ? 's' : ''}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-xs text-muted mt-0.5 line-clamp-1">{e.definition}</p>
                 </li>
               )
             })}
           </ul>
-        </div>
-      ) : (
-        <div className="bg-card rounded-card shadow-card p-6 text-center">
-          <p className="text-sm text-muted mb-3">
-            Aucun mot encore — commencez par en ajouter un.
-          </p>
-          <Link href="/add" className="text-sm text-accent">
-            Ajouter un mot →
+        ) : (
+          <div className="bg-card rounded-card shadow-card p-6 text-center">
+            <p className="text-sm text-muted">
+              Aucun mot encore — commencez par en ajouter un.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Pinned bottom actions */}
+      <div className="p-4 flex flex-col gap-2 border-t border-line bg-page">
+        <div className="flex gap-3">
+          {(dueCount ?? 0) > 0 && (
+            <Link
+              href="/review"
+              className="flex-[2] border border-line rounded-card py-3.5 text-sm text-center font-serif text-ink"
+            >
+              Réviser ({dueCount})
+            </Link>
+          )}
+          <Link
+            href="/add"
+            className={`${(dueCount ?? 0) > 0 ? 'flex-[3]' : 'flex-1'} bg-accent text-white rounded-card py-3.5 text-sm text-center font-serif`}
+          >
+            + Ajouter un mot
           </Link>
         </div>
-      )}
+        <Link href="/discover" className="text-sm text-center text-muted py-1 font-serif">
+          Découvrir {newCount ?? 0} mot{(newCount ?? 0) !== 1 ? 's' : ''} →
+        </Link>
+      </div>
     </div>
   )
 }

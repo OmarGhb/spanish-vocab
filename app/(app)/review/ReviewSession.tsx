@@ -48,20 +48,27 @@ export default function ReviewSession({ cards }: Props) {
 
   if (done) {
     return (
-      <div className="px-5 flex items-center justify-center min-h-[70vh]">
-        <div className="bg-card rounded-card shadow-card p-8 text-center flex flex-col gap-4 w-full">
-          <p className="font-serif text-xl text-ink">Bonne session !</p>
-          <p className="text-sm text-muted">
+      <div className="flex flex-col items-center justify-center min-h-screen px-5 gap-6 text-center">
+        <span className="text-accent text-5xl leading-none">✓</span>
+        <div>
+          <p className="font-serif text-2xl font-bold text-ink">Révision terminée.</p>
+          <p className="text-sm text-muted mt-2">
             {cards.length} carte{cards.length > 1 ? 's' : ''} révisée{cards.length > 1 ? 's' : ''}.
           </p>
-          <div className="flex flex-col gap-2 pt-2">
-            <Link href="/" className="bg-accent text-white text-sm rounded-lg px-4 py-2.5 text-center">
-              Retour à l&apos;accueil
-            </Link>
-            <Link href="/add" className="text-sm text-muted hover:text-ink">
-              Ajouter un mot
-            </Link>
-          </div>
+        </div>
+        <div className="w-full flex flex-col gap-3">
+          <Link
+            href="/add"
+            className="block bg-accent text-white rounded-card py-4 font-serif text-sm text-center"
+          >
+            + Ajouter un mot
+          </Link>
+          <Link
+            href="/"
+            className="block border border-line rounded-card py-4 font-serif text-sm text-center text-ink"
+          >
+            ← Accueil
+          </Link>
         </div>
       </div>
     )

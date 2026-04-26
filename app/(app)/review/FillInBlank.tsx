@@ -130,18 +130,19 @@ export default function FillInBlank({ card, cardStartRef, onRate }: Props) {
               <button
                 type="button"
                 onClick={handleHint}
-                className="col-span-1 text-sm text-ink border border-line rounded-card py-4 bg-card"
+                className="col-span-1 font-serif text-sm text-ink border border-line rounded-card py-4 bg-card"
               >
                 Indice
               </button>
             ) : (
-              <span className="col-span-1 flex items-center justify-center text-sm text-muted border border-line rounded-card py-4 bg-card">
+              <span className="col-span-1 flex items-center justify-center font-serif text-sm text-muted border border-line rounded-card py-4 bg-card">
                 {word[0]}…
               </span>
             )}
             <button
               type="submit"
-              className="col-span-2 bg-accent text-white rounded-card py-4 text-sm font-medium"
+              disabled={!answer.trim()}
+              className="col-span-2 font-serif bg-accent text-white rounded-card py-4 text-sm disabled:opacity-40 transition-opacity"
             >
               Valider →
             </button>
@@ -149,24 +150,27 @@ export default function FillInBlank({ card, cardStartRef, onRate }: Props) {
         </form>
       ) : (
         <div className="flex flex-col gap-4">
-          {/* Always show both the user's answer and the correct answer side-by-side. */}
-          <div className="bg-card rounded-card shadow-card p-5 flex gap-6 text-sm">
+          {/* Correct / incorrect feedback card */}
+          <div
+            className={`rounded-card p-4 flex items-center gap-3 border ${
+              isCorrect ? 'bg-ok/10 border-ok/25' : 'bg-err/10 border-err/20'
+            }`}
+          >
+            <span className={`text-lg leading-none ${isCorrect ? 'text-ok' : 'text-err'}`}>
+              {isCorrect ? '✓' : '✗'}
+            </span>
             <div>
-              <p className="text-xs uppercase tracking-wide text-muted mb-1">Votre réponse</p>
-              <p className={`font-serif font-medium ${isCorrect ? 'text-ok' : 'text-err'}`}>
-                {answer || '—'}
+              <p className={`font-serif font-medium text-sm ${isCorrect ? 'text-ok' : 'text-err'}`}>
+                {isCorrect ? 'Correct !' : 'Incorrect'}
               </p>
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-wide text-muted mb-1">Correct</p>
-              <p className="font-serif font-medium text-ink">{word}</p>
+              {!isCorrect && (
+                <p className="text-xs text-muted mt-0.5">
+                  Réponse :{' '}
+                  <span className="font-medium text-ink">{word}</span>
+                </p>
+              )}
             </div>
           </div>
-          {picked && (
-            <p className="font-serif italic text-sm text-muted leading-relaxed px-1">
-              {picked.example.es}
-            </p>
-          )}
           <RatingButtons result={result} selectedRating={selectedRating} onSelect={setSelectedRating} />
         </div>
       )}

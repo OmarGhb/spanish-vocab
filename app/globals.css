@@ -10,7 +10,7 @@
   --color-ink:    oklch(0.22 0.04   55);
   --color-muted:  oklch(0.50 0.04   55);
   --color-line:   oklch(0.86 0.04   75);
-  --color-accent: oklch(0.50 0.15   20);
+  --color-accent: oklch(0.40 0.20   20);
   --color-tint:   oklch(0.94 0.05   20);
   --color-ok:     oklch(0.50 0.17  145);
   --color-err:    oklch(0.50 0.18   10);
