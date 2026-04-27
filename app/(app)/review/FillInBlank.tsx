@@ -52,8 +52,6 @@ export default function FillInBlank({ card, cardStartRef, onRate }: Props) {
   const [answer, setAnswer] = useState('')
   const [hintUsed, setHintUsed] = useState(false)
   const [result, setResult] = useState<RatingResult | null>(null)
-  // selectedRating tracks the user's current choice (auto-set, then overridable).
-  const [selectedRating, setSelectedRating] = useState<1 | 2 | 3 | 4 | null>(null)
   // timeMs frozen at submit — not recomputed when the user taps a rating.
   const [frozenTimeMs, setFrozenTimeMs] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -61,19 +59,6 @@ export default function FillInBlank({ card, cardStartRef, onRate }: Props) {
   useEffect(() => {
     inputRef.current?.focus()
   }, [])
-
-  // Enter key confirms the currently selected rating and advances.
-  useEffect(() => {
-    if (!result || selectedRating === null) return
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Enter') {
-        e.preventDefault()
-        onRate(selectedRating, frozenTimeMs, hintUsed)
-      }
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [result, selectedRating, frozenTimeMs, hintUsed, onRate])
 
   function handleHint() {
     setHintUsed(true)
@@ -87,7 +72,6 @@ export default function FillInBlank({ card, cardStartRef, onRate }: Props) {
     setFrozenTimeMs(timeMs)
     const rating = computeRating({ correctWord: word, userAnswer: answer, timeMs, hintUsed, mode: 'blank' })
     setResult(rating)
-    setSelectedRating(rating.rating)
   }
 
   const isCorrect = answer.trim().toLowerCase() === word.trim().toLowerCase()
@@ -171,7 +155,7 @@ export default function FillInBlank({ card, cardStartRef, onRate }: Props) {
               )}
             </div>
           </div>
-          <RatingButtons result={result} selectedRating={selectedRating} onSelect={setSelectedRating} />
+          <RatingButtons result={result} onRate={(r) => onRate(r, frozenTimeMs, hintUsed)} />
         </div>
       )}
     </div>

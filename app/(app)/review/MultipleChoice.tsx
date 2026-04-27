@@ -1,7 +1,7 @@
 'use client'
 
 import type React from 'react'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { computeRating, type RatingResult } from '@/lib/rating'
 import type { ReviewCard } from './page'
 import RatingButtons from './RatingButtons'
@@ -54,23 +54,8 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
 
   const [chosen, setChosen] = useState<string | null>(null)
   const [result, setResult] = useState<RatingResult | null>(null)
-  // selectedRating tracks the user's current choice (auto-set, then overridable).
-  const [selectedRating, setSelectedRating] = useState<1 | 2 | 3 | 4 | null>(null)
   // timeMs frozen at pick — not recomputed when the user taps a rating.
   const [frozenTimeMs, setFrozenTimeMs] = useState(0)
-
-  // Enter key confirms the currently selected rating and advances.
-  useEffect(() => {
-    if (!result || selectedRating === null) return
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Enter') {
-        e.preventDefault()
-        onRate(selectedRating, frozenTimeMs, false)
-      }
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [result, selectedRating, frozenTimeMs, onRate])
 
   function handlePick(option: string) {
     if (result) return
@@ -81,7 +66,6 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
     setFrozenTimeMs(timeMs)
     const rating = computeRating({ correctWord: word, userAnswer: option, timeMs, hintUsed: false, mode: 'mc' })
     setResult(rating)
-    setSelectedRating(rating.rating)
   }
 
   function optionStyle(option: string): string {
@@ -114,7 +98,7 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
       </div>
 
       {result && (
-        <RatingButtons result={result} selectedRating={selectedRating} onSelect={setSelectedRating} />
+        <RatingButtons result={result} onRate={(r) => onRate(r, frozenTimeMs, false)} />
       )}
     </div>
   )

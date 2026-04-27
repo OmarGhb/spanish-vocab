@@ -15,11 +15,11 @@
   --color-ok:     oklch(0.50 0.17  145);
   --color-err:    oklch(0.50 0.18   10);
 
-  /* Rating buttons — Anki convention (darkest = hardest) */
-  --color-again:  oklch(0.50 0.18   10);
-  --color-hard:   oklch(0.55 0.14   55);
-  --color-good:   oklch(0.48 0.16  240);
-  --color-easy:   oklch(0.50 0.17  145);
+  /* Rating buttons — same-hue rose gradation (dark → light) */
+  --color-again:  oklch(0.68 0.12   20);
+  --color-hard:   oklch(0.76 0.09   20);
+  --color-good:   oklch(0.83 0.06   20);
+  --color-easy:   oklch(0.90 0.03   20);
 
   /* Card chrome */
   --radius-card:  12px;
