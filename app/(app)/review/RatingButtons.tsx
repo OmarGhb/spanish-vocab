@@ -32,8 +32,10 @@ export default function RatingButtons({ result, onRate }: Props) {
           <button
             key={r}
             onClick={() => onRate(r)}
-            className={`flex-1 rounded-lg py-3 text-xs font-semibold text-ink transition-opacity ${BG[r]} ${
-              r === result.rating ? 'opacity-100' : 'opacity-70'
+            className={`flex-1 rounded-lg py-3 text-xs font-semibold text-ink transition-all ${BG[r]} ${
+              r === result.rating
+                ? 'opacity-100 ring-2 ring-ink/30 ring-offset-1'
+                : 'opacity-55'
             }`}
           >
             {LABELS[r]}

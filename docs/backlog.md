@@ -49,3 +49,26 @@ Words added before milestone 4's prompt update may have weak examples that the m
 - **Word detail view:** /words/[id] route or modal for the DefinitionCard component.
 - **Session streak / XP counters** mentioned in design chat — defer until we have real usage data on whether they help.
 - **Search / filter** on word list.
+
+## Captured during milestone 5 (design implementation)
+
+### Add distractors directly from the word detail view
+In the "Mots similaires" section of the add/detail screen, each distractor word should be tappable. Selecting one (or all via "Tout sélectionner") reveals an "Ajouter ces mots" button that adds them to the deck in one tap — no need to retype each one manually.
+
+### Slow enrichment response time
+The round-trip from submitting a word to seeing the definition card takes several seconds (Anthropic API latency). Possible mitigations:
+- Streaming: start rendering definition token-by-token as soon as the first chunk arrives
+- Optimistic skeleton UI: show placeholder cards immediately on submit so the page doesn't feel frozen
+- Server-side caching: if the word was already enriched for another user, reuse the result
+
+### Auto-suggest as the user types
+When the user has typed ≥ 2–3 characters in the "Nouveau mot" input, show a dropdown of matching Spanish words (from a local dictionary or an API). Tapping a suggestion fills the input. Goal: reduce typing friction + catch the canonical lemma before submitting.
+
+### New game modes
+Beyond fill-in-blank and MCQ, future exercise types to consider:
+- **Write a sentence**: given a word, user types a full original sentence using it; Claude scores it
+- **Reorder words**: a shuffled set of word tiles, user drags them into the correct sentence order
+- **Crosswords**: classic crossword grid generated from the user's deck
+
+### Game mode selection in Settings
+Add a Settings screen where the user can toggle which game modes appear during review sessions (e.g., enable/disable fill-in-blank, MCQ, write-a-sentence, reorder). Stored as a user preference in Supabase.
