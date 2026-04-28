@@ -1,31 +1,43 @@
+# Backlog
+
 > Items here are not yet scheduled. Committed work lives in `docs/roadmap.md`.
 > When a backlog item is promoted to a milestone, it moves out of this file.
 
-# Backlog
+## Word list improvements
+- Pagination: show 10 newest by default, "Voir plus" button or infinite scroll. Important at 50+ words.
+- Swipe-to-delete/archive: requires a swipeable-list approach + an `archived` flag in schema.
+- Search/filter on word list. Matters at 200+ words.
+- Smarter truncation of definition preview: truncate at sentence boundary or first clause, not arbitrary character count.
 
-Captured product ideas, ranked by milestone they might land in.
-Don't act on any of these — just preserve them.
+## Status indicators (bundles with M3 two-step confirm)
+- Status tag on word entries: "Déjà ajouté" / "En cours d'apprentissage" / "Pas dans votre vocabulaire" — at top of definition card.
+- "Récemment ajouté via mots similaires" tag for distinguishing bulk-added words from manual adds.
 
-## Post-v1 (after review loop is solid)
+## Bulk add follow-ups
+- Per-word definition preview: small (i) tooltip on each distractor showing a 1-line meaning before adding.
+- Per-word failure UX: when partial-success happens (2 of 3 succeed), show which specific word failed.
 
-### Lemma normalization
-"alguna" → suggest "alguno"; "comieron" → suggest "comer"
-Same UX as spelling correction: candidates + user confirms.
+## Review experience
+- Skip rating for trusted suggestions: if user accepts the auto-rating 5+ times in a row, offer a "trust suggestions" toggle.
+- Keyboard shortcuts: 1/2/3/4 for ratings, H for hint, Enter to confirm.
+- Auto-suggest while typing on /add: dropdown of matching Spanish words after 2-3 chars.
 
-## Captured during milestone 4 + design planning
+## Onboarding
+- First-time user flow: empty state on home + guidance to add their first word.
+- Empty state for /review when no cards exist.
+- Email verification on signup (currently disabled in Supabase).
 
-### From milestone 4 QA findings
-- **Lemma normalization:** "alguna" → suggest "alguno"; "comieron" → suggest "comer". Same UX as spelling correction.
-- **Spanish-first definitions for MCQ:** show definition in Spanish, user can click "Voir en français" (counts as a hint, downgrades rating). Requires generating both languages + schema migration.
-- **Keyboard shortcuts in review:** 1/2/3/4 for rating buttons, H for hint, Enter to confirm.
-- **Mobile review polish** — deferred until app is deployed publicly (Vercel).
+## Mobile UX polish
+- `select-none` on transient toast text to prevent accidental text-selection.
+- Mobile review polish (deferred from milestone 4).
 
-### From the design integration milestone
-- **Real wiring for Discovery mode:** swipe gesture logic, recording "known" / "to learn" state, schema decision on which table records this.
-- **Session streak / XP counters** mentioned in design chat — defer until we have real usage data on whether they help.
-- **Search / filter** on word list.
+## Data hygiene
+- Clean up the duplicate "regañar" entries (specific instance — separate from generic M3 duplicate handling).
+- Ensure M3 backfill covers existing weak-example words: alguna, soler, amenecer.
 
-## Captured during milestone 5 (design implementation)
+## Gamification (defer aggressively)
+- Session streak / XP counters.
+- Game mode selection in Settings.
 
-### Auto-suggest as the user types
-When the user has typed ≥ 2–3 characters in the "Nouveau mot" input, show a dropdown of matching Spanish words (from a local dictionary or an API). Tapping a suggestion fills the input. Goal: reduce typing friction + catch the canonical lemma before submitting.
+## i18n / future direction
+- Support languages other than Spanish (the architecture is mostly language-agnostic but the Anthropic prompt is Spanish-specific).
