@@ -1,19 +1,23 @@
 'use client'
 
+import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
-import IdiomCardPlaceholder from './IdiomCardPlaceholder'
+import IdiomCard from './IdiomCard'
+import { getRandomIdiom } from '@/lib/idioms'
 
 type Props = {
   status: 'loading' | 'ready' | 'error'
   onReveal: () => void
   onRetry: () => void
-  errorMessage?: string
 }
 
 export default function LoadingIdiom({ status, onReveal, onRetry }: Props) {
+  // Picked once on mount — stable for the entire loading session for this word.
+  const [idiom] = useState(() => getRandomIdiom())
+
   return (
     <div className="flex flex-col gap-5 p-5">
-      <IdiomCardPlaceholder />
+      <IdiomCard idiom={idiom} />
 
       <div className="bg-card rounded-card shadow-card p-5">
         {status === 'loading' && (

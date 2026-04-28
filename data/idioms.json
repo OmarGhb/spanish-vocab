@@ -1,0 +1,82 @@
+[
+  {
+    "id": "eramos-pocos",
+    "phrase": "Éramos pocos y parió la abuela",
+    "literal": "There were few of us and grandma gave birth",
+    "meaning": "Comme si ça ne suffisait pas… / Et il ne manquait plus que ça !",
+    "explanation": "Utilisé quand une situation déjà compliquée empire d'un coup. Le ton est ironique, presque résigné — jamais littéral. Image absurde d'une famille déjà nombreuse à laquelle s'ajoute un nouveau membre par surprise. Très courant en Espagne et en Amérique latine, dans la conversation quotidienne.",
+    "origin": ["universal"]
+  },
+  {
+    "id": "estar-como-cabra",
+    "phrase": "Estar como una cabra",
+    "literal": "Être comme une chèvre",
+    "meaning": "Être complètement fou, déjanté",
+    "explanation": "Vient des chèvres de montagne espagnoles, qui sautent de manière apparemment imprévisible sur des falaises impossibles. L'expression est presque toujours affectueuse — utilisée pour décrire quelqu'un d'excentrique ou d'imprévisible, rarement comme une vraie insulte. Équivalent du français « être barjo ».",
+    "origin": ["es"]
+  },
+  {
+    "id": "no-tener-pelos",
+    "phrase": "No tener pelos en la lengua",
+    "literal": "Ne pas avoir de poils sur la langue",
+    "meaning": "Dire les choses franchement, sans détour",
+    "explanation": "Dire ce qu'on pense sans filtre. L'image suggère qu'avoir des « poils sur la langue » empêcherait de parler clairement — donc ne pas en avoir, c'est ne rien retenir. Compliment ou critique selon le contexte : « habla sin pelos en la lengua » peut être admiratif ou alarmant.",
+    "origin": ["universal"]
+  },
+  {
+    "id": "tomar-pelo",
+    "phrase": "Tomar el pelo a alguien",
+    "literal": "Prendre le cheveu à quelqu'un",
+    "meaning": "Se moquer de quelqu'un, le faire marcher",
+    "explanation": "Plaisanter aux dépens de quelqu'un, gentiment. « ¿Me estás tomando el pelo? » = « Tu te moques de moi ? ». L'origine est obscure — possiblement liée à de vieilles plaisanteries de barbier. Utilisé partout dans le monde hispanophone, dans des contextes plutôt légers.",
+    "origin": ["universal"]
+  },
+  {
+    "id": "ponerse-las-pilas",
+    "phrase": "Ponerse las pilas",
+    "literal": "Se mettre les piles",
+    "meaning": "S'y mettre sérieusement, se bouger",
+    "explanation": "Comme un appareil qui s'allume quand on insère les piles. « Ponte las pilas » = « réveille-toi, concentre-toi, sois efficace ». Très courant chez les profs, parents et chefs. Utilisé partout du Mexique à l'Argentine, plus rare en Espagne où on dirait plutôt « espabilar ».",
+    "origin": ["latam"]
+  },
+  {
+    "id": "echar-agua-mar",
+    "phrase": "Echar agua al mar",
+    "literal": "Jeter de l'eau à la mer",
+    "meaning": "Faire quelque chose d'inutile",
+    "explanation": "Action absolument futile, gaspillage d'effort. Equivalent du français « pisser dans un violon ». Souvent utilisé pour décrire des conseils donnés à quelqu'un qui n'écoutera jamais, ou un travail qui ne servira à rien.",
+    "origin": ["universal"]
+  },
+  {
+    "id": "estar-en-bolas",
+    "phrase": "Estar en bolas",
+    "literal": "Être en boules",
+    "meaning": "Être tout nu",
+    "explanation": "Argot pour « tout nu ». Très courant en Espagne, plus rare et parfois vulgaire en Amérique latine où on préférera « estar desnudo ». Attention au contexte — c'est familier, à ne pas utiliser au travail ou avec des inconnus. Idéal pour comprendre les blagues entre amis.",
+    "origin": ["es"]
+  },
+  {
+    "id": "ser-pan-comido",
+    "phrase": "Ser pan comido",
+    "literal": "Être du pain mangé",
+    "meaning": "Être très facile, du gâteau",
+    "explanation": "Quelque chose de trivial, sans difficulté. Équivalent exact du français « c'est du gâteau » ou de l'anglais « piece of cake » — sauf que les Espagnols préfèrent le pain. Utilisé partout dans le monde hispanophone, dans tous les registres.",
+    "origin": ["universal"]
+  },
+  {
+    "id": "hablar-por-codos",
+    "phrase": "Hablar por los codos",
+    "literal": "Parler par les coudes",
+    "meaning": "Parler sans arrêt, être bavard",
+    "explanation": "Décrit quelqu'un qui parle énormément, parfois trop. L'origine viendrait de l'idée que la personne parle tellement qu'elle gesticule jusqu'à parler « par les coudes ». Souvent dit avec une affection légèrement exaspérée — réservé aux gens qu'on aime bien malgré tout.",
+    "origin": ["universal"]
+  },
+  {
+    "id": "buscar-tres-pies",
+    "phrase": "Buscarle tres pies al gato",
+    "literal": "Chercher trois pieds au chat",
+    "meaning": "Chercher midi à quatorze heures",
+    "explanation": "Compliquer une situation simple inutilement. Le chat a quatre pattes — chercher la troisième est aussi absurde que créer un problème là où il n'y en a pas. Utilisé quand quelqu'un sur-analyse une situation. Cervantes utilise déjà l'expression dans Don Quichotte (1605), donc elle est ancienne et bien ancrée.",
+    "origin": ["es"]
+  }
+]
