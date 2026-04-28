@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import { Loader2 } from 'lucide-react'
 import LoadingIdiom from './LoadingIdiom'
 
 type Example = { es: string; fr: string }
@@ -19,6 +20,8 @@ type Phase =
   | { tag: 'error'; word: string }
   | { tag: 'revealed'; result: WordResult }
 
+type AddStatus = 'idle' | 'adding' | 'done'
+
 function highlightWord(sentence: string, word: string): React.ReactNode {
   const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   const regex = new RegExp(`(${escaped})`, 'i')
@@ -34,10 +37,22 @@ function highlightWord(sentence: string, word: string): React.ReactNode {
   )
 }
 
+function addSummaryMessage(added: number, failed: number): string {
+  const s = (n: number) => (n > 1 ? 's' : '')
+  if (failed === 0) return `${added} mot${s(added)} ajouté${s(added)} à votre vocabulaire.`
+  if (added === 0) return `Erreur — aucun mot ajouté.`
+  return `${added} mot${s(added)} ajouté${s(added)}, ${failed} erreur${s(failed)}.`
+}
+
 export default function AddPage() {
   const [word, setWord] = useState('')
   const [phase, setPhase] = useState<Phase>({ tag: 'idle' })
   const [revealedFr, setRevealedFr] = useState<boolean[]>([])
+
+  // Distractor selection state
+  const [selectedDistractors, setSelectedDistractors] = useState<Set<string>>(new Set())
+  const [addStatus, setAddStatus] = useState<AddStatus>('idle')
+  const [addSummary, setAddSummary] = useState<{ added: number; failed: number } | null>(null)
 
   // Holds the active AbortController so the useEffect cleanup can cancel it on unmount.
   const abortRef = useRef<AbortController | null>(null)
@@ -96,10 +111,53 @@ export default function AddPage() {
     setWord('')
     setPhase({ tag: 'idle' })
     setRevealedFr([])
+    setSelectedDistractors(new Set())
+    setAddStatus('idle')
+    setAddSummary(null)
   }
 
   function toggleFr(i: number) {
     setRevealedFr((prev) => prev.map((v, j) => (j === i ? !v : v)))
+  }
+
+  function handleToggleDistractor(d: string) {
+    setSelectedDistractors((prev) => {
+      const next = new Set(prev)
+      if (next.has(d)) next.delete(d)
+      else next.add(d)
+      return next
+    })
+  }
+
+  function handleToggleAll(distractors: string[]) {
+    const allSelected = distractors.every((d) => selectedDistractors.has(d))
+    setSelectedDistractors(allSelected ? new Set() : new Set(distractors))
+  }
+
+  async function handleAddDistractors() {
+    const words = Array.from(selectedDistractors)
+    setAddStatus('adding')
+
+    let added = 0
+    let failed = 0
+
+    for (const w of words) {
+      try {
+        const res = await fetch('/api/words', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ word: w }),
+        })
+        if (res.ok) added++
+        else failed++
+      } catch {
+        failed++
+      }
+    }
+
+    setSelectedDistractors(new Set())
+    setAddSummary({ added, failed })
+    setAddStatus('done')
   }
 
   // ── IDLE ────────────────────────────────────────────────────────────────────
@@ -161,6 +219,9 @@ export default function AddPage() {
 
   // ── REVEALED ────────────────────────────────────────────────────────────────
   const result = phase.result
+  const allSelected =
+    result.distractors.length > 0 && result.distractors.every((d) => selectedDistractors.has(d))
+  const selectionCount = selectedDistractors.size
 
   return (
     <div className="flex flex-col min-h-screen pb-16">
@@ -210,38 +271,105 @@ export default function AddPage() {
         {/* MOTS SIMILAIRES */}
         {result.distractors.length > 0 && (
           <div className="bg-card rounded-card shadow-card p-5">
-            <p className="text-xs uppercase tracking-widest text-muted mb-3">
-              Mots similaires à ne pas confondre
+            {/* Header row */}
+            <div className="flex justify-between items-center mb-2">
+              <p className="text-xs uppercase tracking-widest text-muted">
+                Mots similaires à ne pas confondre
+              </p>
+              <button
+                type="button"
+                onClick={() => handleToggleAll(result.distractors)}
+                className="text-xs text-accent shrink-0 ml-3"
+              >
+                {allSelected ? 'Tout désélectionner' : 'Tout sélectionner'}
+              </button>
+            </div>
+
+            {/* Pedagogical subtext */}
+            <p className="text-xs text-muted leading-relaxed mb-3">
+              Apprendre des mots de la même famille en parallèle aide votre cerveau à les distinguer
+              en contexte. Touchez chaque mot pour l&apos;ajouter à votre vocabulaire.
             </p>
+
+            {/* Selectable pills */}
             <div className="flex flex-wrap gap-2">
               {result.distractors.map((d) => (
-                <span
+                <button
                   key={d}
-                  className="bg-tint text-accent border border-accent/20 text-[10px] uppercase tracking-widest px-3 py-1.5 rounded-full"
+                  type="button"
+                  onClick={() => handleToggleDistractor(d)}
+                  disabled={addStatus === 'adding'}
+                  className={`text-[10px] uppercase tracking-widest px-3 py-1.5 rounded-full transition-colors ${
+                    selectedDistractors.has(d)
+                      ? 'bg-accent text-white border border-accent'
+                      : 'bg-tint text-accent border border-accent/20'
+                  }`}
                 >
                   {d}
-                </span>
+                </button>
               ))}
             </div>
+
+            {/* Add result feedback */}
+            {addStatus === 'done' && addSummary && (
+              <div className={`flex items-center gap-2 mt-3 ${addSummary.failed > 0 && addSummary.added === 0 ? 'text-err' : 'text-ok'}`}>
+                <span className="text-sm leading-none">
+                  {addSummary.failed > 0 && addSummary.added === 0 ? '✗' : '✓'}
+                </span>
+                <p className="text-xs font-serif">
+                  {addSummaryMessage(addSummary.added, addSummary.failed)}
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>
 
       {/* Bottom actions */}
       <div className="mt-auto p-4 flex gap-3 border-t border-line bg-page">
-        <button
-          type="button"
-          onClick={handleAddAnother}
-          className="flex-1 border border-line rounded-card py-3.5 font-serif text-sm text-ink"
-        >
-          + Ajouter un mot
-        </button>
-        <Link
-          href="/review"
-          className="flex-[2] bg-accent text-white rounded-card py-3.5 font-serif text-sm text-center"
-        >
-          Réviser →
-        </Link>
+        {selectionCount > 0 || addStatus === 'adding' ? (
+          <>
+            <button
+              type="button"
+              onClick={() => { setSelectedDistractors(new Set()); setAddStatus('idle') }}
+              disabled={addStatus === 'adding'}
+              className="flex-1 border border-line rounded-card py-3.5 font-serif text-sm text-ink disabled:opacity-40"
+            >
+              Annuler
+            </button>
+            <button
+              type="button"
+              onClick={handleAddDistractors}
+              disabled={addStatus === 'adding' || selectionCount === 0}
+              className="flex-[2] bg-accent text-white rounded-card py-3.5 font-serif text-sm disabled:opacity-40 transition-opacity flex items-center justify-center gap-2"
+            >
+              {addStatus === 'adding' ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" />
+                  Ajout en cours…
+                </>
+              ) : (
+                `Ajouter ${selectionCount} mot${selectionCount > 1 ? 's' : ''} →`
+              )}
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={handleAddAnother}
+              className="flex-1 border border-line rounded-card py-3.5 font-serif text-sm text-ink"
+            >
+              + Ajouter un mot
+            </button>
+            <Link
+              href="/review"
+              className="flex-[2] bg-accent text-white rounded-card py-3.5 font-serif text-sm text-center"
+            >
+              Réviser →
+            </Link>
+          </>
+        )}
       </div>
     </div>
   )
