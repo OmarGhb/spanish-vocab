@@ -30,7 +30,7 @@ export async function POST(request: Request) {
 
   let wordData: WordData
   try {
-    wordData = await getWordData(word)
+    wordData = await getWordData(word, request.signal)
   } catch (e) {
     return Response.json(
       { error: e instanceof Error ? e.message : 'Anthropic call failed.' },

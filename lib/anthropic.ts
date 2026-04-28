@@ -39,13 +39,18 @@ Rules:
   - Be distinct from the target word and from each other.
   - Never be random unrelated fillers.`
 
-export async function getWordData(word: string): Promise<WordData> {
-  const message = await client.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 1024,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: 'user', content: `Mot espagnol : « ${word} »` }],
-  })
+export async function getWordData(word: string, signal?: AbortSignal): Promise<WordData> {
+  const message = await client.messages
+    .stream(
+      {
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1024,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: `Mot espagnol : « ${word} »` }],
+      },
+      { signal },
+    )
+    .finalMessage()
 
   const rawText = message.content
     .filter((block): block is Anthropic.TextBlock => block.type === 'text')

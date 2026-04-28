@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import LoadingIdiom from './LoadingIdiom'
 
 type Example = { es: string; fr: string }
 type WordResult = {
@@ -10,6 +11,13 @@ type WordResult = {
   examples: Example[]
   distractors: string[]
 }
+
+type Phase =
+  | { tag: 'idle' }
+  | { tag: 'loading' }
+  | { tag: 'ready'; result: WordResult }
+  | { tag: 'error'; word: string }
+  | { tag: 'revealed'; result: WordResult }
 
 function highlightWord(sentence: string, word: string): React.ReactNode {
   const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -28,40 +36,65 @@ function highlightWord(sentence: string, word: string): React.ReactNode {
 
 export default function AddPage() {
   const [word, setWord] = useState('')
-  const [result, setResult] = useState<WordResult | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [phase, setPhase] = useState<Phase>({ tag: 'idle' })
   const [revealedFr, setRevealedFr] = useState<boolean[]>([])
 
-  async function handleSubmit(e: React.SyntheticEvent) {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-    setResult(null)
+  // Holds the active AbortController so the useEffect cleanup can cancel it on unmount.
+  const abortRef = useRef<AbortController | null>(null)
 
-    const res = await fetch('/api/words', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ word: word.trim() }),
-    })
-
-    const data: WordResult & { error?: string } = await res.json()
-
-    if (!res.ok) {
-      setError(data.error ?? 'Une erreur est survenue.')
-      setLoading(false)
-      return
+  // Cancel in-flight request when navigating away.
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort()
     }
+  }, [])
 
-    setResult(data)
-    setRevealedFr(new Array(data.examples.length).fill(false))
-    setLoading(false)
+  async function handleSubmit(targetWord: string) {
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
+
+    setPhase({ tag: 'loading' })
+
+    try {
+      const res = await fetch('/api/words', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ word: targetWord }),
+        signal: controller.signal,
+      })
+
+      const data: WordResult & { error?: string } = await res.json()
+
+      if (!res.ok) {
+        setPhase({ tag: 'error', word: targetWord })
+        console.warn('[add] /api/words error:', data.error)
+        return
+      }
+
+      setPhase({ tag: 'ready', result: data })
+      setRevealedFr(new Array(data.examples.length).fill(false))
+    } catch (e) {
+      // Ignore abort errors — user navigated away intentionally.
+      if (e instanceof DOMException && e.name === 'AbortError') return
+      setPhase({ tag: 'error', word: targetWord })
+      console.warn('[add] fetch failed:', e)
+    }
+  }
+
+  function handleReveal() {
+    if (phase.tag !== 'ready') return
+    setPhase({ tag: 'revealed', result: phase.result })
+  }
+
+  function handleRetry() {
+    if (phase.tag !== 'error') return
+    handleSubmit(phase.word)
   }
 
   function handleAddAnother() {
     setWord('')
-    setResult(null)
-    setError(null)
+    setPhase({ tag: 'idle' })
     setRevealedFr([])
   }
 
@@ -69,7 +102,8 @@ export default function AddPage() {
     setRevealedFr((prev) => prev.map((v, j) => (j === i ? !v : v)))
   }
 
-  if (!result) {
+  // ── IDLE ────────────────────────────────────────────────────────────────────
+  if (phase.tag === 'idle') {
     return (
       <div className="flex flex-col min-h-screen pb-16">
         <div className="p-5">
@@ -89,9 +123,11 @@ export default function AddPage() {
             placeholder="mariposa"
             value={word}
             onChange={(e) => setWord(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && word.trim()) handleSubmit(word.trim())
+            }}
             className="w-full border border-line rounded-card px-4 py-4 font-serif text-lg bg-card text-ink placeholder:text-muted focus:outline-none focus:border-accent"
           />
-          {error && <p className="text-err text-sm">{error}</p>}
           <p className="text-sm text-muted leading-relaxed">
             Claude va générer la définition, des exemples et des mots similaires pour enrichir votre
             apprentissage.
@@ -101,19 +137,33 @@ export default function AddPage() {
         <div className="mt-auto p-4">
           <button
             type="button"
-            disabled={!word.trim() || loading}
-            onClick={handleSubmit}
+            disabled={!word.trim()}
+            onClick={() => handleSubmit(word.trim())}
             className="w-full bg-accent text-white rounded-card py-4 font-serif text-sm disabled:opacity-40 transition-opacity"
           >
-            {loading ? 'Recherche en cours…' : 'Rechercher →'}
+            Rechercher →
           </button>
         </div>
       </div>
     )
   }
 
+  // ── LOADING / READY / ERROR ─────────────────────────────────────────────────
+  if (phase.tag === 'loading' || phase.tag === 'ready' || phase.tag === 'error') {
+    return (
+      <LoadingIdiom
+        status={phase.tag}
+        onReveal={handleReveal}
+        onRetry={handleRetry}
+      />
+    )
+  }
+
+  // ── REVEALED ────────────────────────────────────────────────────────────────
+  const result = phase.result
+
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen pb-16">
       <div className="p-5">
         <button
           type="button"
