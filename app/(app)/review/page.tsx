@@ -58,7 +58,7 @@ export default async function ReviewPage() {
 
   if (cards.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[70vh] p-6">
+      <div className="flex items-center justify-center min-h-[70vh] p-6 pb-20">
         <div className="bg-card rounded-card shadow-card p-8 text-center w-full">
           <p className="font-serif text-base text-ink mb-3">
             Tout est à jour pour aujourd&apos;hui.

@@ -2,31 +2,37 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { Home, Plus, BookOpen, Compass, UserRound } from 'lucide-react'
 
 const TABS = [
-  { href: '/', label: 'Accueil' },
-  { href: '/add', label: 'Ajouter' },
-  { href: '/review', label: 'Réviser' },
-  { href: '/discover', label: 'Découvrir' },
+  { href: '/',         label: 'Accueil',   Icon: Home       },
+  { href: '/add',      label: 'Ajouter',   Icon: Plus       },
+  { href: '/review',   label: 'Réviser',   Icon: BookOpen   },
+  { href: '/discover', label: 'Découvrir', Icon: Compass    },
+  { href: '/account',  label: 'Compte',    Icon: UserRound  },
 ] as const
 
 export default function NavBar() {
   const path = usePathname()
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-line">
+    <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-line z-50">
       <div className="flex max-w-[430px] mx-auto">
-        {TABS.map(({ href, label }) => (
-          <Link
-            key={href}
-            href={href}
-            className={`flex-1 text-center py-3 text-xs ${
-              path === href ? 'text-accent font-medium' : 'text-muted'
-            }`}
-          >
-            {label}
-          </Link>
-        ))}
+        {TABS.map(({ href, label, Icon }) => {
+          const active = path === href
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={`flex-1 flex flex-col items-center justify-center py-2 gap-0.5 ${
+                active ? 'text-accent' : 'text-muted'
+              }`}
+            >
+              <Icon size={18} strokeWidth={active ? 2.2 : 1.8} />
+              <span className="text-[10px] leading-none">{label}</span>
+            </Link>
+          )
+        })}
       </div>
     </nav>
   )

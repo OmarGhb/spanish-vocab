@@ -9,7 +9,7 @@ export default async function DiscoverPage() {
     .eq('reps', 0)
 
   return (
-    <div className="flex items-center justify-center min-h-[70vh] p-6">
+    <div className="flex items-center justify-center min-h-[70vh] p-6 pb-20">
       <div className="bg-card rounded-card shadow-card p-8 text-center w-full">
         <p className="font-serif text-xl text-ink mb-2">Mode Découverte</p>
         <p className="text-sm text-muted">

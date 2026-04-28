@@ -48,7 +48,7 @@ export default function ReviewSession({ cards }: Props) {
 
   if (done) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen px-5 gap-6 text-center">
+      <div className="flex flex-col items-center justify-center min-h-screen px-5 pb-20 gap-6 text-center">
         <span className="text-accent text-5xl leading-none">✓</span>
         <div>
           <p className="font-serif text-2xl font-bold text-ink">Révision terminée.</p>
@@ -78,7 +78,7 @@ export default function ReviewSession({ cards }: Props) {
   const mode = chooseMode(card, index)
 
   return (
-    <div className="px-5 pt-5 pb-8">
+    <div className="px-5 pt-5 pb-20">
       {/* Header: × | 1/N | ÉCRITURE */}
       <div className="flex justify-between items-center mb-3">
         <Link href="/" className="text-2xl text-muted hover:text-ink leading-none select-none">

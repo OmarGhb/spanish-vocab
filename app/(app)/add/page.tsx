@@ -71,7 +71,7 @@ export default function AddPage() {
 
   if (!result) {
     return (
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col min-h-screen pb-16">
         <div className="p-5">
           <Link href="/" className="text-muted text-sm">
             ←

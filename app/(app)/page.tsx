@@ -40,7 +40,7 @@ export default async function HomePage() {
   })
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen pb-16">
       {/* Scrollable content */}
       <div className="flex-1 p-5 flex flex-col gap-5">
         {/* Header */}
