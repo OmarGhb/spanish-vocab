@@ -94,7 +94,7 @@ export default function FillInBlank({ card, cardStartRef, onRate }: Props) {
             <p className="font-serif italic text-sm text-muted mt-3">{picked.example.fr}</p>
           </>
         ) : (
-          <p className="font-serif text-sm text-ink leading-relaxed">{definition}</p>
+          <p className="font-serif text-sm text-ink leading-relaxed">{definition.es}</p>
         )}
       </div>
 

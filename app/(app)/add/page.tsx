@@ -8,7 +8,7 @@ import LoadingIdiom from './LoadingIdiom'
 type Example = { es: string; fr: string }
 type WordResult = {
   word: string
-  definition: string
+  definition: { es: string; fr: string }
   examples: Example[]
   distractors: string[]
 }
@@ -44,6 +44,7 @@ export default function AddPage() {
   const [word, setWord] = useState('')
   const [phase, setPhase] = useState<Phase>({ tag: 'idle' })
   const [revealedFr, setRevealedFr] = useState<boolean[]>([])
+  const [revealedDefFr, setRevealedDefFr] = useState(false)
   const [selectedDistractors, setSelectedDistractors] = useState<Set<string>>(new Set())
   const [toast, setToast] = useState<Toast | null>(null)
 
@@ -105,6 +106,7 @@ export default function AddPage() {
     setWord('')
     setPhase({ tag: 'idle' })
     setRevealedFr([])
+    setRevealedDefFr(false)
     setSelectedDistractors(new Set())
     setToast(null)
   }
@@ -236,7 +238,14 @@ export default function AddPage() {
         {/* DÉFINITION */}
         <div className="bg-card rounded-card shadow-card p-5">
           <p className="text-xs uppercase tracking-widest text-muted mb-3">Définition</p>
-          <p className="font-serif italic text-sm text-ink leading-relaxed">{result.definition}</p>
+          <p className="font-serif text-sm text-ink leading-relaxed">{result.definition.es}</p>
+          {revealedDefFr ? (
+            <p className="font-serif italic text-sm text-muted mt-2">{result.definition.fr}</p>
+          ) : (
+            <button type="button" onClick={() => setRevealedDefFr(true)} className="text-xs text-accent mt-2">
+              ↓ Voir en français
+            </button>
+          )}
         </div>
 
         {/* EXEMPLES */}

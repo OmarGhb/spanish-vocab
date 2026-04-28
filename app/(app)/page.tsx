@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 
-type WordRow = { id: string; word: string; definition: string }
+type WordRow = { id: string; word: string; definition: { es: string; fr: string } }
 
 function statusLabel(reps: number, due: string): string {
   if (reps === 0) return 'Nouvelle'
@@ -85,7 +85,7 @@ export default async function HomePage() {
                   <div className="flex justify-between items-start gap-3">
                     <div className="min-w-0">
                       <p className="font-serif text-sm font-bold text-ink">{e.word}</p>
-                      <p className="text-xs text-muted mt-0.5 line-clamp-1">{e.definition}</p>
+                      <p className="text-xs text-muted mt-0.5 line-clamp-1">{e.definition.es}</p>
                     </div>
                     <div className="text-right shrink-0">
                       <p className={`text-xs font-semibold uppercase tracking-wide ${isOverdue ? 'text-err' : 'text-muted'}`}>

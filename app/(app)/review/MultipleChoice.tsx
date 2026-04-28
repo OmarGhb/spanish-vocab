@@ -39,11 +39,12 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
 
   // Prompt chosen deterministically once: definition or masked example.
   const [prompt] = useState<
-    { type: 'definition'; text: string } | { type: 'example'; es: string; fr: string }
+    | { type: 'definition'; es: string; fr: string }
+    | { type: 'example'; es: string; fr: string }
   >(() => {
-    if (examples.length === 0) return { type: 'definition', text: definition }
+    if (examples.length === 0) return { type: 'definition', es: definition.es, fr: definition.fr }
     const useExample = seed % 2 === 0
-    if (!useExample) return { type: 'definition', text: definition }
+    if (!useExample) return { type: 'definition', es: definition.es, fr: definition.fr }
     const ex = examples[seed % examples.length]
     const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     return { type: 'example', es: ex.es.replace(new RegExp(escaped, 'i'), '_____'), fr: ex.fr }
@@ -54,6 +55,7 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
 
   const [chosen, setChosen] = useState<string | null>(null)
   const [result, setResult] = useState<RatingResult | null>(null)
+  const [hintUsed, setHintUsed] = useState(false)
   // timeMs frozen at pick — not recomputed when the user taps a rating.
   const [frozenTimeMs, setFrozenTimeMs] = useState(0)
 
@@ -64,7 +66,7 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
     const timeMs = Date.now() - cardStartRef.current
     setChosen(option)
     setFrozenTimeMs(timeMs)
-    const rating = computeRating({ correctWord: word, userAnswer: option, timeMs, hintUsed: false, mode: 'mc' })
+    const rating = computeRating({ correctWord: word, userAnswer: option, timeMs, hintUsed, mode: 'mc' })
     setResult(rating)
   }
 
@@ -80,7 +82,22 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
     <div className="flex flex-col gap-6">
       <div>
         {prompt.type === 'definition' ? (
-          <p className="font-serif text-sm text-ink leading-relaxed">{prompt.text}</p>
+          <>
+            <p className="font-serif text-sm text-ink leading-relaxed">{prompt.es}</p>
+            {hintUsed ? (
+              <p className="font-serif italic text-sm text-muted mt-1">{prompt.fr}</p>
+            ) : (
+              !result && (
+                <button
+                  type="button"
+                  onClick={() => setHintUsed(true)}
+                  className="text-xs text-accent mt-2"
+                >
+                  ↓ Voir en français
+                </button>
+              )
+            )}
+          </>
         ) : (
           <>
             <p className="font-serif text-base text-ink leading-relaxed">{prompt.es}</p>
@@ -98,7 +115,7 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
       </div>
 
       {result && (
-        <RatingButtons result={result} onRate={(r) => onRate(r, frozenTimeMs, false)} />
+        <RatingButtons result={result} onRate={(r) => onRate(r, frozenTimeMs, hintUsed)} />
       )}
     </div>
   )
