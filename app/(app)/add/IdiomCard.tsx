@@ -1,3 +1,7 @@
+'use client'
+
+import { useState } from 'react'
+import Image from 'next/image'
 import type { Idiom, IdiomOrigin } from '@/lib/idioms'
 
 const FLAGS: Record<IdiomOrigin, string> = {
@@ -24,21 +28,19 @@ const LABELS: Partial<Record<IdiomOrigin, string>> = {
 function OriginTag({ origin }: { origin: IdiomOrigin[] }) {
   if (origin.length === 1 && origin[0] === 'universal') return null
 
+  let badge: string
   if (origin.length === 1) {
     const key = origin[0]
     const flag = FLAGS[key]
     const label = LABELS[key]
-    return (
-      <span className="text-xs uppercase tracking-widest text-muted">
-        {flag}{label ? ` ${label}` : ''}
-      </span>
-    )
+    badge = label ? `${flag} ${label}` : flag
+  } else {
+    badge = origin.map((o) => FLAGS[o]).join(' ')
   }
 
-  // Multiple origins — flags only, no label
   return (
-    <span className="text-xs text-muted">
-      {origin.map((o) => FLAGS[o]).join(' ')}
+    <span className="text-xs uppercase tracking-widest text-muted">
+      ORIGINE : {badge}
     </span>
   )
 }
@@ -46,12 +48,27 @@ function OriginTag({ origin }: { origin: IdiomOrigin[] }) {
 type Props = { idiom: Idiom }
 
 export default function IdiomCard({ idiom }: Props) {
+  const [imgError, setImgError] = useState(false)
+
   return (
     <div className="bg-card rounded-card shadow-card overflow-hidden">
-      {/* Visual block — real image in a future milestone */}
-      <div className="w-full aspect-video bg-tint flex items-center justify-center">
-        <span className="text-accent/30 text-4xl select-none">¿</span>
-      </div>
+      {/* Image block — falls back to colored placeholder if file is missing */}
+      {!imgError ? (
+        <div className="relative w-full aspect-video">
+          <Image
+            src={`/idioms/${idiom.id}.jpg`}
+            alt=""
+            fill
+            sizes="430px"
+            className="object-cover"
+            onError={() => setImgError(true)}
+          />
+        </div>
+      ) : (
+        <div className="w-full aspect-video bg-tint flex items-center justify-center">
+          <span className="text-accent/30 text-4xl select-none">¿</span>
+        </div>
+      )}
 
       <div className="p-5 flex flex-col gap-3">
         {/* Header row: label left, origin badge right */}
