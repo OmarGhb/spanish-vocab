@@ -1,4 +1,4 @@
-// SERVER-ONLY — never import from a Client Component or any file that can be bundled client-side.
+import 'server-only'
 // Uses the service role key which bypasses RLS. Only use for admin operations (e.g., deleteUser).
 import { createClient } from '@supabase/supabase-js'
 
