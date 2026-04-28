@@ -39,7 +39,7 @@ function OriginTag({ origin }: { origin: IdiomOrigin[] }) {
   }
 
   return (
-    <span className="text-xs uppercase tracking-widest text-muted">
+    <span className="bg-tint/40 px-2 py-0.5 rounded-md text-xs uppercase tracking-widest text-muted">
       ORIGINE : {badge}
     </span>
   )
