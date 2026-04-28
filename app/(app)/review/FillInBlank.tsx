@@ -107,7 +107,7 @@ export default function FillInBlank({ card, cardStartRef, onRate }: Props) {
             onChange={(e) => setAnswer(e.target.value)}
             placeholder="Votre réponse…"
             required
-            className="w-full border border-line rounded-card px-4 py-4 text-sm bg-card text-ink placeholder:text-muted focus:outline-none focus:border-accent"
+            className="w-full border border-line rounded-card px-4 py-4 text-base bg-card text-ink placeholder:text-muted focus:outline-none focus:border-accent"
           />
           <div className="grid grid-cols-3 gap-2">
             {!hintUsed ? (

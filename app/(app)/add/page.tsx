@@ -165,7 +165,7 @@ export default function AddPage() {
   // ── IDLE ────────────────────────────────────────────────────────────────────
   if (phase.tag === 'idle') {
     return (
-      <div className="flex flex-col min-h-screen pb-16">
+      <div className="flex flex-col pb-16">
         <div className="p-5">
           <Link href="/" className="text-muted text-sm">←</Link>
           <div className="mt-4">
@@ -188,9 +188,6 @@ export default function AddPage() {
             Claude va générer la définition, des exemples et des mots similaires pour enrichir votre
             apprentissage.
           </p>
-        </div>
-
-        <div className="mt-auto p-4">
           <button
             type="button"
             disabled={!word.trim()}

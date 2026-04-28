@@ -42,7 +42,7 @@ export default function LoginPage() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="border border-line rounded-lg px-3 py-2.5 text-sm bg-card text-ink placeholder:text-muted focus:outline-none focus:border-accent"
+          className="border border-line rounded-lg px-3 py-2.5 text-base bg-card text-ink placeholder:text-muted focus:outline-none focus:border-accent"
         />
         <input
           type="password"
@@ -50,7 +50,7 @@ export default function LoginPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="border border-line rounded-lg px-3 py-2.5 text-sm bg-card text-ink placeholder:text-muted focus:outline-none focus:border-accent"
+          className="border border-line rounded-lg px-3 py-2.5 text-base bg-card text-ink placeholder:text-muted focus:outline-none focus:border-accent"
         />
         {error && <p className="text-err text-sm">{error}</p>}
         <button
