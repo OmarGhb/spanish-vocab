@@ -20,7 +20,10 @@ type Phase =
   | { tag: 'error'; word: string }
   | { tag: 'revealed'; result: WordResult }
 
-type AddStatus = 'idle' | 'adding' | 'done'
+type Toast =
+  | { type: 'adding'; count: number }
+  | { type: 'success'; count: number }
+  | { type: 'error'; failedWords: string[] }
 
 function highlightWord(sentence: string, word: string): React.ReactNode {
   const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -37,38 +40,31 @@ function highlightWord(sentence: string, word: string): React.ReactNode {
   )
 }
 
-function addSummaryMessage(added: number, failed: number): string {
-  const s = (n: number) => (n > 1 ? 's' : '')
-  if (failed === 0) return `${added} mot${s(added)} ajouté${s(added)} à votre vocabulaire.`
-  if (added === 0) return `Erreur — aucun mot ajouté.`
-  return `${added} mot${s(added)} ajouté${s(added)}, ${failed} erreur${s(failed)}.`
-}
-
 export default function AddPage() {
   const [word, setWord] = useState('')
   const [phase, setPhase] = useState<Phase>({ tag: 'idle' })
   const [revealedFr, setRevealedFr] = useState<boolean[]>([])
-
-  // Distractor selection state
   const [selectedDistractors, setSelectedDistractors] = useState<Set<string>>(new Set())
-  const [addStatus, setAddStatus] = useState<AddStatus>('idle')
-  const [addSummary, setAddSummary] = useState<{ added: number; failed: number } | null>(null)
+  const [toast, setToast] = useState<Toast | null>(null)
 
-  // Holds the active AbortController so the useEffect cleanup can cancel it on unmount.
   const abortRef = useRef<AbortController | null>(null)
 
-  // Cancel in-flight request when navigating away.
+  // Cancel in-flight word lookup when navigating away.
   useEffect(() => {
-    return () => {
-      abortRef.current?.abort()
-    }
+    return () => { abortRef.current?.abort() }
   }, [])
+
+  // Auto-dismiss success toast after 3 s.
+  useEffect(() => {
+    if (toast?.type !== 'success') return
+    const id = setTimeout(() => setToast(null), 3000)
+    return () => clearTimeout(id)
+  }, [toast])
 
   async function handleSubmit(targetWord: string) {
     abortRef.current?.abort()
     const controller = new AbortController()
     abortRef.current = controller
-
     setPhase({ tag: 'loading' })
 
     try {
@@ -78,7 +74,6 @@ export default function AddPage() {
         body: JSON.stringify({ word: targetWord }),
         signal: controller.signal,
       })
-
       const data: WordResult & { error?: string } = await res.json()
 
       if (!res.ok) {
@@ -90,7 +85,6 @@ export default function AddPage() {
       setPhase({ tag: 'ready', result: data })
       setRevealedFr(new Array(data.examples.length).fill(false))
     } catch (e) {
-      // Ignore abort errors — user navigated away intentionally.
       if (e instanceof DOMException && e.name === 'AbortError') return
       setPhase({ tag: 'error', word: targetWord })
       console.warn('[add] fetch failed:', e)
@@ -112,8 +106,7 @@ export default function AddPage() {
     setPhase({ tag: 'idle' })
     setRevealedFr([])
     setSelectedDistractors(new Set())
-    setAddStatus('idle')
-    setAddSummary(null)
+    setToast(null)
   }
 
   function toggleFr(i: number) {
@@ -134,30 +127,39 @@ export default function AddPage() {
     setSelectedDistractors(allSelected ? new Set() : new Set(distractors))
   }
 
-  async function handleAddDistractors() {
-    const words = Array.from(selectedDistractors)
-    setAddStatus('adding')
+  // Runs in background — intentionally not awaited by caller.
+  async function runBulkAdd(words: string[]) {
+    setToast({ type: 'adding', count: words.length })
 
-    let added = 0
-    let failed = 0
+    const results = await Promise.all(
+      words.map(async (w) => {
+        try {
+          const res = await fetch('/api/words', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ word: w }),
+          })
+          return { word: w, ok: res.ok }
+        } catch {
+          return { word: w, ok: false }
+        }
+      })
+    )
 
-    for (const w of words) {
-      try {
-        const res = await fetch('/api/words', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ word: w }),
-        })
-        if (res.ok) added++
-        else failed++
-      } catch {
-        failed++
-      }
+    const added = results.filter((r) => r.ok).length
+    const failedWords = results.filter((r) => !r.ok).map((r) => r.word)
+
+    if (failedWords.length === 0) {
+      setToast({ type: 'success', count: added })
+    } else {
+      setToast({ type: 'error', failedWords })
     }
+  }
 
-    setSelectedDistractors(new Set())
-    setAddSummary({ added, failed })
-    setAddStatus('done')
+  function handleAddDistractors() {
+    const words = Array.from(selectedDistractors)
+    setSelectedDistractors(new Set()) // immediate deselect → bottom bar restores
+    void runBulkAdd(words)
   }
 
   // ── IDLE ────────────────────────────────────────────────────────────────────
@@ -165,9 +167,7 @@ export default function AddPage() {
     return (
       <div className="flex flex-col min-h-screen pb-16">
         <div className="p-5">
-          <Link href="/" className="text-muted text-sm">
-            ←
-          </Link>
+          <Link href="/" className="text-muted text-sm">←</Link>
           <div className="mt-4">
             <h1 className="font-serif text-2xl font-bold text-ink">Nouveau mot</h1>
             <p className="text-sm text-muted mt-0.5">Entrez un mot espagnol</p>
@@ -181,9 +181,7 @@ export default function AddPage() {
             placeholder="mariposa"
             value={word}
             onChange={(e) => setWord(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && word.trim()) handleSubmit(word.trim())
-            }}
+            onKeyDown={(e) => { if (e.key === 'Enter' && word.trim()) handleSubmit(word.trim()) }}
             className="w-full border border-line rounded-card px-4 py-4 font-serif text-lg bg-card text-ink placeholder:text-muted focus:outline-none focus:border-accent"
           />
           <p className="text-sm text-muted leading-relaxed">
@@ -222,6 +220,7 @@ export default function AddPage() {
   const allSelected =
     result.distractors.length > 0 && result.distractors.every((d) => selectedDistractors.has(d))
   const selectionCount = selectedDistractors.size
+  const isAdding = toast?.type === 'adding'
 
   return (
     <div className="flex flex-col min-h-screen pb-16">
@@ -255,11 +254,7 @@ export default function AddPage() {
                 {revealedFr[i] ? (
                   <p className="font-serif italic text-sm text-muted mt-1">{ex.fr}</p>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() => toggleFr(i)}
-                    className="text-xs text-accent mt-2"
-                  >
+                  <button type="button" onClick={() => toggleFr(i)} className="text-xs text-accent mt-2">
                     ↓ Traduction
                   </button>
                 )}
@@ -279,9 +274,12 @@ export default function AddPage() {
               <button
                 type="button"
                 onClick={() => handleToggleAll(result.distractors)}
-                className="text-xs text-accent shrink-0 ml-3"
+                disabled={isAdding}
+                className={`text-xs text-accent shrink-0 ml-3 underline underline-offset-2 decoration-accent/50 ${
+                  isAdding ? 'opacity-50 pointer-events-none' : ''
+                }`}
               >
-                {allSelected ? 'Tout désélectionner' : 'Tout sélectionner'}
+                {isAdding || allSelected ? 'Tout désélectionner' : 'Tout sélectionner'}
               </button>
             </div>
 
@@ -298,59 +296,81 @@ export default function AddPage() {
                   key={d}
                   type="button"
                   onClick={() => handleToggleDistractor(d)}
-                  disabled={addStatus === 'adding'}
+                  disabled={isAdding}
                   className={`text-[10px] uppercase tracking-widest px-3 py-1.5 rounded-full transition-colors ${
                     selectedDistractors.has(d)
                       ? 'bg-accent text-white border border-accent'
                       : 'bg-tint text-accent border border-accent/20'
-                  }`}
+                  } ${isAdding ? 'opacity-50 pointer-events-none' : ''}`}
                 >
                   {d}
                 </button>
               ))}
             </div>
-
-            {/* Add result feedback */}
-            {addStatus === 'done' && addSummary && (
-              <div className={`flex items-center gap-2 mt-3 ${addSummary.failed > 0 && addSummary.added === 0 ? 'text-err' : 'text-ok'}`}>
-                <span className="text-sm leading-none">
-                  {addSummary.failed > 0 && addSummary.added === 0 ? '✗' : '✓'}
-                </span>
-                <p className="text-xs font-serif">
-                  {addSummaryMessage(addSummary.added, addSummary.failed)}
-                </p>
-              </div>
-            )}
           </div>
         )}
       </div>
 
+      {/* Toast — floats above the NavBar */}
+      {toast && (
+        <div className="fixed bottom-16 inset-x-0 z-40 px-4 pointer-events-none">
+          <div className={`max-w-[430px] mx-auto rounded-card px-4 py-3 shadow-card pointer-events-auto flex items-center gap-3 ${
+            toast.type === 'success'
+              ? 'bg-ok/10 border border-ok/20'
+              : toast.type === 'error'
+              ? 'bg-err/10 border border-err/20'
+              : 'bg-card border border-line'
+          }`}>
+            {toast.type === 'adding' && (
+              <>
+                <Loader2 size={14} className="animate-spin text-muted shrink-0" />
+                <p className="text-sm font-serif text-ink">
+                  Ajout en cours pour {toast.count} mot{toast.count > 1 ? 's' : ''}…
+                </p>
+              </>
+            )}
+            {toast.type === 'success' && (
+              <>
+                <span className="text-ok text-base leading-none shrink-0">✓</span>
+                <p className="text-sm font-serif text-ok">
+                  {toast.count} mot{toast.count > 1 ? 's' : ''} ajouté{toast.count > 1 ? 's' : ''} à votre vocabulaire.
+                </p>
+              </>
+            )}
+            {toast.type === 'error' && (
+              <>
+                <span className="text-err text-base leading-none shrink-0">✗</span>
+                <p className="text-sm font-serif text-err flex-1">Erreur — veuillez réessayer.</p>
+                <button
+                  type="button"
+                  onClick={() => { void runBulkAdd(toast.failedWords) }}
+                  className="text-xs text-err underline underline-offset-2 shrink-0"
+                >
+                  Réessayer
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Bottom actions */}
       <div className="mt-auto p-4 flex gap-3 border-t border-line bg-page">
-        {selectionCount > 0 || addStatus === 'adding' ? (
+        {selectionCount > 0 ? (
           <>
             <button
               type="button"
-              onClick={() => { setSelectedDistractors(new Set()); setAddStatus('idle') }}
-              disabled={addStatus === 'adding'}
-              className="flex-1 border border-line rounded-card py-3.5 font-serif text-sm text-ink disabled:opacity-40"
+              onClick={() => setSelectedDistractors(new Set())}
+              className="flex-1 border border-line rounded-card py-3.5 font-serif text-sm text-ink"
             >
               Annuler
             </button>
             <button
               type="button"
               onClick={handleAddDistractors}
-              disabled={addStatus === 'adding' || selectionCount === 0}
-              className="flex-[2] bg-accent text-white rounded-card py-3.5 font-serif text-sm disabled:opacity-40 transition-opacity flex items-center justify-center gap-2"
+              className="flex-[2] bg-accent text-white rounded-card py-3.5 font-serif text-sm"
             >
-              {addStatus === 'adding' ? (
-                <>
-                  <Loader2 size={14} className="animate-spin" />
-                  Ajout en cours…
-                </>
-              ) : (
-                `Ajouter ${selectionCount} mot${selectionCount > 1 ? 's' : ''} →`
-              )}
+              Ajouter {selectionCount} mot{selectionCount > 1 ? 's' : ''} →
             </button>
           </>
         ) : (
