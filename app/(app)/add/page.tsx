@@ -13,17 +13,29 @@ type WordResult = {
   distractors: string[]
 }
 
+type DeckStatus =
+  | { tag: 'new' }
+  | { tag: 'due_now'; wordId: string; dueDate: string }
+  | { tag: 'due_later'; wordId: string; dueDate: string; daysUntil: number }
+
 type Phase =
   | { tag: 'idle' }
   | { tag: 'loading' }
-  | { tag: 'ready'; result: WordResult }
+  | { tag: 'ready'; result: WordResult; status: DeckStatus }
   | { tag: 'error'; word: string }
-  | { tag: 'revealed'; result: WordResult }
+  | { tag: 'revealed'; result: WordResult; status: DeckStatus }
 
 type Toast =
   | { type: 'adding'; count: number }
-  | { type: 'success'; count: number }
+  | { type: 'success'; count: number; skipped: number }
   | { type: 'error'; failedWords: string[] }
+
+type EnrichResponse = WordResult & {
+  status: 'new' | 'due_now' | 'due_later'
+  wordId?: string
+  dueDate?: string
+  error?: string
+}
 
 function highlightWord(sentence: string, word: string): React.ReactNode {
   const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -47,10 +59,11 @@ export default function AddPage() {
   const [revealedDefFr, setRevealedDefFr] = useState(false)
   const [selectedDistractors, setSelectedDistractors] = useState<Set<string>>(new Set())
   const [toast, setToast] = useState<Toast | null>(null)
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
 
   const abortRef = useRef<AbortController | null>(null)
 
-  // Cancel in-flight word lookup when navigating away.
+  // Cancel in-flight enrichment when navigating away.
   useEffect(() => {
     return () => { abortRef.current?.abort() }
   }, [])
@@ -67,24 +80,43 @@ export default function AddPage() {
     const controller = new AbortController()
     abortRef.current = controller
     setPhase({ tag: 'loading' })
+    setSaveState('idle')
 
     try {
-      const res = await fetch('/api/words', {
+      const res = await fetch('/api/words/enrich', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ word: targetWord }),
         signal: controller.signal,
       })
-      const data: WordResult & { error?: string } = await res.json()
+      const data = await res.json() as EnrichResponse
 
       if (!res.ok) {
         setPhase({ tag: 'error', word: targetWord })
-        console.warn('[add] /api/words error:', data.error)
+        console.warn('[add] /api/words/enrich error:', data.error)
         return
       }
 
-      setPhase({ tag: 'ready', result: data })
+      let status: DeckStatus
+      if (data.status === 'due_now' && data.wordId && data.dueDate) {
+        status = { tag: 'due_now', wordId: data.wordId, dueDate: data.dueDate }
+      } else if (data.status === 'due_later' && data.wordId && data.dueDate) {
+        const daysUntil = Math.ceil((new Date(data.dueDate).getTime() - Date.now()) / 86_400_000)
+        status = { tag: 'due_later', wordId: data.wordId, dueDate: data.dueDate, daysUntil }
+      } else {
+        status = { tag: 'new' }
+      }
+
+      const result: WordResult = {
+        word: data.word,
+        definition: data.definition,
+        examples: data.examples,
+        distractors: data.distractors,
+      }
+
+      setPhase({ tag: 'ready', result, status })
       setRevealedFr(new Array(data.examples.length).fill(false))
+      setRevealedDefFr(false)
     } catch (e) {
       if (e instanceof DOMException && e.name === 'AbortError') return
       setPhase({ tag: 'error', word: targetWord })
@@ -94,7 +126,7 @@ export default function AddPage() {
 
   function handleReveal() {
     if (phase.tag !== 'ready') return
-    setPhase({ tag: 'revealed', result: phase.result })
+    setPhase({ tag: 'revealed', result: phase.result, status: phase.status })
   }
 
   function handleRetry() {
@@ -109,6 +141,7 @@ export default function AddPage() {
     setRevealedDefFr(false)
     setSelectedDistractors(new Set())
     setToast(null)
+    setSaveState('idle')
   }
 
   function toggleFr(i: number) {
@@ -129,30 +162,83 @@ export default function AddPage() {
     setSelectedDistractors(allSelected ? new Set() : new Set(distractors))
   }
 
+  async function handleSave() {
+    if (phase.tag !== 'revealed' || phase.status.tag !== 'new') return
+    const { result } = phase
+    setSaveState('saving')
+    try {
+      const res = await fetch('/api/words/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          word: result.word,
+          definition: result.definition,
+          examples: result.examples,
+          distractors: result.distractors,
+        }),
+      })
+      setSaveState(res.ok ? 'saved' : 'error')
+    } catch {
+      setSaveState('error')
+    }
+  }
+
+  async function handleResetSchedule() {
+    if (phase.tag !== 'revealed' || phase.status.tag === 'new') return
+    const { wordId } = phase.status
+    setSaveState('saving')
+    try {
+      const res = await fetch('/api/words/reset-schedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wordId }),
+      })
+      setSaveState(res.ok ? 'saved' : 'error')
+    } catch {
+      setSaveState('error')
+    }
+  }
+
   // Runs in background — intentionally not awaited by caller.
-  async function runBulkAdd(words: string[]) {
-    setToast({ type: 'adding', count: words.length })
+  async function runBulkAdd(wordsToAdd: string[]) {
+    setToast({ type: 'adding', count: wordsToAdd.length })
 
     const results = await Promise.all(
-      words.map(async (w) => {
+      wordsToAdd.map(async (w) => {
         try {
-          const res = await fetch('/api/words', {
+          const enrichRes = await fetch('/api/words/enrich', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ word: w }),
           })
-          return { word: w, ok: res.ok }
+          if (!enrichRes.ok) return { word: w, ok: false, skipped: false }
+
+          const enrichData = await enrichRes.json() as EnrichResponse
+          if (enrichData.status !== 'new') return { word: w, ok: true, skipped: true }
+
+          const saveRes = await fetch('/api/words/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              word: w,
+              definition: enrichData.definition,
+              examples: enrichData.examples,
+              distractors: enrichData.distractors,
+            }),
+          })
+          return { word: w, ok: saveRes.ok, skipped: false }
         } catch {
-          return { word: w, ok: false }
+          return { word: w, ok: false, skipped: false }
         }
       })
     )
 
-    const added = results.filter((r) => r.ok).length
-    const failedWords = results.filter((r) => !r.ok).map((r) => r.word)
+    const added = results.filter((r) => r.ok && !r.skipped).length
+    const skipped = results.filter((r) => r.skipped).length
+    const failedWords = results.filter((r) => !r.ok && !r.skipped).map((r) => r.word)
 
     if (failedWords.length === 0) {
-      setToast({ type: 'success', count: added })
+      setToast({ type: 'success', count: added, skipped })
     } else {
       setToast({ type: 'error', failedWords })
     }
@@ -164,7 +250,7 @@ export default function AddPage() {
     void runBulkAdd(words)
   }
 
-  // ── IDLE ────────────────────────────────────────────────────────────────────
+  // ── IDLE ─────────────────────────────────────────────────────────────────────
   if (phase.tag === 'idle') {
     return (
       <div className="flex flex-col pb-16">
@@ -203,7 +289,7 @@ export default function AddPage() {
     )
   }
 
-  // ── LOADING / READY / ERROR ─────────────────────────────────────────────────
+  // ── LOADING / READY / ERROR ───────────────────────────────────────────────────
   if (phase.tag === 'loading' || phase.tag === 'ready' || phase.tag === 'error') {
     return (
       <LoadingIdiom
@@ -214,8 +300,9 @@ export default function AddPage() {
     )
   }
 
-  // ── REVEALED ────────────────────────────────────────────────────────────────
+  // ── REVEALED ──────────────────────────────────────────────────────────────────
   const result = phase.result
+  const status = phase.status
   const allSelected =
     result.distractors.length > 0 && result.distractors.every((d) => selectedDistractors.has(d))
   const selectionCount = selectedDistractors.size
@@ -235,6 +322,17 @@ export default function AddPage() {
       </div>
 
       <div className="px-5 flex flex-col gap-4 pb-4">
+        {/* STATUT DECK */}
+        {(status.tag === 'due_now' || status.tag === 'due_later') && (
+          <div className="bg-tint border border-line rounded-card px-4 py-3">
+            <p className="text-xs text-muted font-serif">
+              {status.tag === 'due_now'
+                ? "Déjà dans votre vocabulaire — prochaine révision aujourd'hui."
+                : `Déjà dans votre vocabulaire — prochaine révision dans ${status.daysUntil} jour${status.daysUntil > 1 ? 's' : ''}.`}
+            </p>
+          </div>
+        )}
+
         {/* DÉFINITION */}
         <div className="bg-card rounded-card shadow-card p-5">
           <p className="text-xs uppercase tracking-widest text-muted mb-3">Définition</p>
@@ -272,7 +370,6 @@ export default function AddPage() {
         {/* MOTS SIMILAIRES */}
         {result.distractors.length > 0 && (
           <div className="bg-card rounded-card shadow-card p-5">
-            {/* Header row */}
             <div className="flex justify-between items-center mb-2">
               <p className="text-xs uppercase tracking-widest text-muted">
                 Mots similaires à ne pas confondre
@@ -289,13 +386,11 @@ export default function AddPage() {
               </button>
             </div>
 
-            {/* Pedagogical subtext */}
             <p className="text-xs text-muted leading-relaxed mb-3">
               Apprendre des mots de la même famille en parallèle aide votre cerveau à les distinguer
               en contexte. Touchez chaque mot pour l&apos;ajouter à votre vocabulaire.
             </p>
 
-            {/* Selectable pills */}
             <div className="flex flex-wrap gap-2">
               {result.distractors.map((d) => (
                 <button
@@ -339,7 +434,8 @@ export default function AddPage() {
               <>
                 <span className="text-ok text-base leading-none shrink-0">✓</span>
                 <p className="text-sm font-serif text-ok">
-                  {toast.count} mot{toast.count > 1 ? 's' : ''} ajouté{toast.count > 1 ? 's' : ''} à votre vocabulaire.
+                  {toast.count} mot{toast.count > 1 ? 's' : ''} ajouté{toast.count > 1 ? 's' : ''}.
+                  {toast.skipped > 0 && ` (${toast.skipped} déjà présent${toast.skipped > 1 ? 's' : ''})`}
                 </p>
               </>
             )}
@@ -363,6 +459,7 @@ export default function AddPage() {
       {/* Bottom actions */}
       <div className="mt-auto p-4 flex gap-3 border-t border-line bg-page">
         {selectionCount > 0 ? (
+          // Distractor selection mode — unchanged
           <>
             <button
               type="button"
@@ -379,22 +476,69 @@ export default function AddPage() {
               Ajouter {selectionCount} mot{selectionCount > 1 ? 's' : ''} →
             </button>
           </>
-        ) : (
+        ) : status.tag === 'new' ? (
+          // Not in deck — primary save action
           <>
             <button
               type="button"
               onClick={handleAddAnother}
               className="flex-1 border border-line rounded-card py-3.5 font-serif text-sm text-ink"
             >
-              + Ajouter un mot
+              ← Nouveau mot
             </button>
-            <Link
-              href="/review"
-              className="flex-[2] bg-accent text-white rounded-card py-3.5 font-serif text-sm text-center"
+            <button
+              type="button"
+              onClick={() => { void handleSave() }}
+              disabled={saveState !== 'idle'}
+              className="flex-[2] bg-accent text-white rounded-card py-3.5 font-serif text-sm disabled:opacity-40 transition-opacity"
             >
-              Réviser →
-            </Link>
+              {saveState === 'saving' ? (
+                <Loader2 size={14} className="animate-spin inline" />
+              ) : saveState === 'saved' ? (
+                '✓ Ajouté'
+              ) : saveState === 'error' ? (
+                'Erreur — réessayer'
+              ) : (
+                '+ Ajouter à ma collection'
+              )}
+            </button>
           </>
+        ) : status.tag === 'due_now' ? (
+          // Already in deck, due — offer schedule reset
+          <>
+            <button
+              type="button"
+              onClick={handleAddAnother}
+              className="flex-1 border border-line rounded-card py-3.5 font-serif text-sm text-ink"
+            >
+              ← Nouveau mot
+            </button>
+            <button
+              type="button"
+              onClick={() => { void handleResetSchedule() }}
+              disabled={saveState !== 'idle'}
+              className="flex-[2] bg-accent text-white rounded-card py-3.5 font-serif text-sm disabled:opacity-40 transition-opacity"
+            >
+              {saveState === 'saving' ? (
+                <Loader2 size={14} className="animate-spin inline" />
+              ) : saveState === 'saved' ? (
+                '✓ Calendrier réinitialisé'
+              ) : saveState === 'error' ? (
+                'Erreur — réessayer'
+              ) : (
+                '↻ Réinitialiser le calendrier'
+              )}
+            </button>
+          </>
+        ) : (
+          // Already in deck, not yet due — no save action
+          <button
+            type="button"
+            onClick={handleAddAnother}
+            className="flex-1 border border-line rounded-card py-3.5 font-serif text-sm text-ink"
+          >
+            ← Nouveau mot
+          </button>
         )}
       </div>
     </div>

@@ -1,6 +1,16 @@
 import { createClient } from '@/lib/supabase/server'
-import { getWordData, type WordData } from '@/lib/anthropic'
 import { createInitialCard } from '@/lib/fsrs'
+import { z } from 'zod'
+
+const SaveBodySchema = z.object({
+  word: z.string().min(1),
+  definition: z.object({ es: z.string().min(1), fr: z.string().min(1) }),
+  examples: z
+    .array(z.object({ es: z.string().min(1), fr: z.string().min(1) }))
+    .min(2)
+    .max(3),
+  distractors: z.array(z.string().min(1)).min(3).max(3),
+})
 
 export async function POST(request: Request) {
   let body: unknown
@@ -10,13 +20,9 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Invalid request body.' }, { status: 400 })
   }
 
-  const word =
-    body !== null && typeof body === 'object' && 'word' in body && typeof body.word === 'string'
-      ? body.word.trim()
-      : ''
-
-  if (!word) {
-    return Response.json({ error: 'Word cannot be empty.' }, { status: 400 })
+  const parsed = SaveBodySchema.safeParse(body)
+  if (!parsed.success) {
+    return Response.json({ error: 'Invalid data.' }, { status: 400 })
   }
 
   const supabase = await createClient()
@@ -28,30 +34,16 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Unauthorized.' }, { status: 401 })
   }
 
-  let wordData: WordData
-  try {
-    wordData = await getWordData(word, request.signal)
-  } catch (e) {
-    return Response.json(
-      { error: e instanceof Error ? e.message : 'Anthropic call failed.' },
-      { status: 500 }
-    )
-  }
+  const { word, definition, examples, distractors } = parsed.data
 
   const { data: savedWord, error: wordError } = await supabase
     .from('words')
-    .insert({
-      user_id: user.id,
-      word,
-      definition: wordData.definition,
-      examples: wordData.examples,
-      distractors: wordData.distractors,
-    })
+    .insert({ user_id: user.id, word, definition, examples, distractors })
     .select('id')
     .single()
 
   if (wordError || !savedWord) {
-    return Response.json({ error: 'Failed to save word to database.' }, { status: 500 })
+    return Response.json({ error: 'Failed to save word.' }, { status: 500 })
   }
 
   const card = createInitialCard()
@@ -76,16 +68,5 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Failed to create review card.' }, { status: 500 })
   }
 
-  const { count } = await supabase
-    .from('review_cards')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', user.id)
-  console.log(`[sanity] review_cards for user ${user.id}: ${count}`)
-
-  return Response.json({
-    word,
-    definition: wordData.definition,
-    examples: wordData.examples,
-    distractors: wordData.distractors,
-  })
+  return Response.json({ ok: true })
 }
