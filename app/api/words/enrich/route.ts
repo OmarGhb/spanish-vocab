@@ -39,7 +39,7 @@ export async function POST(request: Request) {
   type ExistingRow = {
     id: string
     word: string
-    definition: { es: string; fr: string }
+    definition: { es: string; fr: string; pos?: string }
     examples: Array<{ es: string; fr: string }>
     distractors: string[]
     review_cards: Array<{ id: string; due: string }>

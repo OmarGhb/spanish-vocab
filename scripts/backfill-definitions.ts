@@ -16,18 +16,19 @@ const supabase = createClient(
 const anthropic = new Anthropic()
 
 const DefinitionSchema = z.object({
-  definition: z.object({ es: z.string().min(1), fr: z.string().min(1) }),
+  definition: z.object({ es: z.string().min(1), fr: z.string().min(1), pos: z.string().min(1) }),
 })
 
 const SYSTEM_PROMPT = `You are a vocabulary assistant for a French speaker learning Spanish.
 Return ONLY valid JSON with this exact structure:
-{"definition": {"es": "...", "fr": "..."}}
+{"definition": {"es": "...", "fr": "...", "pos": "v."}}
 
 Rules:
 - "definition.es": 1–2 sentences in simple Spanish (A2–B1 level). Use vocabulary simpler than or equal to the headword. Note false friends with French written in Spanish, and include register and regional usage (España vs. Latinoamérica) when relevant.
-- "definition.fr": 1–2 sentences in French explaining the word's meaning. When relevant, include register, regional differences, and false friends with French.`
+- "definition.fr": 1–2 sentences in French explaining the word's meaning. When relevant, include register, regional differences, and false friends with French.
+- "definition.pos": part of speech in standard dictionary notation. Use exactly one of: "v." (verb), "n.m." (masculine noun), "n.f." (feminine noun), "n.m./f." (noun with both genders), "adj." (adjective), "adv." (adverb), "prep." (preposition), "conj." (conjunction), "pron." (pronoun), "interj." (interjection). For pronominal verbs use "v.pron.".`
 
-async function getDefinition(word: string): Promise<{ es: string; fr: string }> {
+async function getDefinition(word: string): Promise<{ es: string; fr: string; pos: string }> {
   const msg = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
     max_tokens: 256,

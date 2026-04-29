@@ -4,7 +4,7 @@ import { z } from 'zod'
 
 const SaveBodySchema = z.object({
   word: z.string().min(1),
-  definition: z.object({ es: z.string().min(1), fr: z.string().min(1) }),
+  definition: z.object({ es: z.string().min(1), fr: z.string().min(1), pos: z.string().optional() }),
   examples: z
     .array(z.object({ es: z.string().min(1), fr: z.string().min(1) }))
     .min(2)

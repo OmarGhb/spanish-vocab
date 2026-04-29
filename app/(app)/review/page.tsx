@@ -15,7 +15,7 @@ export type ReviewCard = {
   state: number
   last_review: string | null
   word: string
-  definition: { es: string; fr: string }
+  definition: { es: string; fr: string; pos?: string }
   examples: Array<{ es: string; fr: string }>
   distractors: string[]
 }
@@ -33,7 +33,7 @@ export default async function ReviewPage() {
   const cards: ReviewCard[] = (rows ?? []).map((row) => {
     const w = row.words as {
       word: string
-      definition: { es: string; fr: string }
+      definition: { es: string; fr: string; pos?: string }
       examples: Array<{ es: string; fr: string }>
       distractors: string[]
     }

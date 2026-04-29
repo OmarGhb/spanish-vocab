@@ -8,7 +8,7 @@ import LoadingIdiom from './LoadingIdiom'
 type Example = { es: string; fr: string }
 type WordResult = {
   word: string
-  definition: { es: string; fr: string }
+  definition: { es: string; fr: string; pos?: string }
   examples: Example[]
   distractors: string[]
 }
@@ -318,7 +318,12 @@ export default function AddPage() {
         >
           ← Nouveau mot
         </button>
-        <h1 className="font-serif text-3xl font-bold text-ink mt-2">{result.word}</h1>
+        <div className="flex items-baseline gap-2 mt-2">
+          <h1 className="font-serif text-3xl font-bold text-ink">{result.word}</h1>
+          {result.definition.pos && (
+            <span className="text-sm text-muted">{result.definition.pos}</span>
+          )}
+        </div>
       </div>
 
       <div className="px-5 flex flex-col gap-4 pb-4">
@@ -417,9 +422,9 @@ export default function AddPage() {
         <div className="fixed bottom-16 inset-x-0 z-40 px-4 pointer-events-none">
           <div className={`max-w-[430px] mx-auto rounded-card px-4 py-3 shadow-card pointer-events-auto flex items-center gap-3 ${
             toast.type === 'success'
-              ? 'bg-ok/10 border border-ok/20'
+              ? 'bg-card border border-ok/25'
               : toast.type === 'error'
-              ? 'bg-err/10 border border-err/20'
+              ? 'bg-card border border-err/25'
               : 'bg-card border border-line'
           }`}>
             {toast.type === 'adding' && (
