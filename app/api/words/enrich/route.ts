@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getWordData, type WordData } from '@/lib/anthropic'
+import { getWordData } from '@/lib/anthropic'
 
 export async function POST(request: Request) {
   let body: unknown
@@ -27,7 +27,44 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Unauthorized.' }, { status: 401 })
   }
 
-  let wordData: WordData
+  // Check deck first — ilike without wildcards = exact case-insensitive match.
+  // RLS scopes query to the authenticated user automatically.
+  const { data: existing } = await supabase
+    .from('words')
+    .select('id, word, definition, examples, distractors, review_cards(id, due)')
+    .ilike('word', word)
+    .limit(1)
+    .maybeSingle()
+
+  type ExistingRow = {
+    id: string
+    word: string
+    definition: { es: string; fr: string }
+    examples: Array<{ es: string; fr: string }>
+    distractors: string[]
+    review_cards: Array<{ id: string; due: string }>
+  }
+
+  const row = existing as ExistingRow | null
+
+  if (row) {
+    const card = row.review_cards[0]
+    const dueDate = card?.due
+    const status = dueDate && new Date(dueDate) <= new Date() ? 'due_now' : 'due_later'
+
+    return Response.json({
+      word: row.word,
+      definition: row.definition,
+      examples: row.examples,
+      distractors: row.distractors,
+      status,
+      wordId: row.id,
+      dueDate,
+    })
+  }
+
+  // Not in deck — call Anthropic.
+  let wordData
   try {
     wordData = await getWordData(word, request.signal)
   } catch (e) {
@@ -37,37 +74,11 @@ export async function POST(request: Request) {
     )
   }
 
-  // Duplicate check — RLS scopes query to the authenticated user automatically.
-  // ilike without wildcards = exact case-insensitive match.
-  const { data: existing } = await supabase
-    .from('words')
-    .select('id, review_cards(id, due)')
-    .ilike('word', word)
-    .limit(1)
-    .maybeSingle()
-
-  const row = existing as { id: string; review_cards: Array<{ id: string; due: string }> } | null
-
-  let status: 'new' | 'due_now' | 'due_later' = 'new'
-  let wordId: string | undefined
-  let dueDate: string | undefined
-
-  if (row) {
-    const card = row.review_cards[0]
-    wordId = row.id
-    if (card) {
-      dueDate = card.due
-      status = new Date(card.due) <= new Date() ? 'due_now' : 'due_later'
-    }
-  }
-
   return Response.json({
     word,
     definition: wordData.definition,
     examples: wordData.examples,
     distractors: wordData.distractors,
-    status,
-    wordId,
-    dueDate,
+    status: 'new',
   })
 }
