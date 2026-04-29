@@ -35,7 +35,7 @@ export default function LoginPage() {
         onSubmit={handleSubmit}
         className="flex flex-col gap-4 w-full max-w-sm bg-card p-8 rounded-card shadow-card"
       >
-        <h1 className="font-serif text-2xl text-ink">Vocabulario</h1>
+        <h1 className="font-serif text-2xl text-ink">Paco</h1>
         <input
           type="email"
           placeholder="Email"

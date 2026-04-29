@@ -46,7 +46,7 @@ export default async function HomePage() {
         {/* Header */}
         <div>
           <div className="flex items-baseline gap-2">
-            <h1 className="font-serif text-2xl font-bold text-ink">Vocabulario</h1>
+            <h1 className="font-serif text-2xl font-bold text-ink">Paco</h1>
             <span className="text-sm text-muted">es → fr</span>
           </div>
           <p className="text-sm text-muted mt-1">{wordCount ?? 0} mots enregistrés</p>

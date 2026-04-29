@@ -14,8 +14,12 @@ const lora = Lora({
 })
 
 export const metadata: Metadata = {
-  title: "Vocabulario",
-  description: "Apprenez le vocabulaire espagnol avec la répétition espacée.",
+  title: "Paco",
+  description: "Apprenez l'espagnol avec la répétition espacée.",
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
 }
 
 export const viewport: Viewport = {
