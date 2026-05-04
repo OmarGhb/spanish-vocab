@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { getWordData } from '@/lib/anthropic'
+import { contains, fuzzyMatch } from '@/lib/wordlist'
 
 export async function POST(request: Request) {
   let body: unknown
@@ -61,6 +62,15 @@ export async function POST(request: Request) {
       wordId: row.id,
       dueDate,
     })
+  }
+
+  // Spellcheck — only runs on deck miss so existing entries are never blocked.
+  if (!contains(word)) {
+    const candidates = fuzzyMatch(word, 5)
+    if (candidates.length > 0) {
+      return Response.json({ error: 'SPELLCHECK_CANDIDATES', candidates }, { status: 422 })
+    }
+    return Response.json({ error: 'SPELLCHECK_UNKNOWN' }, { status: 422 })
   }
 
   // Not in deck — call Anthropic.

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Loader2 } from 'lucide-react'
 import LoadingIdiom from './LoadingIdiom'
+import WordInput from './WordInput'
 
 type Example = { es: string; fr: string }
 type WordResult = {
@@ -21,6 +22,7 @@ type DeckStatus =
 type Phase =
   | { tag: 'idle' }
   | { tag: 'loading' }
+  | { tag: 'spellcheck_candidates'; word: string; candidates: string[] }
   | { tag: 'ready'; result: WordResult; status: DeckStatus }
   | { tag: 'error'; word: string }
   | { tag: 'revealed'; result: WordResult; status: DeckStatus }
@@ -35,6 +37,7 @@ type EnrichResponse = WordResult & {
   wordId?: string
   dueDate?: string
   error?: string
+  candidates?: string[]
 }
 
 function highlightWord(sentence: string, word: string): React.ReactNode {
@@ -55,6 +58,7 @@ function highlightWord(sentence: string, word: string): React.ReactNode {
 export default function AddPage() {
   const [word, setWord] = useState('')
   const [phase, setPhase] = useState<Phase>({ tag: 'idle' })
+  const [inputError, setInputError] = useState<string | null>(null)
   const [revealedFr, setRevealedFr] = useState<boolean[]>([])
   const [revealedDefFr, setRevealedDefFr] = useState(false)
   const [selectedDistractors, setSelectedDistractors] = useState<Set<string>>(new Set())
@@ -92,8 +96,15 @@ export default function AddPage() {
       const data = await res.json() as EnrichResponse
 
       if (!res.ok) {
-        setPhase({ tag: 'error', word: targetWord })
-        console.warn('[add] /api/words/enrich error:', data.error)
+        if (data.error === 'SPELLCHECK_CANDIDATES' && data.candidates) {
+          setPhase({ tag: 'spellcheck_candidates', word: targetWord, candidates: data.candidates })
+        } else if (data.error === 'SPELLCHECK_UNKNOWN') {
+          setPhase({ tag: 'idle' })
+          setInputError("Ce mot n'existe pas en espagnol")
+        } else {
+          setPhase({ tag: 'error', word: targetWord })
+          console.warn('[add] /api/words/enrich error:', data.error)
+        }
         return
       }
 
@@ -114,7 +125,12 @@ export default function AddPage() {
         distractors: data.distractors,
       }
 
-      setPhase({ tag: 'ready', result, status })
+      // Cache hits skip the idiom card — no latency to fill.
+      if (status.tag === 'due_now' || status.tag === 'due_later') {
+        setPhase({ tag: 'revealed', result, status })
+      } else {
+        setPhase({ tag: 'ready', result, status })
+      }
       setRevealedFr(new Array(data.examples.length).fill(false))
       setRevealedDefFr(false)
     } catch (e) {
@@ -137,6 +153,7 @@ export default function AddPage() {
   function handleAddAnother() {
     setWord('')
     setPhase({ tag: 'idle' })
+    setInputError(null)
     setRevealedFr([])
     setRevealedDefFr(false)
     setSelectedDistractors(new Set())
@@ -263,14 +280,11 @@ export default function AddPage() {
         </div>
 
         <div className="px-5 flex flex-col gap-4">
-          <input
-            id="word-input"
-            type="text"
-            placeholder="mariposa"
+          <WordInput
             value={word}
-            onChange={(e) => setWord(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter' && word.trim()) handleSubmit(word.trim()) }}
-            className="w-full border border-line rounded-card px-4 py-4 font-serif text-lg bg-card text-ink placeholder:text-muted focus:outline-none focus:border-accent"
+            onChange={(v) => { setWord(v); if (inputError) setInputError(null) }}
+            onSubmit={(w) => { void handleSubmit(w) }}
+            error={inputError}
           />
           <p className="text-sm text-muted leading-relaxed">
             Claude va générer la définition, des exemples et des mots similaires pour enrichir votre
@@ -285,6 +299,46 @@ export default function AddPage() {
             Rechercher →
           </button>
         </div>
+      </div>
+    )
+  }
+
+  // ── SPELLCHECK CANDIDATES ─────────────────────────────────────────────────────
+  if (phase.tag === 'spellcheck_candidates') {
+    const originalWord = phase.word
+    const candidates = phase.candidates
+    return (
+      <div className="flex flex-col p-5 gap-5 pb-16">
+        <button
+          type="button"
+          onClick={() => { setWord(originalWord); setPhase({ tag: 'idle' }) }}
+          className="text-muted text-sm self-start"
+        >
+          ← Retour
+        </button>
+        <div>
+          <h1 className="font-serif text-2xl font-bold text-ink">Voulais-tu dire…</h1>
+          <p className="text-sm text-muted mt-1">&laquo;&nbsp;{originalWord}&nbsp;&raquo; n&apos;a pas été reconnu</p>
+        </div>
+        <div className="flex flex-col gap-3">
+          {candidates.map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => { setWord(c); void handleSubmit(c) }}
+              className="bg-card rounded-card shadow-card px-5 py-4 font-serif text-lg text-ink text-left"
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={() => { setWord(originalWord); setPhase({ tag: 'idle' }) }}
+          className="text-sm text-muted underline underline-offset-2 self-start"
+        >
+          Aucune de ces propositions
+        </button>
       </div>
     )
   }
