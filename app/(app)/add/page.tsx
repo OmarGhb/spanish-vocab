@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Loader2 } from 'lucide-react'
@@ -34,6 +35,21 @@ type Toast =
   | { type: 'adding'; count: number }
   | { type: 'success'; count: number; skipped: number }
   | { type: 'error'; failedWords: string[] }
+
+type LemmaEventType =
+  | 'lemma_suggestion_shown'
+  | 'lemma_suggestion_accepted'
+  | 'lemma_collision_shown'
+  | 'lemma_collision_open_existing'
+  | 'lemma_collision_add_anyway'
+
+function logLemmaEvent(eventType: LemmaEventType, inputWord: string, lemma: string): void {
+  void fetch('/api/events/log', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event_type: eventType, input_word: inputWord, lemma }),
+  }).catch(console.error)
+}
 
 type EnrichResponse = WordResult & {
   status: 'new' | 'due_now' | 'due_later'
@@ -72,6 +88,7 @@ export default function AddPage() {
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
 
   const abortRef = useRef<AbortController | null>(null)
+  const collisionContextRef = useRef<{ inputWord: string; lemma: string } | null>(null)
 
   // Cancel in-flight enrichment when navigating away.
   useEffect(() => {
@@ -87,6 +104,7 @@ export default function AddPage() {
 
   async function handleSubmit(targetWord: string) {
     abortRef.current?.abort()
+    collisionContextRef.current = null
     const controller = new AbortController()
     abortRef.current = controller
     setPhase({ tag: 'loading' })
@@ -134,9 +152,15 @@ export default function AddPage() {
 
       // Lemma suggestion: inflected form submitted and lemma differs (new words only).
       if (status.tag === 'new' && data.lemma && data.lemma.toLowerCase() !== data.word.toLowerCase()) {
-        setPhase({ tag: 'lemma_suggestion', result, lemma: data.lemma, lemma_status: data.lemma_status ?? 'available' })
+        const lStatus = data.lemma_status ?? 'available'
+        setPhase({ tag: 'lemma_suggestion', result, lemma: data.lemma, lemma_status: lStatus })
         setRevealedFr(new Array(data.examples.length).fill(false))
         setRevealedDefFr(false)
+        logLemmaEvent(
+          lStatus === 'available' ? 'lemma_suggestion_shown' : 'lemma_collision_shown',
+          data.word,
+          data.lemma,
+        )
         return
       }
 
@@ -166,6 +190,7 @@ export default function AddPage() {
   }
 
   function handleAddAnother() {
+    collisionContextRef.current = null
     setWord('')
     setPhase({ tag: 'idle' })
     setInputError(null)
@@ -211,6 +236,11 @@ export default function AddPage() {
           ...(result.form_annotation ? { form_annotation: result.form_annotation } : {}),
         }),
       })
+      if (res.ok && collisionContextRef.current) {
+        const { inputWord, lemma: l } = collisionContextRef.current
+        logLemmaEvent('lemma_collision_add_anyway', inputWord, l)
+        collisionContextRef.current = null
+      }
       setSaveState(res.ok ? 'saved' : 'error')
     } catch {
       setSaveState('error')
@@ -311,7 +341,7 @@ export default function AddPage() {
           <Link href="/" className="text-muted text-sm">←</Link>
           <div className="mt-4">
             <h1 className="font-serif text-2xl font-bold text-ink">Nouveau mot</h1>
-            <p className="text-sm text-muted mt-0.5">Entrez un mot espagnol</p>
+            <p className="text-sm text-muted mt-0.5">Entre un mot espagnol</p>
           </div>
         </div>
 
@@ -322,10 +352,12 @@ export default function AddPage() {
             onSubmit={(w) => { void handleSubmit(w) }}
             error={inputError}
           />
-          <p className="text-sm text-muted leading-relaxed">
-            Claude va générer la définition, des exemples et des mots similaires pour enrichir votre
-            apprentissage.
-          </p>
+          <div className="flex items-start gap-3">
+            <Image src="/paco.png" alt="Paco" width={64} height={64} className="object-contain shrink-0" />
+            <p className="text-sm text-muted leading-relaxed">
+              Paco va générer la définition, des exemples et des mots similaires pour enrichir ton apprentissage.
+            </p>
+          </div>
           <button
             type="button"
             disabled={!word.trim()}
@@ -408,7 +440,7 @@ export default function AddPage() {
         {lemma_status === 'already_in_deck' && (
           <div className="bg-tint border border-line rounded-card px-4 py-3">
             <p className="text-xs text-muted font-serif">
-              <span className="font-bold">{lemma}</span> est déjà dans votre collection.
+              <span className="font-bold">{lemma}</span> est déjà dans ta collection.
             </p>
           </div>
         )}
@@ -417,7 +449,10 @@ export default function AddPage() {
           <button
             type="button"
             disabled={lemma_status === 'already_in_deck' || saveState !== 'idle'}
-            onClick={() => { void handleSaveLemmaWord(lemma, result) }}
+            onClick={() => {
+              logLemmaEvent('lemma_suggestion_accepted', result.word, lemma)
+              void handleSaveLemmaWord(lemma, result)
+            }}
             className="w-full bg-accent text-white rounded-card py-4 font-serif text-sm disabled:opacity-40 transition-opacity"
           >
             {saveState === 'saving' ? (
@@ -430,9 +465,21 @@ export default function AddPage() {
               `+ Ajouter « ${lemma} »`
             )}
           </button>
+          {lemma_status === 'already_in_deck' && (
+            <Link
+              href="/"
+              onClick={() => logLemmaEvent('lemma_collision_open_existing', result.word, lemma)}
+              className="w-full bg-card border border-line rounded-card py-4 font-serif text-sm text-ink text-center"
+            >
+              Ouvrir &laquo;&nbsp;{lemma}&nbsp;&raquo;
+            </Link>
+          )}
           <button
             type="button"
             onClick={() => {
+              if (lemma_status === 'already_in_deck') {
+                collisionContextRef.current = { inputWord: result.word, lemma }
+              }
               setSaveState('idle')
               setPhase({ tag: 'revealed', result: { ...result, lemma }, status: { tag: 'new' } })
             }}
@@ -488,8 +535,8 @@ export default function AddPage() {
           <div className="bg-tint border border-line rounded-card px-4 py-3">
             <p className="text-xs text-muted font-serif">
               {status.tag === 'due_now'
-                ? "Déjà dans votre vocabulaire — prochaine révision aujourd'hui."
-                : `Déjà dans votre vocabulaire — prochaine révision dans ${status.daysUntil} jour${status.daysUntil > 1 ? 's' : ''}.`}
+                ? "Déjà dans ton vocabulaire — prochaine révision aujourd'hui."
+                : `Déjà dans ton vocabulaire — prochaine révision dans ${status.daysUntil} jour${status.daysUntil > 1 ? 's' : ''}.`}
             </p>
           </div>
         )}
@@ -507,7 +554,12 @@ export default function AddPage() {
           <p className="text-xs uppercase tracking-widest text-muted mb-3">Définition</p>
           <p className="font-serif text-sm text-ink leading-relaxed">{result.definition.es}</p>
           {revealedDefFr ? (
-            <p className="font-serif italic text-sm text-muted mt-2">{result.definition.fr}</p>
+            <div className="mt-2">
+              <p className="font-serif italic text-sm text-muted">{result.definition.fr}</p>
+              <button type="button" onClick={() => setRevealedDefFr(false)} className="text-xs text-accent mt-1">
+                ↑ Masquer
+              </button>
+            </div>
           ) : (
             <button type="button" onClick={() => setRevealedDefFr(true)} className="text-xs text-accent mt-2">
               ↓ Voir en français
@@ -525,7 +577,12 @@ export default function AddPage() {
                   {highlightWord(ex.es, result.word)}
                 </p>
                 {revealedFr[i] ? (
-                  <p className="font-serif italic text-sm text-muted mt-1">{ex.fr}</p>
+                  <div className="mt-1">
+                    <p className="font-serif italic text-sm text-muted">{ex.fr}</p>
+                    <button type="button" onClick={() => toggleFr(i)} className="text-xs text-accent mt-1">
+                      ↑ Masquer
+                    </button>
+                  </div>
                 ) : (
                   <button type="button" onClick={() => toggleFr(i)} className="text-xs text-accent mt-2">
                     ↓ Traduction
@@ -556,8 +613,8 @@ export default function AddPage() {
             </div>
 
             <p className="text-xs text-muted leading-relaxed mb-3">
-              Apprendre des mots de la même famille en parallèle aide votre cerveau à les distinguer
-              en contexte. Touchez chaque mot pour l&apos;ajouter à votre vocabulaire.
+              Apprendre des mots de la même famille en parallèle aide ton cerveau à les distinguer
+              en contexte. Touche chaque mot pour l&apos;ajouter à ton vocabulaire.
             </p>
 
             <div className="flex flex-wrap gap-2">

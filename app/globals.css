@@ -4,31 +4,41 @@
   --font-sans: var(--font-inter);
   --font-serif: var(--font-lora);
 
-  /* Chaleureuse palette */
-  --color-page:   oklch(0.96 0.025  80);
-  --color-card:   oklch(0.99 0.01   75);
-  --color-ink:    oklch(0.22 0.04   55);
-  --color-muted:  oklch(0.50 0.04   55);
-  --color-line:   oklch(0.86 0.04   75);
-  --color-accent: oklch(0.40 0.20   20);
-  --color-tint:   oklch(0.94 0.05   20);
-  --color-ok:     oklch(0.50 0.17  145);
-  --color-err:    oklch(0.50 0.18   10);
+  /* Paco palette */
+  --color-page:        #F5EDDA;
+  --color-card:        #FFFBF3;
+  --color-surface-alt: #EDE0C4;
+  --color-ink:         #3D2B1A;
+  --color-muted:       #7A5A3A;
+  --color-line:        #D9C9A8;
+  --color-accent:      #C27A2C;
+  --color-tint:        #F5E0C0;
+  --color-ok:          #4A7C6F;
+  --color-ok-bg:       #D4EDE9;
+  --color-err:         #B84C2A;
+  --color-err-bg:      #F5E0D8;
 
-  /* Rating buttons — same-hue rose gradation (dark → light) */
-  --color-again:  oklch(0.68 0.12   20);
-  --color-hard:   oklch(0.76 0.09   20);
-  --color-good:   oklch(0.83 0.06   20);
-  --color-easy:   oklch(0.90 0.03   20);
+  /* Rating buttons — amber gradation (darkest = worst, lightest = best) */
+  --color-again: oklch(0.65 0.13 55);
+  --color-hard:  oklch(0.74 0.10 55);
+  --color-good:  oklch(0.82 0.07 55);
+  --color-easy:  oklch(0.91 0.04 55);
 
   /* Card chrome */
-  --radius-card:  12px;
-  --shadow-card:  0 1px 3px oklch(0.22 0.04 55 / 0.08),
-                  0 4px 16px oklch(0.22 0.04 55 / 0.06);
+  --radius-card: 14px;
+  --shadow-card: 0 1px 4px rgba(61,43,26,0.10),
+                 0 4px 18px rgba(61,43,26,0.07);
 }
 
 body {
   background-color: var(--color-page);
   color: var(--color-ink);
   font-family: var(--font-sans), sans-serif;
+}
+
+@media print {
+  body {
+    background-color: #FFFBF3 !important;
+    color: #3D2B1A !important;
+  }
 }

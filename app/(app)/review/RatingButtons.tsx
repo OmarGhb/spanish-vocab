@@ -25,7 +25,7 @@ export default function RatingButtons({ result, onRate }: Props) {
   return (
     <div>
       <p className="font-serif text-sm text-ink mb-3">
-        Comment vous avez trouvé cet exemple ?
+        Comment tu as trouvé ce mot ?
       </p>
       <div className="flex gap-2">
         {([1, 2, 3, 4] as const).map((r) => (

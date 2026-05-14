@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import type React from 'react'
 import { computeRating, type RatingResult } from '@/lib/rating'
@@ -43,6 +44,17 @@ function pickExample(card: ReviewCard) {
   return null
 }
 
+function editDistance(a: string, b: string): number {
+  const m = a.length, n = b.length
+  const dp: number[][] = Array.from({ length: m + 1 }, (_, i) =>
+    Array.from({ length: n + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0))
+  )
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1])
+  return dp[m][n]
+}
+
 export default function FillInBlank({ card, cardStartRef, onRate }: Props) {
   const { word, definition } = card
 
@@ -74,7 +86,16 @@ export default function FillInBlank({ card, cardStartRef, onRate }: Props) {
     setResult(rating)
   }
 
-  const isCorrect = answer.trim().toLowerCase() === word.trim().toLowerCase()
+  const trimmedAnswer = answer.trim().toLowerCase()
+  const trimmedWord = word.trim().toLowerCase()
+  const isCorrect = trimmedAnswer === trimmedWord
+  const isClose = !isCorrect && editDistance(trimmedAnswer, trimmedWord) <= 2
+
+  function feedbackCopy() {
+    if (isCorrect) return '¡Correcto! Sigue así.'
+    if (isClose) return '¡Casi! Inténtalo otra vez.'
+    return '¡Inténtalo otra vez!'
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -105,7 +126,7 @@ export default function FillInBlank({ card, cardStartRef, onRate }: Props) {
             type="text"
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
-            placeholder="Votre réponse…"
+            placeholder="Ta réponse…"
             required
             className="w-full border border-line rounded-card px-4 py-4 text-base bg-card text-ink placeholder:text-muted focus:outline-none focus:border-accent"
           />
@@ -134,18 +155,16 @@ export default function FillInBlank({ card, cardStartRef, onRate }: Props) {
         </form>
       ) : (
         <div className="flex flex-col gap-4">
-          {/* Correct / incorrect feedback card */}
+          {/* Feedback card with Paco */}
           <div
             className={`rounded-card p-4 flex items-center gap-3 border ${
               isCorrect ? 'bg-ok/10 border-ok/25' : 'bg-err/10 border-err/20'
             }`}
           >
-            <span className={`text-lg leading-none ${isCorrect ? 'text-ok' : 'text-err'}`}>
-              {isCorrect ? '✓' : '✗'}
-            </span>
+            <Image src="/paco.png" alt="Paco" width={64} height={64} className="object-contain shrink-0" />
             <div>
               <p className={`font-serif font-medium text-sm ${isCorrect ? 'text-ok' : 'text-err'}`}>
-                {isCorrect ? 'Correct !' : 'Incorrect'}
+                {feedbackCopy()}
               </p>
               {!isCorrect && (
                 <p className="text-xs text-muted mt-0.5">

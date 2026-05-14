@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 
@@ -44,29 +45,30 @@ export default async function HomePage() {
       {/* Scrollable content */}
       <div className="flex-1 p-5 flex flex-col gap-5">
         {/* Header */}
-        <div>
-          <div className="flex items-baseline gap-2">
-            <h1 className="font-serif text-2xl font-bold text-ink">Paco</h1>
-            <span className="text-sm text-muted">es → fr</span>
+        <div className="flex items-center gap-3">
+          <Image src="/paco.png" alt="Paco" width={72} height={72} className="object-contain shrink-0" />
+          <div>
+            <h1 className="font-serif text-[36px] font-bold text-ink leading-none tracking-[-0.03em]">Paco</h1>
+            <p className="text-[9px] font-bold tracking-[0.18em] uppercase text-accent mt-1">APRENDE · RECUERDA · HABLA</p>
+            <p className="text-sm text-muted mt-1">{wordCount ?? 0} mots enregistrés</p>
           </div>
-          <p className="text-sm text-muted mt-1">{wordCount ?? 0} mots enregistrés</p>
         </div>
 
         {/* Due banner */}
         {(dueCount ?? 0) > 0 ? (
           <Link
             href="/review"
-            className="bg-err/10 border border-err/30 rounded-card px-5 py-4 flex justify-between items-center"
+            className="bg-tint border border-accent/30 rounded-card px-5 py-4 flex justify-between items-center"
           >
             <div>
-              <p className="text-xs text-err uppercase tracking-wide font-semibold mb-1">
+              <p className="text-xs text-accent uppercase tracking-wide font-semibold mb-1">
                 Révision disponible
               </p>
-              <p className="font-serif text-xl text-err">
+              <p className="font-serif text-xl text-ink">
                 {dueCount} mot{(dueCount ?? 0) !== 1 ? 's' : ''} à revoir
               </p>
             </div>
-            <span className="text-err text-xl">→</span>
+            <span className="text-accent text-xl">→</span>
           </Link>
         ) : (
           <div className="bg-ok/10 border border-ok/20 rounded-card px-5 py-4">
@@ -79,7 +81,6 @@ export default async function HomePage() {
         {entries.length > 0 ? (
           <ul className="flex flex-col gap-2">
             {entries.map((e) => {
-              const isOverdue = e.label === 'À réviser'
               return (
                 <li key={e.id} className="bg-card rounded-card shadow-card px-4 py-3">
                   <div className="flex justify-between items-start gap-3">
@@ -88,14 +89,16 @@ export default async function HomePage() {
                       <p className="text-xs text-muted mt-0.5 line-clamp-1">{e.definition.es}</p>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className={`text-xs font-semibold uppercase tracking-wide ${isOverdue ? 'text-err' : 'text-muted'}`}>
+                      <p className={`text-xs font-semibold uppercase tracking-wide ${
+                        e.label === 'À réviser' ? 'text-accent' :
+                        e.label === 'Nouvelle' ? 'text-ok' :
+                        'text-muted'
+                      }`}>
                         {e.label}
                       </p>
-                      {e.reps > 0 && (
-                        <p className="text-[10px] text-muted mt-0.5">
-                          {e.reps} révision{e.reps > 1 ? 's' : ''}
-                        </p>
-                      )}
+                      <p className="text-[10px] text-muted mt-0.5">
+                        {e.reps} révision{e.reps > 1 ? 's' : ''}
+                      </p>
                     </div>
                   </div>
                 </li>
@@ -103,10 +106,9 @@ export default async function HomePage() {
             })}
           </ul>
         ) : (
-          <div className="bg-card rounded-card shadow-card p-6 text-center">
-            <p className="text-sm text-muted">
-              Aucun mot encore — commencez par en ajouter un.
-            </p>
+          <div className="bg-card rounded-card shadow-card p-6 flex flex-col items-center gap-3 text-center">
+            <Image src="/paco.png" alt="Paco" width={110} height={110} className="object-contain" />
+            <p className="text-sm text-muted">Paco attend ton premier mot !</p>
           </div>
         )}
       </div>

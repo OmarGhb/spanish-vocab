@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import type React from 'react'
 import { useMemo, useState } from 'react'
 import { computeRating, type RatingResult } from '@/lib/rating'
@@ -115,7 +116,19 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
       </div>
 
       {result && (
-        <RatingButtons result={result} onRate={(r) => onRate(r, frozenTimeMs, hintUsed)} />
+        <div className="flex flex-col gap-4">
+          <div
+            className={`rounded-card p-4 flex items-center gap-3 border ${
+              chosen === word ? 'bg-ok/10 border-ok/25' : 'bg-err/10 border-err/20'
+            }`}
+          >
+            <Image src="/paco.png" alt="Paco" width={64} height={64} className="object-contain shrink-0" />
+            <p className={`font-serif font-medium text-sm ${chosen === word ? 'text-ok' : 'text-err'}`}>
+              {chosen === word ? '¡Correcto! Sigue así.' : `¡Inténtalo! → ${word}`}
+            </p>
+          </div>
+          <RatingButtons result={result} onRate={(r) => onRate(r, frozenTimeMs, hintUsed)} />
+        </div>
       )}
     </div>
   )

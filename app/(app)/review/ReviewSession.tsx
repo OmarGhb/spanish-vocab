@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import type { ReviewCard } from './page'
@@ -49,9 +50,9 @@ export default function ReviewSession({ cards }: Props) {
   if (done) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen px-5 pb-20 gap-6 text-center">
-        <span className="text-accent text-5xl leading-none">✓</span>
+        <Image src="/paco.png" alt="Paco" width={110} height={110} className="object-contain" />
         <div>
-          <p className="font-serif text-2xl font-bold text-ink">Révision terminée.</p>
+          <p className="font-serif text-2xl font-bold text-ink">¡Buen trabajo!</p>
           <p className="text-sm text-muted mt-2">
             {cards.length} carte{cards.length > 1 ? 's' : ''} révisée{cards.length > 1 ? 's' : ''}.
           </p>

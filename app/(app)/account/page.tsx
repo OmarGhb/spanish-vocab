@@ -50,7 +50,7 @@ export default async function AccountPage() {
         <section className="bg-card rounded-card shadow-card p-5 flex flex-col gap-2">
           <p className="text-xs uppercase tracking-widest text-muted">À propos</p>
           <div className="flex justify-between items-baseline">
-            <p className="font-serif text-sm font-bold text-ink">Vocabulario</p>
+            <p className="font-serif text-sm font-bold text-ink">Paco</p>
             <p className="text-xs text-muted">v{pkg.version}</p>
           </div>
           <p className="text-xs text-muted leading-relaxed">
