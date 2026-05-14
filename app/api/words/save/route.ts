@@ -10,6 +10,8 @@ const SaveBodySchema = z.object({
     .min(2)
     .max(3),
   distractors: z.array(z.string().min(1)).min(3).max(3),
+  lemma: z.string().min(1).optional(),
+  form_annotation: z.string().min(1).nullable().optional(),
 })
 
 export async function POST(request: Request) {
@@ -34,15 +36,16 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Unauthorized.' }, { status: 401 })
   }
 
-  const { word, definition, examples, distractors } = parsed.data
+  const { word, definition, examples, distractors, lemma, form_annotation } = parsed.data
 
   const { data: savedWord, error: wordError } = await supabase
     .from('words')
-    .insert({ user_id: user.id, word, definition, examples, distractors })
+    .insert({ user_id: user.id, word, definition, examples, distractors, lemma, form_annotation })
     .select('id')
     .single()
 
   if (wordError || !savedWord) {
+    console.error('Save error:', wordError)
     return Response.json({ error: 'Failed to save word.' }, { status: 500 })
   }
 
@@ -63,6 +66,7 @@ export async function POST(request: Request) {
   })
 
   if (cardError) {
+    console.error('Card create error:', cardError)
     // Roll back the word insert so we don't end up with an orphaned row.
     await supabase.from('words').delete().eq('id', savedWord.id)
     return Response.json({ error: 'Failed to create review card.' }, { status: 500 })

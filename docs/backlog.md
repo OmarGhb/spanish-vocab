@@ -38,6 +38,7 @@
 ## Gamification (defer aggressively)
 - Session streak / XP counters.
 - Game mode selection in Settings.
+- Verb conjugation exercise mode — drill specific conjugations (tense + person) of a verb the user knows.
 
 ## i18n / future direction
 - Support languages other than Spanish (the architecture is mostly language-agnostic but the Anthropic prompt is Spanish-specific).
@@ -82,3 +83,5 @@ Notes:
 - Requires sufficient user data to be useful (~100+ words minimum)
 - Cost-aware design: each check-in is a small Anthropic call
 - Tone: Spanish-tutor quality, never motivational pap
+
+- Add `suppressHydrationWarning` to `<body>` in `app/layout.tsx` to silence Grammarly extension hydration noise (cosmetic, not user-facing)

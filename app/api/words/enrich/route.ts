@@ -84,11 +84,28 @@ export async function POST(request: Request) {
     )
   }
 
+  // If Anthropic identified a different lemma, check whether it is already in the deck.
+  let lemma: string | undefined
+  let lemma_status: 'available' | 'already_in_deck' | undefined
+
+  if (wordData.lemma.toLowerCase() !== word.toLowerCase()) {
+    lemma = wordData.lemma
+    const { data: lemmaRow } = await supabase
+      .from('words')
+      .select('id')
+      .ilike('word', wordData.lemma)
+      .limit(1)
+      .maybeSingle()
+    lemma_status = lemmaRow ? 'already_in_deck' : 'available'
+  }
+
   return Response.json({
     word,
     definition: wordData.definition,
     examples: wordData.examples,
     distractors: wordData.distractors,
+    form_annotation: wordData.form_annotation,
     status: 'new',
+    ...(lemma !== undefined && { lemma, lemma_status }),
   })
 }

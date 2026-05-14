@@ -12,6 +12,8 @@ type WordResult = {
   definition: { es: string; fr: string; pos?: string }
   examples: Example[]
   distractors: string[]
+  lemma?: string
+  form_annotation?: string | null
 }
 
 type DeckStatus =
@@ -23,6 +25,7 @@ type Phase =
   | { tag: 'idle' }
   | { tag: 'loading' }
   | { tag: 'spellcheck_candidates'; word: string; candidates: string[] }
+  | { tag: 'lemma_suggestion'; result: WordResult; lemma: string; lemma_status: 'available' | 'already_in_deck' }
   | { tag: 'ready'; result: WordResult; status: DeckStatus }
   | { tag: 'error'; word: string }
   | { tag: 'revealed'; result: WordResult; status: DeckStatus }
@@ -38,6 +41,9 @@ type EnrichResponse = WordResult & {
   dueDate?: string
   error?: string
   candidates?: string[]
+  lemma?: string
+  lemma_status?: 'available' | 'already_in_deck'
+  form_annotation?: string | null
 }
 
 function highlightWord(sentence: string, word: string): React.ReactNode {
@@ -123,6 +129,15 @@ export default function AddPage() {
         definition: data.definition,
         examples: data.examples,
         distractors: data.distractors,
+        form_annotation: data.form_annotation,
+      }
+
+      // Lemma suggestion: inflected form submitted and lemma differs (new words only).
+      if (status.tag === 'new' && data.lemma && data.lemma.toLowerCase() !== data.word.toLowerCase()) {
+        setPhase({ tag: 'lemma_suggestion', result, lemma: data.lemma, lemma_status: data.lemma_status ?? 'available' })
+        setRevealedFr(new Array(data.examples.length).fill(false))
+        setRevealedDefFr(false)
+        return
       }
 
       // Cache hits skip the idiom card — no latency to fill.
@@ -189,6 +204,27 @@ export default function AddPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           word: result.word,
+          definition: result.definition,
+          examples: result.examples,
+          distractors: result.distractors,
+          ...(result.lemma ? { lemma: result.lemma } : {}),
+          ...(result.form_annotation ? { form_annotation: result.form_annotation } : {}),
+        }),
+      })
+      setSaveState(res.ok ? 'saved' : 'error')
+    } catch {
+      setSaveState('error')
+    }
+  }
+
+  async function handleSaveLemmaWord(lemmaWord: string, result: WordResult) {
+    setSaveState('saving')
+    try {
+      const res = await fetch('/api/words/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          word: lemmaWord,
           definition: result.definition,
           examples: result.examples,
           distractors: result.distractors,
@@ -343,6 +379,72 @@ export default function AddPage() {
     )
   }
 
+  // ── LEMMA SUGGESTION ──────────────────────────────────────────────────────────
+  if (phase.tag === 'lemma_suggestion') {
+    const { result, lemma, lemma_status } = phase
+    return (
+      <div className="flex flex-col p-5 gap-5 pb-16 min-h-screen">
+        <button
+          type="button"
+          onClick={() => { setWord(result.word); setPhase({ tag: 'idle' }); setSaveState('idle') }}
+          className="text-muted text-sm self-start"
+        >
+          ← Retour
+        </button>
+        <div>
+          <h1 className="font-serif text-2xl font-bold text-ink">Forme conjuguée</h1>
+          <p className="text-sm text-muted mt-1">
+            &laquo;&nbsp;{result.word}&nbsp;&raquo; est une forme de{' '}
+            <span className="font-serif font-bold text-ink">{lemma}</span>
+          </p>
+        </div>
+
+        {result.form_annotation && (
+          <p className="text-center font-serif text-sm text-muted leading-relaxed">
+            {result.form_annotation}
+          </p>
+        )}
+
+        {lemma_status === 'already_in_deck' && (
+          <div className="bg-tint border border-line rounded-card px-4 py-3">
+            <p className="text-xs text-muted font-serif">
+              <span className="font-bold">{lemma}</span> est déjà dans votre collection.
+            </p>
+          </div>
+        )}
+
+        <div className="mt-auto flex flex-col gap-3">
+          <button
+            type="button"
+            disabled={lemma_status === 'already_in_deck' || saveState !== 'idle'}
+            onClick={() => { void handleSaveLemmaWord(lemma, result) }}
+            className="w-full bg-accent text-white rounded-card py-4 font-serif text-sm disabled:opacity-40 transition-opacity"
+          >
+            {saveState === 'saving' ? (
+              <Loader2 size={14} className="animate-spin inline" />
+            ) : saveState === 'saved' ? (
+              '✓ Ajouté'
+            ) : saveState === 'error' ? (
+              'Erreur — réessayer'
+            ) : (
+              `+ Ajouter « ${lemma} »`
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setSaveState('idle')
+              setPhase({ tag: 'revealed', result: { ...result, lemma }, status: { tag: 'new' } })
+            }}
+            className="text-sm text-muted underline underline-offset-2 self-center"
+          >
+            Garder &laquo;&nbsp;{result.word}&nbsp;&raquo;
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   // ── LOADING / READY / ERROR ───────────────────────────────────────────────────
   if (phase.tag === 'loading' || phase.tag === 'ready' || phase.tag === 'error') {
     return (
@@ -389,6 +491,14 @@ export default function AddPage() {
                 ? "Déjà dans votre vocabulaire — prochaine révision aujourd'hui."
                 : `Déjà dans votre vocabulaire — prochaine révision dans ${status.daysUntil} jour${status.daysUntil > 1 ? 's' : ''}.`}
             </p>
+          </div>
+        )}
+
+        {/* FORME — only for inflected words */}
+        {result.form_annotation && (
+          <div className="bg-card rounded-card shadow-card p-5">
+            <p className="text-xs uppercase tracking-widest text-muted mb-3">Forme</p>
+            <p className="font-serif text-sm text-ink leading-relaxed">{result.form_annotation}</p>
           </div>
         )}
 
