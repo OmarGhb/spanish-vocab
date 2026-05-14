@@ -5,7 +5,7 @@
 //   dotenv -e .env.local -- npx tsx scripts/backfill-definitions.ts [--limit=N]
 //
 // Run with --limit=1 first, inspect the result, then run without a limit.
-// Idempotent: only processes rows still matching the empty-def WHERE clause.
+// Idempotent: only processes rows still matching the empty-def filter.
 
 import { createClient } from '@supabase/supabase-js'
 import { getWordData } from '../lib/anthropic'
@@ -19,6 +19,16 @@ const supabase = createClient(
 
 const limitArg = process.argv.find((a) => a.startsWith('--limit='))
 const limit = limitArg ? parseInt(limitArg.split('=')[1]!, 10) : undefined
+
+type WordRow = { id: string; word: string; definition: unknown }
+
+function needsBackfill(def: unknown): boolean {
+  if (def === null || def === undefined) return true
+  if (typeof def !== 'object') return true
+  if (Array.isArray(def)) return true
+  const es = (def as Record<string, unknown>).es
+  return typeof es !== 'string' || es === ''
+}
 
 async function processChunk(
   chunk: Array<{ id: string; word: string }>,
@@ -58,25 +68,20 @@ async function processChunk(
 }
 
 async function main() {
-  // Broad fetch then filter client-side — Supabase PostgREST doesn't support
-  // jsonb_typeof or nested jsonb conditions via the JS client, so we pull all
-  // rows and apply the WHERE logic here.
+  // Fetch all rows — no DB-side limit. Filter client-side, then apply --limit.
+  // PostgREST can't express jsonb_typeof or nested jsonb conditions cleanly,
+  // so we pull all rows and apply the WHERE logic in JS.
   const { data: allRows, error } = await supabase
     .from('words')
     .select('id, word, definition')
-    .limit(limit ?? 100_000)
 
   if (error) {
     console.error('Fetch failed:', error.message)
     process.exit(1)
   }
 
-  const rows = (allRows ?? []).filter((r) => {
-    const def = r.definition as Record<string, unknown> | null
-    if (def === null || typeof def !== 'object') return true
-    const es = def.es
-    return es === null || es === undefined || es === ''
-  })
+  const filtered = (allRows as WordRow[]).filter((r) => needsBackfill(r.definition))
+  const rows = limit !== undefined ? filtered.slice(0, limit) : filtered
 
   if (rows.length === 0) {
     console.log('Nothing to backfill — all words have a valid definition.es.')
