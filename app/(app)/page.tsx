@@ -107,7 +107,7 @@ export default async function HomePage() {
           </ul>
         ) : (
           <div className="bg-card rounded-card shadow-card p-6 flex flex-col items-center gap-3 text-center">
-            <Image src="/paco.png" alt="Paco" width={110} height={110} className="object-contain" />
+            <Image src="/paco-pensando.png" alt="Paco" width={110} height={110} className="object-contain" />
             <p className="text-sm text-muted">Paco attend ton premier mot !</p>
           </div>
         )}

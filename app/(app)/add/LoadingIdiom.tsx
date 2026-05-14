@@ -22,15 +22,15 @@ export default function LoadingIdiom({ status, onReveal, onRetry }: Props) {
       <div className="bg-card rounded-card shadow-card p-5">
         {status === 'loading' && (
           <div className="flex items-center gap-3">
-            <Image src="/paco.png" alt="Paco" width={44} height={44} className="object-contain shrink-0" />
+            <Image src="/paco-pensando.png" alt="Paco" width={44} height={44} className="object-contain shrink-0" />
             <p className="text-sm font-serif text-muted">Paco cherche en coulisses…</p>
           </div>
         )}
 
         {status === 'ready' && (
           <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-ok text-base leading-none">✓</span>
+            <div className="flex items-center gap-3">
+              <Image src="/paco-feliz.png" alt="Paco" width={44} height={44} className="object-contain shrink-0" />
               <p className="text-sm text-ok font-serif font-medium">¡Listo! Paco a trouvé ton mot.</p>
             </div>
             <button
@@ -45,9 +45,12 @@ export default function LoadingIdiom({ status, onReveal, onRetry }: Props) {
 
         {status === 'error' && (
           <div className="flex flex-col gap-3">
-            <p className="text-sm text-err font-serif">
-              Une erreur s&apos;est produite — veuillez réessayer.
-            </p>
+            <div className="flex items-center gap-3">
+              <Image src="/paco-sad.png" alt="Paco" width={44} height={44} className="object-contain shrink-0" />
+              <p className="text-sm text-err font-serif">
+                Une erreur s&apos;est produite — veuillez réessayer.
+              </p>
+            </div>
             <button
               type="button"
               onClick={onRetry}

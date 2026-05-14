@@ -122,7 +122,7 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
               chosen === word ? 'bg-ok/10 border-ok/25' : 'bg-err/10 border-err/20'
             }`}
           >
-            <Image src="/paco.png" alt="Paco" width={64} height={64} className="object-contain shrink-0" />
+            <Image src={chosen === word ? '/paco-feliz.png' : '/paco-sad.png'} alt="Paco" width={64} height={64} className="object-contain shrink-0" />
             <p className={`font-serif font-medium text-sm ${chosen === word ? 'text-ok' : 'text-err'}`}>
               {chosen === word ? '¡Correcto! Sigue así.' : `¡Inténtalo! → ${word}`}
             </p>

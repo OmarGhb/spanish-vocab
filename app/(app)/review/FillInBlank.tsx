@@ -161,7 +161,7 @@ export default function FillInBlank({ card, cardStartRef, onRate }: Props) {
               isCorrect ? 'bg-ok/10 border-ok/25' : 'bg-err/10 border-err/20'
             }`}
           >
-            <Image src="/paco.png" alt="Paco" width={64} height={64} className="object-contain shrink-0" />
+            <Image src={isCorrect ? '/paco-feliz.png' : '/paco-sad.png'} alt="Paco" width={64} height={64} className="object-contain shrink-0" />
             <div>
               <p className={`font-serif font-medium text-sm ${isCorrect ? 'text-ok' : 'text-err'}`}>
                 {feedbackCopy()}

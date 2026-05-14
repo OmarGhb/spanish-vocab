@@ -12,7 +12,7 @@ export default async function DiscoverPage() {
   return (
     <div className="flex items-center justify-center min-h-[70vh] p-6 pb-20">
       <div className="bg-card rounded-card shadow-card p-8 flex flex-col items-center gap-4 text-center w-full">
-        <Image src="/paco.png" alt="Paco" width={90} height={90} className="object-contain" />
+        <Image src="/paco-feliz.png" alt="Paco" width={90} height={90} className="object-contain" />
         <div>
           <p className="font-serif text-xl font-bold text-ink">Paco est prêt !</p>
           <p className="text-sm text-muted mt-1">

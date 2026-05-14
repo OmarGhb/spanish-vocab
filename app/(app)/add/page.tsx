@@ -355,7 +355,7 @@ export default function AddPage() {
             error={inputError}
           />
           <div className="flex items-start gap-3">
-            <Image src="/paco.png" alt="Paco" width={64} height={64} className="object-contain shrink-0" />
+            <Image src="/paco-pensando.png" alt="Paco" width={64} height={64} className="object-contain shrink-0" />
             <p className="text-sm text-muted leading-relaxed">
               Paco va générer la définition, des exemples et des mots similaires pour enrichir ton apprentissage.
             </p>
