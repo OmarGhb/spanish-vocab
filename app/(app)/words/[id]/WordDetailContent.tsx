@@ -33,24 +33,26 @@ export default function WordDetailContent({ defEs, defFr, formAnnotation, exampl
       )}
 
       {/* DÉFINITION */}
-      <div className="bg-card rounded-card shadow-card p-5">
-        <p className="text-xs uppercase tracking-widest text-muted mb-3">Définition</p>
-        <p className="font-serif text-sm text-ink leading-relaxed">{defEs}</p>
-        {defFr && (
-          revealedDefFr ? (
-            <div className="mt-2">
-              <p className="font-serif italic text-sm text-muted">{defFr}</p>
-              <button type="button" onClick={() => setRevealedDefFr(false)} className="text-xs text-accent mt-1">
-                ↑ Masquer
+      {(defEs || defFr) && (
+        <div className="bg-card rounded-card shadow-card p-5">
+          <p className="text-xs uppercase tracking-widest text-muted mb-3">Définition</p>
+          <p className="font-serif text-sm text-ink leading-relaxed">{defEs}</p>
+          {defFr && (
+            revealedDefFr ? (
+              <div className="mt-2">
+                <p className="font-serif italic text-sm text-muted">{defFr}</p>
+                <button type="button" onClick={() => setRevealedDefFr(false)} className="text-xs text-accent mt-1">
+                  ↑ Masquer
+                </button>
+              </div>
+            ) : (
+              <button type="button" onClick={() => setRevealedDefFr(true)} className="text-xs text-accent mt-2">
+                ↓ Voir en français
               </button>
-            </div>
-          ) : (
-            <button type="button" onClick={() => setRevealedDefFr(true)} className="text-xs text-accent mt-2">
-              ↓ Voir en français
-            </button>
-          )
-        )}
-      </div>
+            )
+          )}
+        </div>
+      )}
 
       {/* EXEMPLES */}
       {examples.length > 0 && (
