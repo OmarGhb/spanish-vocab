@@ -40,39 +40,64 @@ The next committed milestones. Items in `docs/backlog.md` are deferred until pro
 - Sticky bottom NavBar across all (app) routes
 - Confirm button placement on /add input
 
-## M2.5 — Spanish-first definitions
-- ~2-3 sessions
-- Schema migration: `definition` becomes `{ es, fr }` or two columns
-- Anthropic prompt update: generate both Spanish and French definitions
-- /add result UI: show Spanish definition primary, French as "Voir traduction" reveal
-- /review MCQ: Spanish definition primary
-- Backfill strategy for existing words (one-time script ~$0.10 in API)
+## M2.5 — Spanish-first definitions ✅ (v0.2.5)
+- Schema migration: `definition` becomes `{ es, fr, pos? }` JSONB
+- Anthropic prompt update: generates both Spanish and French definitions
+- /add result UI: Spanish definition primary, French behind "Voir en français" reveal
+- /review MCQ: Spanish definition primary, French reveal counts as a hint
+- Backfill script for existing words
 
 ## M3 — Friction fixes
 
-### M3.1 — Two-step add flow + duplicate handling ✅
+### M3.1 — Two-step add flow + duplicate handling ✅ (v0.3.1)
 - Two-step add flow with explicit "Ajouter à ma collection" confirmation
 - Duplicate word handling (offer "Reset scheduling" instead of silent insert)
 
-### M3.2 — Wordlist-driven spelling correction ✅
-- Bundled Spanish wordlist (~636 k inflected forms via `an-array-of-spanish-words`)
+### M3.2 — Wordlist-driven spelling correction ✅ (v0.3.2)
+- Bundled Spanish dictionary (`dictionary-es` + `nspell`, ~656k accent-preserving inflected forms)
 - Autocomplete dropdown on /add input (prefix match, triggers at 2 chars)
 - Post-submit spellcheck: exact match → proceed; fuzzy candidates → confirmation UI; no match → hard block
-- Fuzzy match: Levenshtein distance via `fastest-levenshtein`, threshold 1 (≤4 chars) / 2 (≥5 chars)
+- Fuzzy match: Levenshtein distance via `fastest-levenshtein` against fully-expanded forms, threshold 1 (≤4 chars) / 2 (≥5 chars)
 - Deck cache check runs before spellcheck — pre-M3.2 entries always accessible
 - Cache hits skip the idiom loading screen and go directly to the word card
 - No LLM involved in spellcheck; zero added cost/latency on the common path
+- Architectural pivot from original spec: replaced the proposed Haiku-based LLM spellcheck with deterministic wordlist infrastructure
+- Known bug deferred to follow-up: accent-tolerant autocomplete prefix matching not actually working (see backlog)
 
-### M3.3 — Lemma normalization (upcoming)
-- Lemma normalization ("alguna" → suggest "alguno"; "comieron" → suggest "comer")
-- Inflection collision detection (warning when conjugation of known lemma is added)
-- Uses same wordlist infrastructure as M3.2 + inflection-to-lemma mapping
+### M3.3 — Lemma normalization ✅ (v0.3.3)
 
-## M4 — Word audio + detail view
+Shipped in three phases. Architectural pivot from original spec: chose Anthropic-supplied lemma over a bundled inflection→lemma dataset. Zero added bundle, perfect accuracy, leverages the enrichment call we were already making.
+
+**M3.3 core — Lemma flow** (initial pass)
+- Anthropic enrichment prompt updated to return `lemma` field on every response
+- New `lemma_suggestion` phase in /add (interstitial between submit and revealed card)
+- Three states: no inflection (`lemma == input` → straight to revealed), suggestion (`lemma != input`, lemma not in deck), collision (lemma in deck)
+- Primary CTA "+ Ajouter «<lemma>»" / secondary "Garder «<input>»" / collision adds "Ouvrir «<lemma>»" routing to home dashboard as placeholder
+- Schema: `words.lemma` (nullable TEXT)
+
+**M3.3 Phase A — Form annotation polish**
+- Fixed correctness bug: pre-A, the "Garder" path saved the inflected form with the lemma's definition and no acknowledgment of the form
+- Added `form_annotation` field (compact Spanish, e.g. `"Comer — 3ª pers. plural, pretérito perfecto simple"`) rendered as a FORME section above DÉFINITION on the revealed card and as preview content in the interstitial's previously-empty middle
+- Schema: `words.form_annotation` (nullable TEXT)
+- Lemma rule binding tightened: `form_annotation == null` iff `lemma == input`
+- Save-route error logging fix: `/api/words/save` now `console.error`s underlying Supabase errors instead of swallowing them under a generic 500
+- Migration includes `NOTIFY pgrst, 'reload schema';` to prevent PGRST204 cache-stale errors
+- Noun-plural normalization accepted (original spec excluded plurals; with form_annotation, normalization is informative rather than mechanical)
+
+**M3.3 Phase B — Instrumentation**
+- New `add_events` table with RLS (`user_id`, `event_type` from a 5-value enum, `input_word`, `lemma`, `created_at`)
+- New `/api/events/log` endpoint with Zod validation + server-side user_id from session
+- Five fire points in /add (all fire-and-forget via `void fetch().catch(console.error)`): `lemma_suggestion_shown`, `lemma_suggestion_accepted`, `lemma_collision_shown`, `lemma_collision_open_existing`, `lemma_collision_add_anyway`
+- Collision context tracked via `useRef` with defensive clear at the start of every `handleSubmit` to prevent stale-fire bugs across navigation paths
+- Added the "Ouvrir «lemma»" button itself (specced in M3.3 core but not yet implemented — necessary for `open_existing` to have anywhere to fire from)
+- Goal: collect production data on lemma flow usage to decide whether to revisit the bundled-dataset option later
+
+## M4 — Word audio + detail view (next)
 - ~1-2 sessions
 - Audio playback (word only, browser SpeechSynthesis API)
 - `/words/[id]` route with rich detail
 - Status tag on detail page ("Déjà ajouté" / "En cours d'apprentissage" / etc.)
+- Replaces the M3.3 "Ouvrir «lemma»" home-dashboard placeholder with proper detail routing
 
 ## M5.0 — My Dictionary view
 - ~1-2 sessions
@@ -81,6 +106,7 @@ The next committed milestones. Items in `docs/backlog.md` are deferred until pro
 - Sort options: alphabetical, by date, by familiarity
 - Dictionary tab unlocks at 10 words
 - Milestone celebrations at 10, 50, 100, 250, 500, 1000
+- Pagination becomes pressing here — 51 words and growing, list-fatigue starting
 
 ## M5.1 — Discovery mode
 - ~2 sessions
@@ -90,12 +116,14 @@ The next committed milestones. Items in `docs/backlog.md` are deferred until pro
 
 ## M5.2 — New game modes
 - Multiple sessions, pick one to start
-- TBD between: write-a-sentence, reorder, crosswords
+- TBD between: write-a-sentence, reorder, crosswords, **verb-conjugation drill** (added during M3.3 — drill specific conjugations of a known verb across tense + person)
 - Choice deferred until M5.1 ships and real usage informs which is most needed
 
 ## M6 — Companion character (post-M5)
+
+**Visual/voice half landed early in v0.3.3** (Paco visual identity rollout, tu voice, mixed Spanish/French celebration phrases — see project state). Remaining scope:
+
 - Multi-session feature
-- Non-pushy, opt-in character with personalized AI feedback
-- Visual identity: Spanish/Latin American dog breed (see backlog for candidates)
+- Non-pushy, opt-in personalized AI feedback (Anthropic check-ins)
 - Costs: small Anthropic call per check-in
 - Requires sufficient user data (~100+ words) before launching

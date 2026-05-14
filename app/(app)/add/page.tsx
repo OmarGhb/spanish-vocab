@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Loader2 } from 'lucide-react'
+import AudioButton from '../AudioButton'
 import LoadingIdiom from './LoadingIdiom'
 import WordInput from './WordInput'
 
@@ -26,7 +27,7 @@ type Phase =
   | { tag: 'idle' }
   | { tag: 'loading' }
   | { tag: 'spellcheck_candidates'; word: string; candidates: string[] }
-  | { tag: 'lemma_suggestion'; result: WordResult; lemma: string; lemma_status: 'available' | 'already_in_deck' }
+  | { tag: 'lemma_suggestion'; result: WordResult; lemma: string; lemma_status: 'available' | 'already_in_deck'; lemma_word_id?: string }
   | { tag: 'ready'; result: WordResult; status: DeckStatus }
   | { tag: 'error'; word: string }
   | { tag: 'revealed'; result: WordResult; status: DeckStatus }
@@ -59,6 +60,7 @@ type EnrichResponse = WordResult & {
   candidates?: string[]
   lemma?: string
   lemma_status?: 'available' | 'already_in_deck'
+  lemma_word_id?: string
   form_annotation?: string | null
 }
 
@@ -153,7 +155,7 @@ export default function AddPage() {
       // Lemma suggestion: inflected form submitted and lemma differs (new words only).
       if (status.tag === 'new' && data.lemma && data.lemma.toLowerCase() !== data.word.toLowerCase()) {
         const lStatus = data.lemma_status ?? 'available'
-        setPhase({ tag: 'lemma_suggestion', result, lemma: data.lemma, lemma_status: lStatus })
+        setPhase({ tag: 'lemma_suggestion', result, lemma: data.lemma, lemma_status: lStatus, lemma_word_id: data.lemma_word_id })
         setRevealedFr(new Array(data.examples.length).fill(false))
         setRevealedDefFr(false)
         logLemmaEvent(
@@ -413,7 +415,7 @@ export default function AddPage() {
 
   // ── LEMMA SUGGESTION ──────────────────────────────────────────────────────────
   if (phase.tag === 'lemma_suggestion') {
-    const { result, lemma, lemma_status } = phase
+    const { result, lemma, lemma_status, lemma_word_id } = phase
     return (
       <div className="flex flex-col p-5 gap-5 pb-16 min-h-screen">
         <button
@@ -467,7 +469,7 @@ export default function AddPage() {
           </button>
           {lemma_status === 'already_in_deck' && (
             <Link
-              href="/"
+              href={`/words/${lemma_word_id ?? ''}`}
               onClick={() => logLemmaEvent('lemma_collision_open_existing', result.word, lemma)}
               className="w-full bg-card border border-line rounded-card py-4 font-serif text-sm text-ink text-center"
             >
@@ -521,8 +523,9 @@ export default function AddPage() {
         >
           ← Nouveau mot
         </button>
-        <div className="flex items-baseline gap-2 mt-2">
-          <h1 className="font-serif text-3xl font-bold text-ink">{result.word}</h1>
+        <div className="flex items-center gap-2 mt-2">
+          <h1 className="font-serif text-3xl font-bold text-ink leading-none">{result.word}</h1>
+          <AudioButton word={result.word} />
           {result.definition.pos && (
             <span className="text-sm text-muted">{result.definition.pos}</span>
           )}

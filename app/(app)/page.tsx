@@ -82,8 +82,8 @@ export default async function HomePage() {
           <ul className="flex flex-col gap-2">
             {entries.map((e) => {
               return (
-                <li key={e.id} className="bg-card rounded-card shadow-card px-4 py-3">
-                  <div className="flex justify-between items-start gap-3">
+                <li key={e.id} className="bg-card rounded-card shadow-card">
+                  <Link href={`/words/${e.id}`} className="flex justify-between items-start gap-3 px-4 py-3">
                     <div className="min-w-0">
                       <p className="font-serif text-sm font-bold text-ink">{e.word}</p>
                       <p className="text-xs text-muted mt-0.5 line-clamp-1">{e.definition.es}</p>
@@ -100,7 +100,7 @@ export default async function HomePage() {
                         {e.reps} révision{e.reps > 1 ? 's' : ''}
                       </p>
                     </div>
-                  </div>
+                  </Link>
                 </li>
               )
             })}
