@@ -30,7 +30,7 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
 
   const { data } = await supabase
     .from('words')
-    .select('id, word, definition, examples, distractors, form_annotation, lemma, review_cards(state, due, reps, last_review)')
+    .select('id, word, definition, examples, distractors, form_annotation, lemma, audio_urls, review_cards(state, due, reps, last_review)')
     .eq('id', id)
     .maybeSingle()
 
@@ -46,6 +46,7 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
   const defFr = typeof def?.fr === 'string' ? def.fr : null
   const defPos = typeof def?.pos === 'string' ? def.pos : undefined
   const formAnnotation = typeof data.form_annotation === 'string' ? data.form_annotation : null
+  const audioUrls = data.audio_urls as { es_ES: string } | null
   const examples = Array.isArray(data.examples)
     ? (data.examples as { es: string; fr: string }[])
     : []
@@ -64,7 +65,7 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
         {/* Word heading + audio */}
         <div className="flex items-center gap-2">
           <h1 className="font-serif text-3xl font-bold text-ink leading-none">{data.word}</h1>
-          <AudioButton word={data.word} />
+          <AudioButton word={data.word} audioUrl={audioUrls?.es_ES} />
         </div>
 
         {/* Interactive content: reveals, examples, distractors */}

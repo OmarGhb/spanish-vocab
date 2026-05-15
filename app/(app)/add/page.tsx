@@ -17,6 +17,7 @@ type WordResult = {
   distractors: string[]
   lemma?: string
   form_annotation?: string | null
+  audio_urls?: { es_ES: string } | null
 }
 
 type DeckStatus =
@@ -28,7 +29,7 @@ type Phase =
   | { tag: 'idle' }
   | { tag: 'loading' }
   | { tag: 'spellcheck_candidates'; word: string; candidates: string[] }
-  | { tag: 'lemma_suggestion'; result: WordResult; lemma: string; lemma_status: 'available' | 'already_in_deck'; lemma_word_id?: string }
+  | { tag: 'lemma_suggestion'; result: WordResult; lemma: string; lemma_status: 'available' | 'already_in_deck'; lemma_word_id?: string; lemma_audio_urls?: { es_ES: string } | null }
   | { tag: 'ready'; result: WordResult; status: DeckStatus }
   | { tag: 'error'; word: string }
   | { tag: 'revealed'; result: WordResult; status: DeckStatus }
@@ -63,6 +64,7 @@ type EnrichResponse = WordResult & {
   lemma_status?: 'available' | 'already_in_deck'
   lemma_word_id?: string
   form_annotation?: string | null
+  lemma_audio_urls?: { es_ES: string } | null
 }
 
 function highlightWord(sentence: string, word: string): React.ReactNode {
@@ -151,12 +153,13 @@ export default function AddPage() {
         examples: data.examples,
         distractors: data.distractors,
         form_annotation: data.form_annotation,
+        audio_urls: data.audio_urls,
       }
 
       // Lemma suggestion: inflected form submitted and lemma differs (new words only).
       if (status.tag === 'new' && data.lemma && data.lemma.toLowerCase() !== data.word.toLowerCase()) {
         const lStatus = data.lemma_status ?? 'available'
-        setPhase({ tag: 'lemma_suggestion', result, lemma: data.lemma, lemma_status: lStatus, lemma_word_id: data.lemma_word_id })
+        setPhase({ tag: 'lemma_suggestion', result, lemma: data.lemma, lemma_status: lStatus, lemma_word_id: data.lemma_word_id, lemma_audio_urls: data.lemma_audio_urls ?? null })
         setRevealedFr(new Array(data.examples.length).fill(false))
         setRevealedDefFr(false)
         logLemmaEvent(
@@ -237,6 +240,7 @@ export default function AddPage() {
           distractors: result.distractors,
           ...(result.lemma ? { lemma: result.lemma } : {}),
           ...(result.form_annotation ? { form_annotation: result.form_annotation } : {}),
+          ...(result.audio_urls ? { audio_urls: result.audio_urls } : {}),
         }),
       })
       if (res.ok && collisionContextRef.current) {
@@ -250,7 +254,7 @@ export default function AddPage() {
     }
   }
 
-  async function handleSaveLemmaWord(lemmaWord: string, result: WordResult) {
+  async function handleSaveLemmaWord(lemmaWord: string, result: WordResult, audioUrls?: { es_ES: string } | null) {
     setSaveState('saving')
     try {
       const res = await fetch('/api/words/save', {
@@ -261,6 +265,7 @@ export default function AddPage() {
           definition: result.definition,
           examples: result.examples,
           distractors: result.distractors,
+          ...(audioUrls ? { audio_urls: audioUrls } : {}),
         }),
       })
       setSaveState(res.ok ? 'saved' : 'error')
@@ -416,7 +421,7 @@ export default function AddPage() {
 
   // ── LEMMA SUGGESTION ──────────────────────────────────────────────────────────
   if (phase.tag === 'lemma_suggestion') {
-    const { result, lemma, lemma_status, lemma_word_id } = phase
+    const { result, lemma, lemma_status, lemma_word_id, lemma_audio_urls } = phase
     return (
       <div className="flex flex-col p-5 gap-5 pb-16">
         <button
@@ -454,7 +459,7 @@ export default function AddPage() {
             disabled={lemma_status === 'already_in_deck' || saveState !== 'idle'}
             onClick={() => {
               logLemmaEvent('lemma_suggestion_accepted', result.word, lemma)
-              void handleSaveLemmaWord(lemma, result)
+              void handleSaveLemmaWord(lemma, result, lemma_audio_urls)
             }}
             className="w-full bg-accent text-white rounded-card py-4 font-serif text-sm disabled:opacity-40 transition-opacity"
           >
@@ -526,7 +531,7 @@ export default function AddPage() {
         </button>
         <div className="flex items-center gap-2 mt-2">
           <h1 className="font-serif text-3xl font-bold text-ink leading-none">{result.word}</h1>
-          <AudioButton word={result.word} />
+          <AudioButton word={result.word} audioUrl={result.audio_urls?.es_ES} />
           {result.definition.pos && (
             <span className="text-sm text-muted">{result.definition.pos}</span>
           )}

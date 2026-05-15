@@ -1,20 +1,39 @@
 'use client'
 
 import { Volume2 } from 'lucide-react'
-import { useState, useSyncExternalStore } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 
-type Props = { word: string }
+type Props = { word: string; audioUrl?: string }
 
 // useSyncExternalStore is the idiomatic SSR-safe way to read a browser global.
 // Server snapshot returns false → renders null during SSR; client snapshot
 // checks the real API after hydration.
 function noopSubscribe() { return () => {} }
 
-export default function AudioButton({ word }: Props) {
+export default function AudioButton({ word, audioUrl }: Props) {
   const supported = useSyncExternalStore(noopSubscribe, () => 'speechSynthesis' in window, () => false)
   const [speaking, setSpeaking] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
-  if (!supported) return null
+  useEffect(() => {
+    return () => { audioRef.current?.pause() }
+  }, [])
+
+  if (!audioUrl && !supported) return null
+
+  function playUrl() {
+    if (!audioRef.current) {
+      const audio = new Audio(audioUrl)
+      audioRef.current = audio
+      audio.onplay = () => setSpeaking(true)
+      audio.onended = () => { setSpeaking(false) }
+      audio.onerror = () => { setSpeaking(false) }
+    } else {
+      audioRef.current.pause()
+      audioRef.current.currentTime = 0
+    }
+    void audioRef.current.play()
+  }
 
   function speakWord() {
     speechSynthesis.cancel()
@@ -50,7 +69,7 @@ export default function AudioButton({ word }: Props) {
   return (
     <button
       type="button"
-      onClick={speakWord}
+      onClick={audioUrl ? playUrl : speakWord}
       aria-label="Écouter la prononciation"
       className={`p-1 text-muted transition-colors hover:text-accent ${speaking ? 'animate-pulse text-accent' : ''}`}
     >
