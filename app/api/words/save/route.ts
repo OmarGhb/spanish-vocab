@@ -12,6 +12,7 @@ const SaveBodySchema = z.object({
   distractors: z.array(z.string().min(1)).min(3).max(3),
   lemma: z.string().min(1).optional(),
   form_annotation: z.string().min(1).nullable().optional(),
+  audio_urls: z.object({ es_ES: z.string() }).nullable().optional(),
 })
 
 export async function POST(request: Request) {
@@ -36,11 +37,11 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Unauthorized.' }, { status: 401 })
   }
 
-  const { word, definition, examples, distractors, lemma, form_annotation } = parsed.data
+  const { word, definition, examples, distractors, lemma, form_annotation, audio_urls } = parsed.data
 
   const { data: savedWord, error: wordError } = await supabase
     .from('words')
-    .insert({ user_id: user.id, word, definition, examples, distractors, lemma, form_annotation })
+    .insert({ user_id: user.id, word, definition, examples, distractors, lemma, form_annotation, audio_urls })
     .select('id')
     .single()
 

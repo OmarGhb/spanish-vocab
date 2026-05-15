@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getWordData } from '@/lib/anthropic'
 import { contains, fuzzyMatch } from '@/lib/wordlist'
+import { getAudioForWord } from '@/lib/tts'
 
 export async function POST(request: Request) {
   let body: unknown
@@ -32,7 +33,7 @@ export async function POST(request: Request) {
   // RLS scopes query to the authenticated user automatically.
   const { data: existing } = await supabase
     .from('words')
-    .select('id, word, definition, examples, distractors, review_cards(id, due)')
+    .select('id, word, definition, examples, distractors, audio_urls, review_cards(id, due)')
     .ilike('word', word)
     .limit(1)
     .maybeSingle()
@@ -43,6 +44,7 @@ export async function POST(request: Request) {
     definition: { es: string; fr: string; pos?: string }
     examples: Array<{ es: string; fr: string }>
     distractors: string[]
+    audio_urls: { es_ES: string } | null
     review_cards: Array<{ id: string; due: string }>
   }
 
@@ -58,6 +60,7 @@ export async function POST(request: Request) {
       definition: row.definition,
       examples: row.examples,
       distractors: row.distractors,
+      audio_urls: row.audio_urls,
       status,
       wordId: row.id,
       dueDate,
@@ -73,10 +76,14 @@ export async function POST(request: Request) {
     return Response.json({ error: 'SPELLCHECK_UNKNOWN' }, { status: 422 })
   }
 
-  // Not in deck — call Anthropic.
-  let wordData
+  // Not in deck — call Anthropic and generate audio in parallel.
+  let wordData: Awaited<ReturnType<typeof getWordData>>
+  let wordAudio: { es_ES: string } | null
   try {
-    wordData = await getWordData(word, request.signal)
+    ;[wordData, wordAudio] = await Promise.all([
+      getWordData(word, request.signal),
+      getAudioForWord(word),
+    ])
   } catch (e) {
     return Response.json(
       { error: e instanceof Error ? e.message : 'Anthropic call failed.' },
@@ -84,21 +91,22 @@ export async function POST(request: Request) {
     )
   }
 
-  // If Anthropic identified a different lemma, check whether it is already in the deck.
+  // If Anthropic identified a different lemma, check whether it is already in
+  // the deck and generate lemma audio — both in parallel.
   let lemma: string | undefined
   let lemma_status: 'available' | 'already_in_deck' | undefined
   let lemma_word_id: string | undefined
+  let lemma_audio_urls: { es_ES: string } | null = null
 
   if (wordData.lemma.toLowerCase() !== word.toLowerCase()) {
     lemma = wordData.lemma
-    const { data: lemmaRow } = await supabase
-      .from('words')
-      .select('id')
-      .ilike('word', wordData.lemma)
-      .limit(1)
-      .maybeSingle()
-    lemma_status = lemmaRow ? 'already_in_deck' : 'available'
-    if (lemmaRow) lemma_word_id = lemmaRow.id
+    const [lemmaRowResult, lemmaAudio] = await Promise.all([
+      supabase.from('words').select('id').ilike('word', wordData.lemma).limit(1).maybeSingle(),
+      getAudioForWord(wordData.lemma),
+    ])
+    lemma_status = lemmaRowResult.data ? 'already_in_deck' : 'available'
+    if (lemmaRowResult.data) lemma_word_id = lemmaRowResult.data.id
+    lemma_audio_urls = lemmaAudio
   }
 
   return Response.json({
@@ -107,10 +115,12 @@ export async function POST(request: Request) {
     examples: wordData.examples,
     distractors: wordData.distractors,
     form_annotation: wordData.form_annotation,
+    audio_urls: wordAudio,
     status: 'new',
     ...(lemma !== undefined && {
       lemma,
       lemma_status,
+      lemma_audio_urls,
       ...(lemma_word_id !== undefined && { lemma_word_id }),
     }),
   })
