@@ -17,8 +17,6 @@ export default function LoadingIdiom({ status, onReveal, onRetry }: Props) {
 
   return (
     <div className="flex flex-col gap-5 p-5">
-      <IdiomCard idiom={idiom} />
-
       <div className="bg-card rounded-card shadow-card p-5">
         {status === 'loading' && (
           <div className="flex items-center gap-3">
@@ -61,6 +59,8 @@ export default function LoadingIdiom({ status, onReveal, onRetry }: Props) {
           </div>
         )}
       </div>
+
+      <IdiomCard idiom={idiom} />
     </div>
   )
 }

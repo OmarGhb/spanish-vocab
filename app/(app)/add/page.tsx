@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Loader2 } from 'lucide-react'
 import AudioButton from '../AudioButton'
+import StickyActions from '../StickyActions'
 import LoadingIdiom from './LoadingIdiom'
 import WordInput from './WordInput'
 
@@ -417,7 +418,7 @@ export default function AddPage() {
   if (phase.tag === 'lemma_suggestion') {
     const { result, lemma, lemma_status, lemma_word_id } = phase
     return (
-      <div className="flex flex-col p-5 gap-5 pb-16 min-h-screen">
+      <div className="flex flex-col p-5 gap-5 pb-16">
         <button
           type="button"
           onClick={() => { setWord(result.word); setPhase({ tag: 'idle' }); setSaveState('idle') }}
@@ -447,7 +448,7 @@ export default function AddPage() {
           </div>
         )}
 
-        <div className="mt-auto flex flex-col gap-3">
+        <div className="flex flex-col gap-3">
           <button
             type="button"
             disabled={lemma_status === 'already_in_deck' || saveState !== 'idle'}
@@ -514,7 +515,7 @@ export default function AddPage() {
   const isAdding = toast?.type === 'adding'
 
   return (
-    <div className="flex flex-col min-h-screen pb-16">
+    <div className="flex flex-col min-h-screen pb-36">
       <div className="p-5">
         <button
           type="button"
@@ -643,7 +644,7 @@ export default function AddPage() {
 
       {/* Toast — floats above the NavBar */}
       {toast && (
-        <div className="fixed bottom-16 inset-x-0 z-40 px-4 pointer-events-none">
+        <div className="fixed bottom-36 inset-x-0 z-40 px-4 pointer-events-none">
           <div className={`max-w-[430px] mx-auto rounded-card px-4 py-3 shadow-card pointer-events-auto flex items-center gap-3 ${
             toast.type === 'success'
               ? 'bg-card border border-ok/25'
@@ -686,7 +687,7 @@ export default function AddPage() {
       )}
 
       {/* Bottom actions */}
-      <div className="mt-auto p-4 flex gap-3 border-t border-line bg-page">
+      <StickyActions>
         {selectionCount > 0 ? (
           // Distractor selection mode — unchanged
           <>
@@ -769,7 +770,7 @@ export default function AddPage() {
             ← Nouveau mot
           </button>
         )}
-      </div>
+      </StickyActions>
     </div>
   )
 }
