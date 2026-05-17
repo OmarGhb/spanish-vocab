@@ -3,14 +3,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import AudioButton from '../../AudioButton'
 import WordDetailContent from './WordDetailContent'
-
-function statusPill(state: number, due: string): { label: string; cls: string } {
-  if (state === 0) return { label: 'Nouveau', cls: 'bg-surface-alt text-muted' }
-  if (state === 1) return { label: 'En apprentissage', cls: 'bg-tint text-accent' }
-  if (state === 2 && new Date(due) <= new Date()) return { label: 'À réviser', cls: 'bg-accent/10 text-accent' }
-  if (state === 2) return { label: 'Mémorisé', cls: 'bg-ok/10 text-ok' }
-  return { label: 'À rappeler', cls: 'bg-err/10 text-err' }
-}
+import { getWordStatus } from '@/lib/word-status'
 
 function statsLine(reps: number, lastReview: string | null): string {
   if (reps === 0 || !lastReview) return 'Pas encore révisé'
@@ -22,7 +15,7 @@ function statsLine(reps: number, lastReview: string | null): string {
   return `Révisé ${reps} fois — dernière révision ${when}`
 }
 
-type CardRow = { state: number; due: string; reps: number; last_review: string | null }
+type CardRow = { state: number; due: string; stability: number; reps: number; last_review: string | null }
 
 export default async function WordDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -30,7 +23,7 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
 
   const { data } = await supabase
     .from('words')
-    .select('id, word, definition, examples, distractors, form_annotation, lemma, audio_urls, review_cards(state, due, reps, last_review)')
+    .select('id, word, definition, examples, distractors, form_annotation, lemma, audio_urls, review_cards(state, due, stability, reps, last_review)')
     .eq('id', id)
     .maybeSingle()
 
@@ -38,7 +31,7 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
 
   const card = (data.review_cards as unknown as CardRow[])[0]
 
-  const pill = card ? statusPill(card.state, card.due) : { label: 'Nouveau', cls: 'bg-surface-alt text-muted' }
+  const pill = getWordStatus(card ?? null)
   const stats = card ? statsLine(card.reps, card.last_review) : 'Pas encore révisé'
 
   const def = data.definition as Record<string, unknown> | null
