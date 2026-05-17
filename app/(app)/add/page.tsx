@@ -505,6 +505,8 @@ export default function AddPage() {
     return (
       <LoadingIdiom
         status={phase.tag}
+        word={word}
+        result={phase.tag === 'ready' ? { word: phase.result.word, definition: phase.result.definition } : undefined}
         onReveal={handleReveal}
         onRetry={handleRetry}
       />
