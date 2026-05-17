@@ -21,7 +21,7 @@ type Props = {
 const PHASES = ['Définition', 'Exemples', 'Mots de la même famille', 'Phonétique'] as const
 
 // Offsets in ms from mount for phases 1–3. Phase 4 only resolves on data arrival (component unmounts).
-const PHASE_TIMERS = [800, 1500, 2400] as const
+const PHASE_TIMERS = [1100, 1700, 2100] as const
 
 function PhaseChecklist() {
   const [shown, setShown] = useState(false)
@@ -45,13 +45,15 @@ function PhaseChecklist() {
         return (
           <li key={phase} className="flex items-center gap-2">
             {done ? (
-              <span className="w-4 text-center text-ok text-sm leading-none">✓</span>
+              <span className="w-4 h-4 rounded-full bg-ok flex items-center justify-center shrink-0">
+                <span className="text-white text-[9px] leading-none">✓</span>
+              </span>
             ) : active ? (
-              <span className="w-4 text-center text-muted text-sm leading-none motion-safe:animate-pulse">◉</span>
+              <span className="w-4 h-4 rounded-full border-2 border-accent motion-safe:animate-pulse shrink-0" />
             ) : (
-              <span className="w-4 text-center text-muted text-sm leading-none opacity-40">○</span>
+              <span className="w-4 h-4 rounded-full border border-muted opacity-30 shrink-0" />
             )}
-            <span className={`text-sm font-serif ${done ? 'text-ink' : 'text-muted'}`}>
+            <span className={`text-sm font-serif ${done ? 'text-ink' : active ? 'text-ink font-semibold' : 'text-muted'}`}>
               {phase}
             </span>
           </li>
@@ -74,9 +76,9 @@ export default function LoadingIdiom({ status, word, result, onReveal, onRetry }
         {status === 'loading' && (
           <>
             <div className="flex items-center gap-3">
-              <Image src="/paco-pensando.png" alt="Paco" width={44} height={44} className="object-contain shrink-0" />
-              <p className="text-sm font-serif text-muted">
-                Paco creuse pour <span className="text-accent">{word}</span>
+              <Image src="/paco-pensando.png" alt="Paco" width={56} height={56} className="object-contain shrink-0" />
+              <p className="font-serif text-[18px] font-semibold italic tracking-[-0.01em] text-ink">
+                Paco creuse pour <span className="text-accent font-bold">{word}</span>
               </p>
             </div>
             <PhaseChecklist />
@@ -87,24 +89,32 @@ export default function LoadingIdiom({ status, word, result, onReveal, onRetry }
         {status === 'ready' && (
           <>
             <div className="flex items-center gap-3">
-              <Image src="/paco-feliz.png" alt="Paco" width={44} height={44} className="object-contain shrink-0" />
-              <p className="text-sm text-ok font-serif font-medium">¡Listo!</p>
+              <Image src="/paco-feliz.png" alt="Paco" width={80} height={80} className="object-contain shrink-0" />
+              <div>
+                <p className="font-serif text-[2.75rem] font-bold italic leading-none tracking-[-0.02em] text-ink">¡Listo!</p>
+                <p className="font-serif text-sm text-muted mt-2">Voici ce que Paco a trouvé.</p>
+              </div>
             </div>
-            <p className="text-sm text-muted font-serif mt-1">Voici ce que Paco a trouvé.</p>
-
-            <ul className="mt-4 flex flex-col gap-2">
-              {PHASES.map((phase) => (
-                <li key={phase} className="flex items-center gap-2">
-                  <span className="w-4 text-center text-ok text-sm leading-none">✓</span>
-                  <span className="text-sm font-serif text-ink">{phase}</span>
-                </li>
-              ))}
-            </ul>
 
             {result && (
-              <div className="mt-4 bg-surface-alt rounded-card p-4">
-                <p className="font-serif text-xl font-bold text-ink truncate">{result.word}</p>
-                <p className="font-serif text-sm text-muted mt-1 line-clamp-2">{result.definition.es}</p>
+              <div className="mt-4 bg-surface-alt border border-line rounded-card p-[18px]">
+                <div className="flex items-baseline gap-2 min-w-0">
+                  <span className="font-serif text-[32px] font-bold tracking-[-0.02em] text-ink leading-none truncate min-w-0">{result.word}</span>
+                  {result.definition.pos && (
+                    <span className="font-serif text-[11px] italic text-muted shrink-0">{result.definition.pos}</span>
+                  )}
+                </div>
+                <p className="font-serif text-sm italic text-muted mt-1 line-clamp-1">{result.definition.es}</p>
+                <div className="border-t border-line mt-4 pt-4">
+                  <ul className="flex flex-col gap-2">
+                    {PHASES.map((phase) => (
+                      <li key={phase} className="flex items-center gap-2">
+                        <span className="w-4 text-center text-ok text-sm leading-none">✓</span>
+                        <span className="text-sm font-serif text-ink">{phase}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             )}
 

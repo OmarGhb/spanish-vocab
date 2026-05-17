@@ -137,16 +137,6 @@ export default function AddPage() {
         return
       }
 
-      let status: DeckStatus
-      if (data.status === 'due_now' && data.wordId && data.dueDate) {
-        status = { tag: 'due_now', wordId: data.wordId, dueDate: data.dueDate }
-      } else if (data.status === 'due_later' && data.wordId && data.dueDate) {
-        const daysUntil = Math.ceil((new Date(data.dueDate).getTime() - Date.now()) / 86_400_000)
-        status = { tag: 'due_later', wordId: data.wordId, dueDate: data.dueDate, daysUntil }
-      } else {
-        status = { tag: 'new' }
-      }
-
       const result: WordResult = {
         word: data.word,
         definition: data.definition,
@@ -156,8 +146,28 @@ export default function AddPage() {
         audio_urls: data.audio_urls,
       }
 
-      // Lemma suggestion: inflected form submitted and lemma differs (new words only).
-      if (status.tag === 'new' && data.lemma && data.lemma.toLowerCase() !== data.word.toLowerCase()) {
+      // Existing-word path — early return keeps setPhase('ready') unreachable for any deck hit.
+      if (data.status === 'due_now' || data.status === 'due_later') {
+        let deckStatus: DeckStatus
+        if (data.status === 'due_now' && data.wordId && data.dueDate) {
+          deckStatus = { tag: 'due_now', wordId: data.wordId, dueDate: data.dueDate }
+        } else if (data.wordId && data.dueDate) {
+          const daysUntil = Math.ceil((new Date(data.dueDate).getTime() - Date.now()) / 86_400_000)
+          deckStatus = { tag: 'due_later', wordId: data.wordId, dueDate: data.dueDate, daysUntil }
+        } else {
+          // Orphaned word: in words table but no review_cards row (dueDate absent from response).
+          deckStatus = { tag: 'due_later', wordId: data.wordId!, dueDate: '', daysUntil: 0 }
+        }
+        setPhase({ tag: 'revealed', result, status: deckStatus })
+        setRevealedFr(new Array(data.examples.length).fill(false))
+        setRevealedDefFr(false)
+        return
+      }
+
+      const status: DeckStatus = { tag: 'new' }
+
+      // Lemma suggestion: inflected form submitted and lemma differs.
+      if (data.lemma && data.lemma.toLowerCase() !== data.word.toLowerCase()) {
         const lStatus = data.lemma_status ?? 'available'
         setPhase({ tag: 'lemma_suggestion', result, lemma: data.lemma, lemma_status: lStatus, lemma_word_id: data.lemma_word_id, lemma_audio_urls: data.lemma_audio_urls ?? null })
         setRevealedFr(new Array(data.examples.length).fill(false))
@@ -170,12 +180,7 @@ export default function AddPage() {
         return
       }
 
-      // Cache hits skip the idiom card — no latency to fill.
-      if (status.tag === 'due_now' || status.tag === 'due_later') {
-        setPhase({ tag: 'revealed', result, status })
-      } else {
-        setPhase({ tag: 'ready', result, status })
-      }
+      setPhase({ tag: 'ready', result, status })
       setRevealedFr(new Array(data.examples.length).fill(false))
       setRevealedDefFr(false)
     } catch (e) {
@@ -547,6 +552,8 @@ export default function AddPage() {
             <p className="text-xs text-muted font-serif">
               {status.tag === 'due_now'
                 ? "Déjà dans ton vocabulaire — prochaine révision aujourd'hui."
+                : status.dueDate === ''
+                ? 'Déjà dans ton vocabulaire.'
                 : `Déjà dans ton vocabulaire — prochaine révision dans ${status.daysUntil} jour${status.daysUntil > 1 ? 's' : ''}.`}
             </p>
           </div>
