@@ -54,7 +54,7 @@ function PhaseChecklist() {
               <span className="w-4 h-4 rounded-full border border-muted opacity-30 shrink-0" />
             )}
             <span className={`text-sm font-serif ${done ? 'text-ink' : active ? 'text-ink font-semibold' : 'text-muted'}`}>
-              {phase}
+              {phase}{active && <span className="text-muted motion-safe:animate-pulse"> ···</span>}
             </span>
           </li>
         )
@@ -70,7 +70,7 @@ export default function LoadingIdiom({ status, word, result, onReveal, onRetry }
 
   return (
     <div className={`flex flex-col gap-5 p-5 ${isReady ? 'min-h-[calc(100svh-4rem)]' : ''}`}>
-      <div className={`bg-card rounded-card shadow-card p-5 ${isReady ? 'flex-1 flex flex-col' : ''}`}>
+      <div className={`${isReady ? 'flex-1 flex flex-col' : 'bg-card rounded-card shadow-card p-5'}`}>
 
         {/* ── LOADING ── */}
         {status === 'loading' && (
@@ -97,7 +97,7 @@ export default function LoadingIdiom({ status, word, result, onReveal, onRetry }
             </div>
 
             {result && (
-              <div className="mt-4 bg-surface-alt border border-line rounded-card p-[18px]">
+              <div className="mt-4 bg-card border border-line shadow-card rounded-card p-[18px]">
                 <div className="flex items-baseline gap-2 min-w-0">
                   <span className="font-serif text-[32px] font-bold tracking-[-0.02em] text-ink leading-none truncate min-w-0">{result.word}</span>
                   {result.definition.pos && (
@@ -118,10 +118,11 @@ export default function LoadingIdiom({ status, word, result, onReveal, onRetry }
               </div>
             )}
 
+            <div className="flex-1 min-h-6" />
             <button
               type="button"
               onClick={onReveal}
-              className="mt-auto w-full bg-ink text-page rounded-card py-4 font-serif text-sm"
+              className="w-full bg-ink text-page rounded-card py-4 font-serif text-sm"
             >
               Voir la fiche →
             </button>
@@ -148,7 +149,18 @@ export default function LoadingIdiom({ status, word, result, onReveal, onRetry }
         )}
       </div>
 
-      <IdiomCard idiom={idiom} />
+      {status !== 'ready' && (
+        <>
+          {status === 'loading' && (
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-line" />
+              <span className="text-[10px] uppercase tracking-widest text-muted font-sans">Pendant que tu attends</span>
+              <div className="flex-1 h-px bg-line" />
+            </div>
+          )}
+          <IdiomCard idiom={idiom} />
+        </>
+      )}
     </div>
   )
 }
