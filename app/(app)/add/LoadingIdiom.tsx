@@ -109,7 +109,9 @@ export default function LoadingIdiom({ status, word, result, onReveal, onRetry }
                   <ul className="flex flex-col gap-2">
                     {PHASES.map((phase) => (
                       <li key={phase} className="flex items-center gap-2">
-                        <span className="w-4 text-center text-ok text-sm leading-none">✓</span>
+                        <span className="w-4 h-4 rounded-full bg-ok flex items-center justify-center shrink-0">
+                          <span className="text-white text-[9px] leading-none">✓</span>
+                        </span>
                         <span className="text-sm font-serif text-ink">{phase}</span>
                       </li>
                     ))}
