@@ -148,15 +148,15 @@ export default function AddPage() {
 
       // Existing-word path — early return keeps setPhase('ready') unreachable for any deck hit.
       if (data.status === 'due_now' || data.status === 'due_later') {
+        // dueDate is always present for deck hits (enrich sets card?.due); ?? now guards the
+        // edge case where a missing review_cards row causes card?.due to be undefined.
+        const dueDate = data.dueDate ?? new Date().toISOString()
         let deckStatus: DeckStatus
-        if (data.status === 'due_now' && data.wordId && data.dueDate) {
-          deckStatus = { tag: 'due_now', wordId: data.wordId, dueDate: data.dueDate }
-        } else if (data.wordId && data.dueDate) {
-          const daysUntil = Math.ceil((new Date(data.dueDate).getTime() - Date.now()) / 86_400_000)
-          deckStatus = { tag: 'due_later', wordId: data.wordId, dueDate: data.dueDate, daysUntil }
+        if (data.status === 'due_now') {
+          deckStatus = { tag: 'due_now', wordId: data.wordId!, dueDate }
         } else {
-          // Orphaned word: in words table but no review_cards row (dueDate absent from response).
-          deckStatus = { tag: 'due_later', wordId: data.wordId!, dueDate: '', daysUntil: 0 }
+          const daysUntil = Math.ceil((new Date(dueDate).getTime() - Date.now()) / 86_400_000)
+          deckStatus = { tag: 'due_later', wordId: data.wordId!, dueDate, daysUntil }
         }
         setPhase({ tag: 'revealed', result, status: deckStatus })
         setRevealedFr(new Array(data.examples.length).fill(false))
@@ -552,8 +552,6 @@ export default function AddPage() {
             <p className="text-xs text-muted font-serif">
               {status.tag === 'due_now'
                 ? "Déjà dans ton vocabulaire — prochaine révision aujourd'hui."
-                : status.dueDate === ''
-                ? 'Déjà dans ton vocabulaire.'
                 : `Déjà dans ton vocabulaire — prochaine révision dans ${status.daysUntil} jour${status.daysUntil > 1 ? 's' : ''}.`}
             </p>
           </div>

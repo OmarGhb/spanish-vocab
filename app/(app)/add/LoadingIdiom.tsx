@@ -20,22 +20,20 @@ type Props = {
 
 const PHASES = ['Définition', 'Exemples', 'Mots de la même famille', 'Phonétique'] as const
 
-// Offsets in ms from mount for phases 1–3. Phase 4 only resolves on data arrival (component unmounts).
+// Offsets in ms from shell appearance for phases 1–3. Phase 4 resolves on data arrival (component unmounts).
 const PHASE_TIMERS = [1100, 1700, 2100] as const
+// Loading shell is suppressed until this delay so fast deck-hit responses never flash the loader.
+const LOADING_SHELL_DELAY_MS = 400
 
 function PhaseChecklist() {
-  const [shown, setShown] = useState(false)
   const [completedCount, setCompletedCount] = useState(0)
 
   useEffect(() => {
-    const t0 = setTimeout(() => setShown(true), 200)
     const t1 = setTimeout(() => setCompletedCount((c) => Math.max(c, 1)), PHASE_TIMERS[0])
     const t2 = setTimeout(() => setCompletedCount((c) => Math.max(c, 2)), PHASE_TIMERS[1])
     const t3 = setTimeout(() => setCompletedCount((c) => Math.max(c, 3)), PHASE_TIMERS[2])
-    return () => { clearTimeout(t0); clearTimeout(t1); clearTimeout(t2); clearTimeout(t3) }
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3) }
   }, [])
-
-  if (!shown) return null
 
   return (
     <ul className="mt-3 flex flex-col gap-2">
@@ -65,8 +63,18 @@ function PhaseChecklist() {
 
 export default function LoadingIdiom({ status, word, result, onReveal, onRetry }: Props) {
   const [idiom] = useState(() => getRandomIdiom())
+  const [shellVisible, setShellVisible] = useState(false)
+
+  useEffect(() => {
+    if (status !== 'loading') return
+    const t = setTimeout(() => setShellVisible(true), LOADING_SHELL_DELAY_MS)
+    return () => clearTimeout(t)
+  }, [status])
 
   const isReady = status === 'ready'
+
+  // Suppress loading shell until delay fires — fast deck hits never paint the loader.
+  if (status === 'loading' && !shellVisible) return null
 
   return (
     <div className={`flex flex-col gap-5 p-5 ${isReady ? 'min-h-[calc(100svh-4rem)]' : ''}`}>
@@ -109,9 +117,7 @@ export default function LoadingIdiom({ status, word, result, onReveal, onRetry }
                   <ul className="flex flex-col gap-2">
                     {PHASES.map((phase) => (
                       <li key={phase} className="flex items-center gap-2">
-                        <span className="w-4 h-4 rounded-full bg-ok flex items-center justify-center shrink-0">
-                          <span className="text-white text-[9px] leading-none">✓</span>
-                        </span>
+                        <span className="w-4 text-center text-ok text-sm leading-none">✓</span>
                         <span className="text-sm font-serif text-ink">{phase}</span>
                       </li>
                     ))}
