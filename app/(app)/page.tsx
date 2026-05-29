@@ -105,11 +105,8 @@ export default async function HomePage() {
           <p className="font-serif font-bold text-[10px] uppercase tracking-[0.16em] text-muted">
             Ta collection
           </p>
-          <span className="flex items-baseline gap-2">
-            <span className="font-serif text-[14px] text-muted">
-              {totalWords} mot{totalWords !== 1 ? 's' : ''} enregistré{totalWords !== 1 ? 's' : ''}
-            </span>
-            <span className="font-serif text-[11px] text-accent">Voir tout →</span>
+          <span className="font-serif text-[14px] text-muted">
+            {totalWords} mot{totalWords !== 1 ? 's' : ''} enregistré{totalWords !== 1 ? 's' : ''}
           </span>
         </Link>
 
