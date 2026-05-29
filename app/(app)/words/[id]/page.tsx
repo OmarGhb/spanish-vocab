@@ -2,8 +2,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import AudioButton from '../../AudioButton'
+import StatusPill from '../../StatusPill'
 import WordDetailContent from './WordDetailContent'
-import { getWordStatus } from '@/lib/word-status'
 
 function statsLine(reps: number, lastReview: string | null): string {
   if (reps === 0 || !lastReview) return 'Pas encore révisé'
@@ -31,7 +31,6 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
 
   const card = (data.review_cards as unknown as CardRow[])[0]
 
-  const pill = getWordStatus(card ?? null)
   const stats = card ? statsLine(card.reps, card.last_review) : 'Pas encore révisé'
 
   const def = data.definition as Record<string, unknown> | null
@@ -51,9 +50,7 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
         <Link href="/" className="text-muted text-sm self-start">←</Link>
 
         {/* Status pill */}
-        <span className={`self-start text-[10px] font-semibold uppercase tracking-widest px-2.5 py-1 rounded-full ${pill.cls}`}>
-          {pill.label}
-        </span>
+        <StatusPill card={card ?? null} className="self-start" />
 
         {/* Word heading + audio */}
         <div className="flex items-center gap-2">
