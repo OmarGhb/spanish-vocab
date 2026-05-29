@@ -26,7 +26,7 @@ export default async function HomePage() {
       supabase.from('review_cards').select('*', { count: 'exact', head: true }).lte('due', nowIso),
       supabase
         .from('words')
-        .select('id, word, definition, review_cards(state, due, stability)')
+        .select('id, word, definition, review_cards(state, due, stability, reps)')
         .order('created_at', { ascending: false })
         .limit(10),
       supabase
@@ -48,12 +48,14 @@ export default async function HomePage() {
 
   const previews = (recent ?? []).map((w) => {
     const def = w.definition as Record<string, unknown> | null
-    const cards = w.review_cards as unknown as WordCard[]
+    const cards = w.review_cards as unknown as Array<WordCard & { reps: number }>
+    const card = cards?.[0] ?? null
     return {
       id: w.id as string,
       word: w.word as string,
       defEs: typeof def?.es === 'string' ? def.es : '',
-      card: cards?.[0] ?? null,
+      card,
+      reps: card?.reps ?? 0,
     }
   })
 
@@ -114,7 +116,7 @@ export default async function HomePage() {
         {previews.length > 0 ? (
           <ul className="flex flex-col gap-2">
             {previews.map((p) => (
-              <WordRow key={p.id} id={p.id} word={p.word} defEs={p.defEs} card={p.card} />
+              <WordRow key={p.id} id={p.id} word={p.word} defEs={p.defEs} card={p.card} reps={p.reps} />
             ))}
           </ul>
         ) : (

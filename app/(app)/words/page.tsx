@@ -8,6 +8,7 @@ export type WordListItem = {
   defEs: string
   createdAt: string
   card: WordCard | null
+  reps: number
 }
 
 export default async function WordsPage() {
@@ -15,19 +16,21 @@ export default async function WordsPage() {
 
   const { data } = await supabase
     .from('words')
-    .select('id, word, definition, created_at, review_cards(state, due, stability)')
+    .select('id, word, definition, created_at, review_cards(state, due, stability, reps)')
     .order('created_at', { ascending: false })
 
   const items: WordListItem[] = (data ?? []).map((w) => {
     const def = w.definition as Record<string, unknown> | null
-    const cards = w.review_cards as unknown as WordCard[]
+    const cards = w.review_cards as unknown as Array<WordCard & { reps: number }>
+    const card = cards?.[0] ?? null
     return {
       id: w.id as string,
       word: w.word as string,
       // Null-safe: legacy rows may carry a malformed definition shape.
       defEs: typeof def?.es === 'string' ? def.es : '',
       createdAt: w.created_at as string,
-      card: cards?.[0] ?? null,
+      card,
+      reps: card?.reps ?? 0,
     }
   })
 

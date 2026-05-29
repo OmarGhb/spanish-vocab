@@ -101,7 +101,7 @@ export default function WordList({ items }: { items: WordListItem[] }) {
         {visible.length > 0 ? (
           <ul className="flex flex-col gap-2">
             {visible.map((it) => (
-              <WordRow key={it.id} id={it.id} word={it.word} defEs={it.defEs} card={it.card} />
+              <WordRow key={it.id} id={it.id} word={it.word} defEs={it.defEs} card={it.card} reps={it.reps} />
             ))}
           </ul>
         ) : (
