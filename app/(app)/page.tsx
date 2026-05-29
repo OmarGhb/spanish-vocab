@@ -1,109 +1,120 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import type { WordCard } from '@/lib/word-status'
+import WordRow from './WordRow'
+import EstimateInfo from './EstimateInfo'
 
-type WordRow = { id: string; word: string; definition: { es: string; fr: string } }
+const COLD_START_MS = 12_000 // flat per-card estimate before we have enough data
+const MIN_USABLE_LOGS = 20
+const RECENT_LOGS_WINDOW = 200
 
-function statusLabel(reps: number, due: string): string {
-  if (reps === 0) return 'Nouvelle'
-  const daysUntil = Math.ceil((new Date(due).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-  if (daysUntil <= 0) return 'À réviser'
-  if (daysUntil === 1) return 'Demain'
-  return `Dans ${daysUntil}j`
+function median(values: number[]): number | null {
+  if (values.length === 0) return null
+  const sorted = [...values].sort((a, b) => a - b)
+  const mid = Math.floor(sorted.length / 2)
+  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid]
 }
 
 export default async function HomePage() {
   const supabase = await createClient()
+  const nowIso = new Date().toISOString()
 
-  const [{ count: wordCount }, { count: dueCount }, { count: newCount }, { data: cards }] =
+  const [{ count: wordCount }, { count: dueCount }, { data: recent }, { data: logs }] =
     await Promise.all([
       supabase.from('words').select('*', { count: 'exact', head: true }),
+      supabase.from('review_cards').select('*', { count: 'exact', head: true }).lte('due', nowIso),
       supabase
-        .from('review_cards')
-        .select('*', { count: 'exact', head: true })
-        .lte('due', new Date().toISOString()),
+        .from('words')
+        .select('id, word, definition, review_cards(state, due, stability)')
+        .order('created_at', { ascending: false })
+        .limit(10),
       supabase
-        .from('review_cards')
-        .select('*', { count: 'exact', head: true })
-        .eq('reps', 0),
-      supabase
-        .from('review_cards')
-        .select('reps, due, words(id, word, definition)')
-        .order('due', { ascending: true })
-        .limit(50),
+        .from('review_logs')
+        .select('time_ms')
+        .gt('time_ms', 0)
+        .order('reviewed_at', { ascending: false })
+        .limit(RECENT_LOGS_WINDOW),
     ])
 
-  const entries = (cards ?? []).map((c) => {
-    const w = c.words as unknown as WordRow
-    const reps = c.reps as number
-    const label = statusLabel(reps, c.due as string)
-    return { id: w.id, word: w.word, definition: w.definition, label, reps }
+  const totalWords = wordCount ?? 0
+  const due = dueCount ?? 0
+
+  // Effort estimate: median time-per-card over recent logs (outlier-robust),
+  // falling back to a flat per-card cost until we have enough data.
+  const times = (logs ?? []).map((l) => l.time_ms as number).filter((t) => t > 0)
+  const perCardMs = times.length >= MIN_USABLE_LOGS ? median(times) ?? COLD_START_MS : COLD_START_MS
+  const minutes = Math.max(1, Math.round((due * perCardMs) / 60_000))
+
+  const previews = (recent ?? []).map((w) => {
+    const def = w.definition as Record<string, unknown> | null
+    const cards = w.review_cards as unknown as WordCard[]
+    return {
+      id: w.id as string,
+      word: w.word as string,
+      defEs: typeof def?.es === 'string' ? def.es : '',
+      card: cards?.[0] ?? null,
+    }
   })
 
   return (
     <div className="flex flex-col min-h-screen pb-16">
-      {/* Scrollable content */}
-      <div className="flex-1 p-5 flex flex-col gap-5">
-        {/* Header */}
+      <div className="flex-1 p-5 flex flex-col gap-6">
+        {/* Editorial header (quiet) */}
         <div className="flex items-center gap-3">
           <Image src="/paco.png" alt="Paco" width={72} height={72} className="object-contain shrink-0" />
           <div>
             <h1 className="font-serif text-[36px] font-bold text-ink leading-none tracking-[-0.03em]">Paco</h1>
-            <p className="text-[9px] font-bold tracking-[0.18em] uppercase text-accent mt-1">APRENDE · RECUERDA · HABLA</p>
-            <p className="text-sm text-muted mt-1">{wordCount ?? 0} mots enregistrés</p>
+            <p className="text-[9px] font-bold tracking-[0.18em] uppercase text-accent mt-1">
+              APRENDE · RECUERDA · HABLA
+            </p>
           </div>
         </div>
 
-        {/* Due banner */}
-        {(dueCount ?? 0) > 0 ? (
-          <Link
-            href="/review"
-            className="bg-tint border border-accent/30 rounded-card px-5 py-4 flex justify-between items-center"
-          >
-            <div>
-              <p className="text-xs text-accent uppercase tracking-wide font-semibold mb-1">
-                Révision disponible
-              </p>
-              <p className="font-serif text-xl text-ink">
-                {dueCount} mot{(dueCount ?? 0) !== 1 ? 's' : ''} à revoir
-              </p>
-            </div>
-            <span className="text-accent text-xl">→</span>
-          </Link>
+        {/* Review status — the loudest element */}
+        {due > 0 ? (
+          <div className="bg-tint border border-accent/30 rounded-card p-5 flex flex-col gap-3">
+            <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-accent">Révision disponible</p>
+            <p className="font-serif text-2xl font-bold text-ink leading-tight">
+              {due} mot{due !== 1 ? 's' : ''} à revoir
+            </p>
+            <EstimateInfo minutes={minutes} />
+            <Link
+              href="/review"
+              className="bg-accent text-white rounded-card py-3.5 text-center font-serif text-sm mt-1"
+            >
+              Commencer la révision →
+            </Link>
+          </div>
         ) : (
-          <div className="bg-ok/10 border border-ok/20 rounded-card px-5 py-4">
-            <p className="text-xs text-ok uppercase tracking-wide font-semibold mb-1">À jour</p>
-            <p className="font-serif text-base text-ok">Aucune révision en attente.</p>
+          <div className="bg-card border border-line rounded-card p-5 flex flex-col items-start gap-2">
+            <div className="w-9 h-9 rounded-full bg-ok/10 text-ok flex items-center justify-center text-lg leading-none">
+              ✓
+            </div>
+            <p className="font-serif text-xl font-bold text-ink">Tout est à jour</p>
+            <p className="text-sm text-muted">
+              Tu as révisé tous tes mots du jour. Reviens un peu plus tard.
+            </p>
           </div>
         )}
 
-        {/* Word list */}
-        {entries.length > 0 ? (
+        {/* Ta collection — quieter ambient context, taps through to the full list */}
+        <Link href="/words" className="flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-muted">Ta collection</p>
+            <p className="text-sm text-ink mt-0.5">
+              {totalWords} mot{totalWords !== 1 ? 's' : ''} enregistré{totalWords !== 1 ? 's' : ''}
+            </p>
+          </div>
+          <span className="text-muted">→</span>
+        </Link>
+
+        {/* Short preview of the most recent words */}
+        {previews.length > 0 ? (
           <ul className="flex flex-col gap-2">
-            {entries.map((e) => {
-              return (
-                <li key={e.id} className="bg-card rounded-card shadow-card">
-                  <Link href={`/words/${e.id}`} className="flex justify-between items-start gap-3 px-4 py-3">
-                    <div className="min-w-0">
-                      <p className="font-serif text-sm font-bold text-ink">{e.word}</p>
-                      <p className="text-xs text-muted mt-0.5 line-clamp-1">{e.definition.es}</p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className={`text-xs font-semibold uppercase tracking-wide ${
-                        e.label === 'À réviser' ? 'text-accent' :
-                        e.label === 'Nouvelle' ? 'text-ok' :
-                        'text-muted'
-                      }`}>
-                        {e.label}
-                      </p>
-                      <p className="text-[10px] text-muted mt-0.5">
-                        {e.reps} révision{e.reps > 1 ? 's' : ''}
-                      </p>
-                    </div>
-                  </Link>
-                </li>
-              )
-            })}
+            {previews.map((p) => (
+              <WordRow key={p.id} id={p.id} word={p.word} defEs={p.defEs} card={p.card} />
+            ))}
           </ul>
         ) : (
           <div className="bg-card rounded-card shadow-card p-6 flex flex-col items-center gap-3 text-center">
@@ -111,29 +122,6 @@ export default async function HomePage() {
             <p className="text-sm text-muted">Paco attend ton premier mot !</p>
           </div>
         )}
-      </div>
-
-      {/* Pinned bottom actions */}
-      <div className="p-4 flex flex-col gap-2 border-t border-line bg-page">
-        <div className="flex gap-3">
-          {(dueCount ?? 0) > 0 && (
-            <Link
-              href="/review"
-              className="flex-[2] border border-line rounded-card py-3.5 text-sm text-center font-serif text-ink"
-            >
-              Réviser ({dueCount})
-            </Link>
-          )}
-          <Link
-            href="/add"
-            className={`${(dueCount ?? 0) > 0 ? 'flex-[3]' : 'flex-1'} bg-accent text-white rounded-card py-3.5 text-sm text-center font-serif`}
-          >
-            + Ajouter un mot
-          </Link>
-        </div>
-        <Link href="/discover" className="text-sm text-center text-muted py-1 font-serif">
-          Découvrir {newCount ?? 0} mot{(newCount ?? 0) !== 1 ? 's' : ''} →
-        </Link>
       </div>
     </div>
   )
