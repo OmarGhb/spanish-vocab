@@ -147,7 +147,7 @@ export default function FillInBlank({ card, cardStartRef, onRate }: Props) {
             <button
               type="submit"
               disabled={!answer.trim()}
-              className="col-span-2 font-serif bg-accent text-white rounded-card py-4 text-sm disabled:opacity-40 transition-opacity"
+              className="col-span-2 font-serif font-semibold bg-accent text-white rounded-card py-4 text-sm disabled:opacity-40 transition-opacity"
             >
               Valider →
             </button>

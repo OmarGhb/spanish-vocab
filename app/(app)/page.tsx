@@ -73,15 +73,17 @@ export default async function HomePage() {
 
         {/* Review status — the loudest element */}
         {due > 0 ? (
-          <div className="bg-tint border border-accent/30 rounded-card p-5 flex flex-col gap-3">
+          <div className="bg-tint border border-accent/30 rounded-card p-5 flex flex-col">
             <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-accent">Révision disponible</p>
-            <p className="font-serif text-2xl font-bold text-ink leading-tight">
+            <p className="font-serif text-2xl font-bold text-ink leading-tight mt-1">
               {due} mot{due !== 1 ? 's' : ''} à revoir
             </p>
-            <EstimateInfo minutes={minutes} />
+            <div className="mt-1.5">
+              <EstimateInfo minutes={minutes} />
+            </div>
             <Link
               href="/review"
-              className="bg-accent text-white rounded-card py-3.5 text-center font-serif text-sm mt-1"
+              className="bg-accent text-white rounded-card py-3.5 text-center font-serif font-semibold text-sm mt-5"
             >
               Commencer la révision →
             </Link>
@@ -99,14 +101,16 @@ export default async function HomePage() {
         )}
 
         {/* Ta collection — quieter ambient context, taps through to the full list */}
-        <Link href="/words" className="flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-muted">Ta collection</p>
-            <p className="text-sm text-ink mt-0.5">
+        <Link href="/words" className="flex items-baseline justify-between border-t border-line pt-[18px]">
+          <p className="font-serif font-bold text-[10px] uppercase tracking-[0.16em] text-muted">
+            Ta collection
+          </p>
+          <span className="flex items-baseline gap-2">
+            <span className="font-serif text-[14px] text-muted">
               {totalWords} mot{totalWords !== 1 ? 's' : ''} enregistré{totalWords !== 1 ? 's' : ''}
-            </p>
-          </div>
-          <span className="text-muted">→</span>
+            </span>
+            <span className="font-serif text-[11px] text-accent">Voir tout →</span>
+          </span>
         </Link>
 
         {/* Short preview of the most recent words */}

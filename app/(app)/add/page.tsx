@@ -375,7 +375,7 @@ export default function AddPage() {
             type="button"
             disabled={!word.trim()}
             onClick={() => handleSubmit(word.trim())}
-            className="w-full bg-accent text-white rounded-card py-4 font-serif text-sm disabled:opacity-40 transition-opacity"
+            className="w-full bg-accent text-white rounded-card py-4 font-serif font-semibold text-sm disabled:opacity-40 transition-opacity"
           >
             Rechercher →
           </button>
@@ -466,7 +466,7 @@ export default function AddPage() {
               logLemmaEvent('lemma_suggestion_accepted', result.word, lemma)
               void handleSaveLemmaWord(lemma, result, lemma_audio_urls)
             }}
-            className="w-full bg-accent text-white rounded-card py-4 font-serif text-sm disabled:opacity-40 transition-opacity"
+            className="w-full bg-accent text-white rounded-card py-4 font-serif font-semibold text-sm disabled:opacity-40 transition-opacity"
           >
             {saveState === 'saving' ? (
               <Loader2 size={14} className="animate-spin inline" />
@@ -713,7 +713,7 @@ export default function AddPage() {
             <button
               type="button"
               onClick={handleAddDistractors}
-              className="flex-[2] bg-accent text-white rounded-card py-3.5 font-serif text-sm"
+              className="flex-[2] bg-accent text-white rounded-card py-3.5 font-serif font-semibold text-sm"
             >
               Ajouter {selectionCount} mot{selectionCount > 1 ? 's' : ''} →
             </button>
@@ -732,7 +732,7 @@ export default function AddPage() {
               type="button"
               onClick={() => { void handleSave() }}
               disabled={saveState !== 'idle'}
-              className="flex-[2] bg-accent text-white rounded-card py-3.5 font-serif text-sm disabled:opacity-40 transition-opacity"
+              className="flex-[2] bg-accent text-white rounded-card py-3.5 font-serif font-semibold text-sm disabled:opacity-40 transition-opacity"
             >
               {saveState === 'saving' ? (
                 <Loader2 size={14} className="animate-spin inline" />
@@ -759,7 +759,7 @@ export default function AddPage() {
               type="button"
               onClick={() => { void handleResetSchedule() }}
               disabled={saveState !== 'idle'}
-              className="flex-[2] bg-accent text-white rounded-card py-3.5 font-serif text-sm disabled:opacity-40 transition-opacity"
+              className="flex-[2] bg-accent text-white rounded-card py-3.5 font-serif font-semibold text-sm disabled:opacity-40 transition-opacity"
             >
               {saveState === 'saving' ? (
                 <Loader2 size={14} className="animate-spin inline" />

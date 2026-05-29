@@ -125,7 +125,7 @@ export default function ReviewSession({ cards }: Props) {
           {dueRemaining > 0 && (
             <Link
               href="/review"
-              className="block bg-accent text-white rounded-card py-4 font-serif text-sm text-center"
+              className="block bg-accent text-white rounded-card py-4 font-serif font-semibold text-sm text-center"
             >
               Encore {dueRemaining} mot{dueRemaining !== 1 ? 's' : ''} à revoir →
             </Link>
