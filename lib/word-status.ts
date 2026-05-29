@@ -9,23 +9,29 @@ export type WordCard = {
   stability: number
 }
 
-export function getWordStatus(card: WordCard | null): { label: string; cls: string } {
+// One mapping, three presentations so they can't drift:
+//   cls  = chip classes (background + text) — the detail-page pill
+//   text = text-only colour — the plain-text status on list rows
+//   dot  = background colour — the filled familiarity dots, matching the status
+export function getWordStatus(
+  card: WordCard | null,
+): { label: string; cls: string; text: string; dot: string } {
   if (!card || card.state === State.New) {
-    return { label: 'Nouveau', cls: 'bg-surface-alt text-muted' }
+    return { label: 'Nouveau', cls: 'bg-surface-alt text-muted', text: 'text-muted', dot: 'bg-muted' }
   }
   if (card.state === State.Relearning) {
-    return { label: 'À rappeler', cls: 'bg-err/10 text-err' }
+    return { label: 'À rappeler', cls: 'bg-err/10 text-err', text: 'text-err', dot: 'bg-err' }
   }
   if (new Date(card.due) <= new Date()) {
-    return { label: 'À réviser', cls: 'bg-accent/10 text-accent' }
+    return { label: 'À réviser', cls: 'bg-accent/10 text-accent', text: 'text-accent', dot: 'bg-accent' }
   }
   if (card.stability >= MEMORIZED_STABILITY_DAYS) {
-    return { label: 'Mémorisé', cls: 'bg-ok/10 text-ok' }
+    return { label: 'Mémorisé', cls: 'bg-ok/10 text-ok', text: 'text-ok', dot: 'bg-ok' }
   }
   if (card.stability >= LEARNING_STABILITY_DAYS) {
-    return { label: 'En cours', cls: 'bg-surface-alt text-muted' }
+    return { label: 'En cours', cls: 'bg-surface-alt text-muted', text: 'text-muted', dot: 'bg-muted' }
   }
-  return { label: 'En apprentissage', cls: 'bg-surface-alt text-muted' }
+  return { label: 'En apprentissage', cls: 'bg-surface-alt text-muted', text: 'text-muted', dot: 'bg-muted' }
 }
 
 export function isMemorized(card: WordCard | null): boolean {

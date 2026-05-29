@@ -1,6 +1,5 @@
 import Link from 'next/link'
-import { isDue, type WordCard } from '@/lib/word-status'
-import StatusPill from './StatusPill'
+import { getWordStatus, isDue, type WordCard } from '@/lib/word-status'
 import FamiliarityMeter from './FamiliarityMeter'
 
 // Shared list row, used by /words and the Home preview:
@@ -20,6 +19,7 @@ export default function WordRow({
   reps: number
 }) {
   const action = isDue(card)
+  const status = getWordStatus(card)
   return (
     <li>
       <Link
@@ -34,7 +34,9 @@ export default function WordRow({
           {defEs && <p className="text-xs text-muted italic mt-[3px] line-clamp-1">{defEs}</p>}
         </div>
         <div className="flex flex-col items-end gap-1 shrink-0">
-          <StatusPill card={card} />
+          <span className={`text-[10px] font-bold uppercase tracking-[0.08em] whitespace-nowrap ${status.text}`}>
+            {status.label}
+          </span>
           <p className="text-[10px] text-muted whitespace-nowrap">
             {reps} révision{reps >= 2 ? 's' : ''}
           </p>
