@@ -133,18 +133,16 @@ export default function DiscoverClient() {
   if (phase === 'grid') {
     return (
       <div className="flex flex-col min-h-screen pb-16">
-        {/* Header — no side padding so its left edge lines up with the NavBar's leftmost
-            item (the NavBar fills the column with no gutter). Trimmed bottom padding. */}
-        <div className="pt-[14px] pb-3 flex items-center gap-3">
+        {/* Header — standard page gutter (px-5), consistent with every other screen */}
+        <div className="pt-[14px] px-5 pb-3 flex items-center gap-3">
           <Image src="/paco.png" alt="Paco" width={56} height={56} className="object-contain shrink-0" />
           <div>
             <h1 className="font-serif text-3xl font-bold text-ink leading-none">Découvrir</h1>
             <p className="text-sm text-muted mt-1.5">Explore de nouveaux mots par thème</p>
           </div>
         </div>
-        {/* Grid — 2 equal columns, 13px gap, no side padding so the tiles' left/right
-            edges line up with the NavBar's leftmost (Accueil) and rightmost (Compte) items. */}
-        <div className="grid grid-cols-2 gap-[13px]">
+        {/* Grid — 2 equal columns, standard px-5 gutter to match the other screens */}
+        <div className="px-5 grid grid-cols-2 gap-[13px]">
           {DISCOVERY_TOPICS.map((t) => (
             <button
               key={t.key}
