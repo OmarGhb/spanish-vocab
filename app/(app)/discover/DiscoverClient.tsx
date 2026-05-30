@@ -133,10 +133,14 @@ export default function DiscoverClient() {
   if (phase === 'grid') {
     return (
       <div className="flex flex-col min-h-screen pb-16">
-        <div className="p-5 flex flex-col gap-5">
-          <div>
-            <h1 className="font-serif text-3xl font-bold text-ink leading-none">Découvrir</h1>
-            <p className="text-sm text-muted mt-1.5">Explore de nouveaux mots par thème</p>
+        <div className="px-4 py-5 flex flex-col gap-4">
+          {/* Mascot beside the title, flush-left — mirrors the home hero header */}
+          <div className="flex items-center gap-3">
+            <Image src="/paco.png" alt="Paco" width={56} height={56} className="object-contain shrink-0" />
+            <div>
+              <h1 className="font-serif text-3xl font-bold text-ink leading-none">Découvrir</h1>
+              <p className="text-sm text-muted mt-1.5">Explore de nouveaux mots par thème</p>
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {DISCOVERY_TOPICS.map((t) => (
@@ -144,14 +148,14 @@ export default function DiscoverClient() {
                 key={t.key}
                 type="button"
                 onClick={() => void startTopic(t)}
-                className="bg-card border border-line rounded-card shadow-card p-4 aspect-[3/4] flex flex-col text-left active:bg-tint transition-colors"
+                className="bg-card border border-line rounded-card shadow-card p-4 flex flex-col text-left active:bg-tint transition-colors"
               >
-                <span className="w-11 h-11 rounded-full bg-tint text-accent flex items-center justify-center shrink-0">
-                  <t.Icon size={22} strokeWidth={1.8} />
+                <span className="w-10 h-10 rounded-full bg-tint text-accent flex items-center justify-center shrink-0">
+                  <t.Icon size={20} strokeWidth={1.8} />
                 </span>
-                <span className="font-serif text-lg font-bold text-ink leading-tight mt-3">{t.es}</span>
-                <span className="text-sm text-muted leading-tight mt-1">{t.fr}</span>
-                <span className="text-[11px] uppercase tracking-[0.14em] text-muted mt-auto pt-2">
+                <span className="font-serif text-lg font-bold text-ink leading-tight mt-2.5">{t.es}</span>
+                <span className="text-sm text-muted leading-tight mt-0.5">{t.fr}</span>
+                <span className="text-[11px] uppercase tracking-[0.14em] text-muted mt-2.5">
                   {t.count} MOTS
                 </span>
               </button>
