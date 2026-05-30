@@ -81,7 +81,7 @@ export default function ReviewSession({ cards }: Props) {
     const timeLabel = totalMs < 60_000 ? '< 1 min' : `${Math.round(totalMs / 60_000)} min`
 
     return (
-      <div className="px-5 pt-8 pb-24 flex flex-col gap-6">
+      <div className="px-5 pt-8 pb-8 flex flex-col gap-6">
         {/* Header */}
         <div className="flex flex-col items-center text-center gap-2">
           <Image src="/paco-feliz.png" alt="Paco" width={96} height={96} className="object-contain" />
@@ -145,7 +145,7 @@ export default function ReviewSession({ cards }: Props) {
   const mode = chooseMode(card, index)
 
   return (
-    <div className="px-5 pt-5 pb-20">
+    <div className="px-5 pt-5 pb-4">
       {/* Header: × | 1/N | ÉCRITURE */}
       <div className="flex justify-between items-center mb-3">
         <Link href="/" className="text-2xl text-muted hover:text-ink leading-none select-none">

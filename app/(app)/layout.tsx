@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import NavBar from './NavBar'
+import TopNav from './TopNav'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -13,9 +13,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="max-w-[430px] mx-auto min-h-screen">
+    <div className="max-w-[430px] mx-auto min-h-screen flex flex-col">
+      <TopNav />
       {children}
-      <NavBar />
     </div>
   )
 }

@@ -66,7 +66,7 @@ export default async function HomePage() {
   })
 
   return (
-    <div className="flex flex-col min-h-screen pb-16">
+    <div className="flex flex-col flex-1">
       <div className="flex-1 p-5 flex flex-col gap-6">
         {/* Editorial header (quiet) */}
         <div className="flex items-center gap-3">

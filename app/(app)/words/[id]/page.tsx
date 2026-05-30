@@ -51,7 +51,7 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
   const distractors = Array.isArray(data.distractors) ? (data.distractors as string[]) : []
 
   return (
-    <div className="flex flex-col min-h-screen pb-16">
+    <div className="flex flex-col flex-1">
       <div className="p-5 flex flex-col gap-5">
         <Link href="/" className="text-muted text-sm self-start">←</Link>
 

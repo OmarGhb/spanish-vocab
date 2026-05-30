@@ -49,7 +49,7 @@ export default function WordList({ items }: { items: WordListItem[] }) {
   }, [items, filter, sort])
 
   return (
-    <div className="flex flex-col min-h-screen pb-16">
+    <div className="flex flex-col flex-1">
       <div className="p-5 flex flex-col gap-5">
         {/* Header */}
         <div>

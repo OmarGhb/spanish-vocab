@@ -129,20 +129,20 @@ export default function DiscoverClient() {
     }
   }
 
-  // ── GRID (with NavBar) ──────────────────────────────────────────────────────
+  // ── GRID (under the top nav) ────────────────────────────────────────────────
   if (phase === 'grid') {
     return (
-      <div className="flex flex-col min-h-screen pb-16">
-        {/* Header — standard page gutter (px-5), consistent with every other screen */}
-        <div className="pt-[14px] px-5 pb-3 flex items-center gap-3">
+      <div className="flex flex-col flex-1">
+        {/* Header — deliberate tighter gutter (px-3) so the card grid sits fuller; kept equal to the grid below */}
+        <div className="pt-[14px] px-3 pb-3 flex items-center gap-3">
           <Image src="/paco.png" alt="Paco" width={56} height={56} className="object-contain shrink-0" />
           <div>
             <h1 className="font-serif text-3xl font-bold text-ink leading-none">Découvrir</h1>
             <p className="text-sm text-muted mt-1.5">Explore de nouveaux mots par thème</p>
           </div>
         </div>
-        {/* Grid — 2 equal columns, standard px-5 gutter to match the other screens */}
-        <div className="px-5 grid grid-cols-2 gap-[13px]">
+        {/* Grid — 2 equal columns, deliberate tighter px-3 gutter (matches header) so tiles sit fuller/wider */}
+        <div className="px-3 grid grid-cols-2 gap-[13px]">
           {DISCOVERY_TOPICS.map((t) => (
             <button
               key={t.key}
@@ -166,7 +166,7 @@ export default function DiscoverClient() {
     )
   }
 
-  // ── FOCUSED OVERLAY (no NavBar) ─────────────────────────────────────────────
+  // ── FOCUSED OVERLAY (z-60, covers the top nav) ──────────────────────────────
   if (phase === 'generating') {
     return (
       <FocusedOverlay center>

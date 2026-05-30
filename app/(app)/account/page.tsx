@@ -12,7 +12,7 @@ export default async function AccountPage() {
   const email = user?.email ?? ''
 
   return (
-    <div className="flex flex-col min-h-screen pb-20">
+    <div className="flex flex-col flex-1 pb-4">
       <div className="p-5 flex flex-col gap-5 flex-1">
         {/* Header */}
         <div>

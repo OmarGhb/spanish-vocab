@@ -527,7 +527,7 @@ export default function AddPage() {
   const isAdding = toast?.type === 'adding'
 
   return (
-    <div className="flex flex-col min-h-screen pb-36">
+    <div className="flex flex-col flex-1 pb-20">
       <div className="p-5">
         <button
           type="button"
@@ -654,9 +654,9 @@ export default function AddPage() {
         )}
       </div>
 
-      {/* Toast — floats above the NavBar */}
+      {/* Toast — floats above the StickyActions bar */}
       {toast && (
-        <div className="fixed bottom-36 inset-x-0 z-40 px-4 pointer-events-none">
+        <div className="fixed bottom-24 inset-x-0 z-40 px-4 pointer-events-none">
           <div className={`max-w-[430px] mx-auto rounded-card px-4 py-3 shadow-card pointer-events-auto flex items-center gap-3 ${
             toast.type === 'success'
               ? 'bg-card border border-ok/25'
