@@ -26,7 +26,7 @@ export default function TopNav() {
 
   return (
     <header
-      className="sticky top-0 z-30 bg-page border-b border-line"
+      className="sticky top-0 z-30 bg-page"
       style={{ paddingTop: 'calc(0.75rem + env(safe-area-inset-top))' }}
     >
       {/* Row 1 — home circle (far left) · centered Paco lockup (→ /) · account avatar (far right).
@@ -69,11 +69,11 @@ export default function TopNav() {
               href={href}
               ref={active ? activeRef : undefined}
               aria-current={active ? 'page' : undefined}
-              className={`flex items-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-serif font-bold whitespace-nowrap shrink-0 shadow-card ${
-                active ? 'bg-accent text-white' : 'bg-card text-ink'
+              className={`flex items-center gap-1.5 rounded-full px-5 py-1.5 text-sm font-serif font-bold whitespace-nowrap shrink-0 border ${
+                active ? 'bg-accent text-white border-transparent' : 'bg-card text-ink border-accent/60'
               }`}
             >
-              <Icon size={16} strokeWidth={active ? 2.2 : 1.8} />
+              <Icon size={16} strokeWidth={active ? 2.2 : 1.8} className={active ? undefined : 'text-accent/60'} />
               {label}
             </Link>
           )
