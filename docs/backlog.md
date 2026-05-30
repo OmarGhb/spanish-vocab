@@ -61,3 +61,19 @@
 
 - **`.next/types/validator.ts` TypeScript error** carried forward from M3.3 polish work.
   Error: `TS2307: Cannot find module '../../app/page.js' or its corresponding type declarations.` Claude Code dismissed across both M3.3 polish phases as a pre-existing build cache artifact. Want to verify against a pre-M3.3 commit before trusting the diagnosis. Quick check: `git stash`, `git checkout v0.3.2`, `npx tsc --noEmit 2>&1`, see if it appears; pop stash after. Likely benign but worth resolving cleanly when M4 touches the routing layer where it lives.
+
+- **PhaseChecklist active-indicator animation not firing.** Active phase was
+  specced with `motion-safe:animate-pulse` + staggered trailing "···" dots;
+  neither renders in practice. Investigate whether Tailwind is emitting
+  `animate-pulse` and whether the class lands on the element. Low priority —
+  static indicator still conveys state. Means the reduced-motion accessibility
+  contract is also untested in practice until this is sorted.
+
+## Discovery follow-ups (M5.1)
+
+- **Generation latency on the Génération screen** (multi-second wait). The delay is
+  the live Anthropic call in `/api/discovery/generate` — inherent to generating a batch
+  on demand, not a regression. Future fix: prefetch the next topic's batch (warm on grid
+  idle / on press-in) and/or a short-lived server-side per-topic cache of generated
+  batches, so the deck opens instantly on the common path. Keep the cache-before-API
+  resume path; this is purely about cold-generation perceived speed.

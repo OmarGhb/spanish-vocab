@@ -105,7 +105,9 @@ export default function WordList({ items }: { items: WordListItem[] }) {
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-muted text-center py-8">Aucun mot dans cette vue.</p>
+          <div className="py-16 text-center">
+            <p className="text-sm text-muted">Aucun mot dans cette vue.</p>
+          </div>
         )}
       </div>
     </div>

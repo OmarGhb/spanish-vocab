@@ -9,6 +9,15 @@ export type WordCard = {
   stability: number
 }
 
+// PostgREST returns a to-one embedded relationship as a single object and a to-many
+// one as an array. Adding UNIQUE(review_cards.word_id) in M5.1 flipped words→review_cards
+// from to-many to to-one, so embed reads must accept BOTH shapes. Normalizes to one row.
+// See SESSION_PROTOCOL.md — "UNIQUE on an FK column flips embed cardinality".
+export function oneEmbed<T>(embed: T | T[] | null | undefined): T | null {
+  if (Array.isArray(embed)) return embed[0] ?? null
+  return embed ?? null
+}
+
 // One mapping, three presentations so they can't drift:
 //   cls  = chip classes (background + text) — the detail-page pill
 //   text = text-only colour — the plain-text status on list rows

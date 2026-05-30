@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { X } from 'lucide-react'
 import { DISCOVERY_TOPICS, type DiscoveryTopic } from '@/lib/discovery-topics'
@@ -14,6 +14,23 @@ type Phase = 'grid' | 'generating' | 'deck' | 'bilan' | 'exhausted'
 // 'kept' rows) and again when the bilan shows. The endpoint is concurrency-safe.
 function triggerEnrich() {
   void fetch('/api/discovery/enrich', { method: 'POST' }).catch(() => {})
+}
+
+// Full-bleed focused backdrop with content constrained to the standard mobile column,
+// so the progress bar / card / CTAs never span a wide viewport. `center` stacks content
+// in the middle for the loading / exhausted / bilan screens.
+function FocusedOverlay({ center, children }: { center?: boolean; children: ReactNode }) {
+  return (
+    <div className="fixed inset-0 z-[60] bg-page">
+      <div
+        className={`relative w-full max-w-[430px] mx-auto h-full flex flex-col${
+          center ? ' items-center justify-center p-6 text-center' : ''
+        }`}
+      >
+        {children}
+      </div>
+    </div>
+  )
 }
 
 // Focused-mode close (×), pinned to the top-left within the safe area.
@@ -115,7 +132,7 @@ export default function DiscoverClient() {
   // ── GRID (with NavBar) ──────────────────────────────────────────────────────
   if (phase === 'grid') {
     return (
-      <div className="flex flex-col min-h-screen pb-20">
+      <div className="flex flex-col min-h-screen pb-16">
         <div className="p-5 flex flex-col gap-5">
           <div>
             <h1 className="font-serif text-3xl font-bold text-ink leading-none">Découvrir</h1>
@@ -148,7 +165,7 @@ export default function DiscoverClient() {
   // ── FOCUSED OVERLAY (no NavBar) ─────────────────────────────────────────────
   if (phase === 'generating') {
     return (
-      <div className="fixed inset-0 z-[60] bg-page flex flex-col items-center justify-center p-6 text-center">
+      <FocusedOverlay center>
         <CloseButton onClose={cancelGenerating} />
         {genError ? (
           <div className="flex flex-col items-center gap-4">
@@ -186,13 +203,13 @@ export default function DiscoverClient() {
             </ul>
           </>
         )}
-      </div>
+      </FocusedOverlay>
     )
   }
 
   if (phase === 'exhausted') {
     return (
-      <div className="fixed inset-0 z-[60] bg-page flex flex-col items-center justify-center p-6 text-center">
+      <FocusedOverlay center>
         <CloseButton onClose={backToGrid} />
         <Image src="/paco-pensando.png" alt="Paco" width={88} height={88} className="object-contain" />
         <p className="font-serif text-xl font-bold text-ink mt-5 leading-snug">
@@ -208,13 +225,13 @@ export default function DiscoverClient() {
         >
           Choisir un autre thème →
         </button>
-      </div>
+      </FocusedOverlay>
     )
   }
 
   if (phase === 'bilan') {
     return (
-      <div className="fixed inset-0 z-[60] bg-page flex flex-col items-center justify-center p-6 text-center">
+      <FocusedOverlay center>
         <Image src="/paco-feliz.png" alt="Paco" width={96} height={96} className="object-contain" />
         <h1 className="font-serif text-3xl font-bold text-ink mt-5">Thème terminé</h1>
         <p className="text-base text-ink mt-3">
@@ -242,7 +259,7 @@ export default function DiscoverClient() {
             Réviser maintenant
           </button>
         </div>
-      </div>
+      </FocusedOverlay>
     )
   }
 
@@ -252,9 +269,9 @@ export default function DiscoverClient() {
   const article = card ? deckArticle(card.gender) : null
 
   return (
-    <div className="fixed inset-0 z-[60] bg-page flex flex-col">
+    <FocusedOverlay>
       {/* Top bar: × + progress */}
-      <div className="relative px-5" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
+      <div className="px-5" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
         <CloseButton onClose={backToGrid} />
         <div className="pt-1 flex flex-col items-center gap-2">
           <p className="text-sm font-semibold text-muted tabular-nums">
@@ -269,8 +286,8 @@ export default function DiscoverClient() {
         </div>
       </div>
 
-      {/* Card */}
-      <div className="flex-1 flex items-center justify-center px-6">
+      {/* Card — portrait (~9:16), capped so card + CTAs fit without scrolling */}
+      <div className="flex-1 min-h-0 flex items-center justify-center px-6 py-3">
         {card && (
           <SwipeCard
             key={card.id}
@@ -287,16 +304,18 @@ export default function DiscoverClient() {
               </span>
             }
           >
-            <div className="w-full bg-card border border-line rounded-card shadow-card p-6 min-h-[340px] flex flex-col">
-              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted">
-                {posEyebrow(card.pos, card.gender)}
-              </p>
-              <p className="font-serif text-[2.5rem] font-bold text-ink leading-none mt-3">
-                {article ? <span className="text-muted">{article} </span> : null}
-                {card.word}
-              </p>
-              <p className="text-base text-muted mt-2">{card.fr}</p>
-              <div className="border-t border-line mt-5 pt-5">
+            <div className="w-[min(340px,84vw)] aspect-[9/16] max-h-[58vh] bg-card border border-line rounded-card shadow-card p-6 flex flex-col overflow-hidden">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted">
+                  {posEyebrow(card.pos, card.gender)}
+                </p>
+                <p className="font-serif text-[2.75rem] font-bold text-ink leading-none mt-3">
+                  {article ? <span className="text-muted">{article} </span> : null}
+                  {card.word}
+                </p>
+                <p className="text-base text-muted mt-2">{card.fr}</p>
+              </div>
+              <div className="mt-auto pt-5 border-t border-line">
                 <p className="font-serif text-base text-ink leading-relaxed">{card.example.es}</p>
                 <p className="font-serif italic text-sm text-muted mt-2">{card.example.fr}</p>
               </div>
@@ -327,6 +346,6 @@ export default function DiscoverClient() {
           <span className="text-[11px] text-muted mt-0.5">glisse à droite →</span>
         </button>
       </div>
-    </div>
+    </FocusedOverlay>
   )
 }

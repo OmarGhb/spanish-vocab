@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { State } from 'ts-fsrs'
-import { getWordStatus, isMemorized, getFamiliarity, isDue, MEMORIZED_STABILITY_DAYS, LEARNING_STABILITY_DAYS } from './word-status'
+import { getWordStatus, isMemorized, getFamiliarity, isDue, oneEmbed, MEMORIZED_STABILITY_DAYS, LEARNING_STABILITY_DAYS } from './word-status'
 
 const PAST = new Date(Date.now() - 86_400_000).toISOString()   // yesterday
 const FUTURE = new Date(Date.now() + 86_400_000).toISOString() // tomorrow
@@ -158,6 +158,28 @@ describe('isDue', () => {
 
   it('due in the future → false', () => {
     expect(isDue(card(State.Review, FUTURE, 5))).toBe(false)
+  })
+})
+
+describe('oneEmbed', () => {
+  it('array → first element', () => {
+    expect(oneEmbed([{ reps: 3 }, { reps: 9 }])).toEqual({ reps: 3 })
+  })
+
+  it('to-one object → itself', () => {
+    expect(oneEmbed({ reps: 3 })).toEqual({ reps: 3 })
+  })
+
+  it('empty array → null', () => {
+    expect(oneEmbed([])).toBeNull()
+  })
+
+  it('null → null', () => {
+    expect(oneEmbed(null)).toBeNull()
+  })
+
+  it('undefined → null', () => {
+    expect(oneEmbed(undefined)).toBeNull()
   })
 })
 

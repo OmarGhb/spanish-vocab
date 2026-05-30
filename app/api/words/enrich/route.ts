@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getWordData } from '@/lib/anthropic'
 import { contains, fuzzyMatch } from '@/lib/wordlist'
 import { getAudioForWord } from '@/lib/tts'
+import { oneEmbed } from '@/lib/word-status'
 
 export async function POST(request: Request) {
   let body: unknown
@@ -48,13 +49,14 @@ export async function POST(request: Request) {
     examples: Array<{ es: string; fr: string }>
     distractors: string[]
     audio_urls: { es_ES: string } | null
-    review_cards: Array<{ id: string; due: string }>
+    // to-one embed (UNIQUE word_id) → object; tolerate both shapes via oneEmbed.
+    review_cards: { id: string; due: string } | Array<{ id: string; due: string }> | null
   }
 
   const row = existing as ExistingRow | null
 
   if (row) {
-    const card = row.review_cards[0]
+    const card = oneEmbed(row.review_cards)
     const dueDate = card?.due
     const status = dueDate && new Date(dueDate) <= new Date() ? 'due_now' : 'due_later'
 

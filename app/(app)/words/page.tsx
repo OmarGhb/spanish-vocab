@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import type { WordCard } from '@/lib/word-status'
+import { oneEmbed, type WordCard } from '@/lib/word-status'
 import WordList from './WordList'
 
 export type WordListItem = {
@@ -21,10 +21,11 @@ export default async function WordsPage() {
     .or('origin.eq.manual,discovery_status.eq.promoted')
     .order('created_at', { ascending: false })
 
+  type CardEmbed = WordCard & { reps: number }
   const items: WordListItem[] = (data ?? []).map((w) => {
     const def = w.definition as Record<string, unknown> | null
-    const cards = w.review_cards as unknown as Array<WordCard & { reps: number }>
-    const card = cards?.[0] ?? null
+    // review_cards is a to-one embed (UNIQUE word_id) → object; normalize for safety.
+    const card = oneEmbed(w.review_cards as unknown as CardEmbed | CardEmbed[] | null)
     return {
       id: w.id as string,
       word: w.word as string,

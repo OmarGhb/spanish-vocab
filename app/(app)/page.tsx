@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import type { WordCard } from '@/lib/word-status'
+import { oneEmbed, type WordCard } from '@/lib/word-status'
 import WordRow from './WordRow'
 import EstimateInfo from './EstimateInfo'
 
@@ -51,10 +51,11 @@ export default async function HomePage() {
   const perCardMs = times.length >= MIN_USABLE_LOGS ? median(times) ?? COLD_START_MS : COLD_START_MS
   const minutes = Math.max(1, Math.round((due * perCardMs) / 60_000))
 
+  type CardEmbed = WordCard & { reps: number }
   const previews = (recent ?? []).map((w) => {
     const def = w.definition as Record<string, unknown> | null
-    const cards = w.review_cards as unknown as Array<WordCard & { reps: number }>
-    const card = cards?.[0] ?? null
+    // to-one embed (UNIQUE word_id) → object; normalize so status reads correctly.
+    const card = oneEmbed(w.review_cards as unknown as CardEmbed | CardEmbed[] | null)
     return {
       id: w.id as string,
       word: w.word as string,

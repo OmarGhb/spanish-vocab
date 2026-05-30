@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { oneEmbed } from '@/lib/word-status'
 import AudioButton from '../../AudioButton'
 import StatusPill from '../../StatusPill'
 import WordDetailContent from './WordDetailContent'
@@ -33,7 +34,8 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
   // no review card) — never render it as a real collection word.
   if (data.origin === 'discovery' && data.discovery_status !== 'promoted') notFound()
 
-  const card = (data.review_cards as unknown as CardRow[])[0]
+  // to-one embed (UNIQUE word_id) → object; normalize for the stats/status read.
+  const card = oneEmbed(data.review_cards as unknown as CardRow | CardRow[] | null)
 
   const stats = card ? statsLine(card.reps, card.last_review) : 'Pas encore révisé'
 
