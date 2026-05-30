@@ -240,23 +240,35 @@ export default function DiscoverClient() {
         <p className="text-sm text-muted mt-1">
           {known} mot{known !== 1 ? 's' : ''} déjà connu{known !== 1 ? 's' : ''}.
         </p>
+        {kept > 0 && (
+          <p className="text-xs text-muted mt-3 max-w-[300px] leading-relaxed">
+            Tes nouveaux mots arrivent dans «&nbsp;Mes mots&nbsp;» — ça peut prendre jusqu&apos;à 30&nbsp;s.
+          </p>
+        )}
         <div
-          className="w-full max-w-[320px] flex flex-col items-center gap-4 mt-8"
+          className="w-full max-w-[320px] flex flex-col items-center gap-3 mt-8"
           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
           <button
             type="button"
-            onClick={backToGrid}
+            onClick={() => router.push('/review')}
             className="w-full bg-accent text-white rounded-card py-3.5 font-serif font-semibold text-sm"
           >
-            Découvrir un autre thème →
+            Réviser maintenant
           </button>
           <button
             type="button"
-            onClick={() => router.push('/review')}
-            className="text-sm text-accent underline underline-offset-2"
+            onClick={() => router.push('/')}
+            className="w-full bg-card border border-line text-ink rounded-card py-3.5 font-serif font-semibold text-sm"
           >
-            Réviser maintenant
+            Retour à l&apos;accueil
+          </button>
+          <button
+            type="button"
+            onClick={backToGrid}
+            className="text-sm text-accent underline underline-offset-2 mt-1"
+          >
+            Découvrir un autre thème →
           </button>
         </div>
       </FocusedOverlay>
@@ -286,11 +298,12 @@ export default function DiscoverClient() {
         </div>
       </div>
 
-      {/* Card — portrait (~9:16), capped so card + CTAs fit without scrolling */}
-      <div className="flex-1 min-h-0 flex items-center justify-center px-6 py-3">
+      {/* Card — fills the space between header and CTAs, full mobile-column width */}
+      <div className="flex-1 min-h-0 flex px-5 py-3">
         {card && (
           <SwipeCard
             key={card.id}
+            className="w-full h-full"
             onSwipeRight={() => decide('kept')}
             onSwipeLeft={() => decide('known')}
             rightStamp={
@@ -304,18 +317,20 @@ export default function DiscoverClient() {
               </span>
             }
           >
-            <div className="w-[min(340px,84vw)] aspect-[9/16] max-h-[58vh] bg-card border border-line rounded-card shadow-card p-6 flex flex-col overflow-hidden">
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted">
-                  {posEyebrow(card.pos, card.gender)}
-                </p>
-                <p className="font-serif text-[2.75rem] font-bold text-ink leading-none mt-3">
+            <div className="w-full h-full bg-card border border-line rounded-card shadow-card p-6 flex flex-col overflow-hidden">
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted">
+                {posEyebrow(card.pos, card.gender)}
+              </p>
+              {/* Word + gloss vertically centered in the card */}
+              <div className="flex-1 flex flex-col justify-center">
+                <p className="font-serif text-[2.75rem] font-bold text-ink leading-none">
                   {article ? <span className="text-muted">{article} </span> : null}
                   {card.word}
                 </p>
                 <p className="text-base text-muted mt-2">{card.fr}</p>
               </div>
-              <div className="mt-auto pt-5 border-t border-line">
+              {/* Example pinned to the card bottom */}
+              <div className="pt-5 border-t border-line">
                 <p className="font-serif text-base text-ink leading-relaxed">{card.example.es}</p>
                 <p className="font-serif italic text-sm text-muted mt-2">{card.example.fr}</p>
               </div>
@@ -332,18 +347,18 @@ export default function DiscoverClient() {
         <button
           type="button"
           onClick={() => decide('known')}
-          className="flex-1 border border-line rounded-card py-3 flex flex-col items-center bg-card"
+          className="flex-1 border border-err rounded-card py-3 flex flex-col items-center bg-card"
         >
-          <span className="font-serif font-semibold text-sm text-ink">Je connais</span>
+          <span className="font-serif font-semibold text-sm text-err">Je connais</span>
           <span className="text-[11px] text-muted mt-0.5">← glisse à gauche</span>
         </button>
         <button
           type="button"
           onClick={() => decide('kept')}
-          className="flex-1 border border-ok/40 bg-ok/10 rounded-card py-3 flex flex-col items-center"
+          className="flex-1 bg-accent rounded-card py-3 flex flex-col items-center"
         >
-          <span className="font-serif font-semibold text-sm text-ok">À apprendre</span>
-          <span className="text-[11px] text-muted mt-0.5">glisse à droite →</span>
+          <span className="font-serif font-semibold text-sm text-white">À apprendre</span>
+          <span className="text-[11px] text-white/70 mt-0.5">glisse à droite →</span>
         </button>
       </div>
     </FocusedOverlay>

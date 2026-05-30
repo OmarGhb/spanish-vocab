@@ -11,6 +11,8 @@ type Props = {
   leftStamp?: ReactNode
   /** Disable interaction (e.g. while the card flings off, or for a behind-stack card). */
   disabled?: boolean
+  /** Extra classes on the draggable root (e.g. sizing the card to fill its area). */
+  className?: string
   children: ReactNode
 }
 
@@ -26,6 +28,7 @@ export default function SwipeCard({
   rightStamp,
   leftStamp,
   disabled = false,
+  className,
   children,
 }: Props) {
   const [dx, setDx] = useState(0)
@@ -84,7 +87,7 @@ export default function SwipeCard({
         transition,
         touchAction: 'pan-y',
       }}
-      className="relative select-none touch-none"
+      className={`relative select-none touch-none ${className ?? ''}`}
     >
       {rightStamp !== undefined && (
         <div
