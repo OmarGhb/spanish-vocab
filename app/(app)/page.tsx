@@ -68,17 +68,6 @@ export default async function HomePage() {
   return (
     <div className="flex flex-col flex-1">
       <div className="flex-1 p-5 flex flex-col gap-6">
-        {/* Editorial header (quiet) */}
-        <div className="flex items-center gap-3">
-          <Image src="/paco.png" alt="Paco" width={72} height={72} className="object-contain shrink-0" />
-          <div>
-            <h1 className="font-serif text-[36px] font-bold text-ink leading-none tracking-[-0.03em]">Paco</h1>
-            <p className="text-[9px] font-bold tracking-[0.18em] uppercase text-accent mt-1">
-              APRENDE · RECUERDA · HABLA
-            </p>
-          </div>
-        </div>
-
         {/* Review status — the loudest element */}
         {due > 0 ? (
           <div className="bg-tint border border-accent/30 rounded-card p-5 flex flex-col">

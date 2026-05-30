@@ -36,6 +36,16 @@ body {
   font-family: var(--font-sans), sans-serif;
 }
 
+/* Hide the scrollbar while keeping the element scrollable (e.g. the pill nav row,
+   where the clipped last pill is the intended scroll cue). */
+.no-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* legacy Edge/IE */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* WebKit/Blink */
+}
+
 @media print {
   body {
     background-color: #FFFBF3 !important;

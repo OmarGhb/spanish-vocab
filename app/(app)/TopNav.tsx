@@ -1,10 +1,9 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef } from 'react'
-import { Library, Plus, BookOpen, Compass, UserRound } from 'lucide-react'
+import { House, Library, Plus, BookOpen, Compass, UserRound } from 'lucide-react'
 
 // Four pills only. Accueil (the wordmark) and Compte (the avatar) are the corner
 // buttons, never pills — see the two-row header below.
@@ -29,12 +28,22 @@ export default function TopNav() {
       className="sticky top-0 z-30 bg-page"
       style={{ paddingTop: 'calc(0.75rem + env(safe-area-inset-top))' }}
     >
-      {/* Row 1 — Paco wordmark (Home) + account avatar */}
-      <div className="px-5 flex items-center justify-between">
-        <Link href="/" aria-label="Accueil" className="flex items-center gap-2">
-          <Image src="/paco.png" alt="" width={32} height={32} className="object-contain shrink-0" />
-          <span className="font-serif text-2xl font-bold text-ink leading-none tracking-[-0.03em]">Paco</span>
+      {/* Row 1 — home circle + Paco brand lockup (both → /), account avatar */}
+      <div className="px-5 flex items-center gap-2.5">
+        <Link
+          href="/"
+          aria-label="Accueil"
+          className="w-9 h-9 rounded-full bg-tint text-accent flex items-center justify-center shrink-0"
+        >
+          <House size={20} strokeWidth={1.8} />
         </Link>
+        <Link href="/" className="flex flex-col leading-none">
+          <span className="font-serif text-2xl font-bold text-ink leading-none tracking-[-0.03em]">Paco</span>
+          <span className="text-[8px] font-bold tracking-[0.16em] uppercase text-accent mt-1">
+            APRENDE · RECUERDA · HABLA
+          </span>
+        </Link>
+        <div className="flex-1" />
         <Link
           href="/account"
           aria-label="Compte"
@@ -45,7 +54,7 @@ export default function TopNav() {
       </div>
 
       {/* Row 2 — horizontally-scrollable pill row */}
-      <div className="mt-3 px-5 pb-3 flex gap-2 overflow-x-auto">
+      <div className="mt-3 px-5 pb-3 flex gap-2 overflow-x-auto no-scrollbar">
         {PILLS.map(({ href, label, Icon }) => {
           // `href + '/'` guard lights the parent pill on child routes (e.g. /words/[id])
           // without false positives; childless routes degrade to exact match.
