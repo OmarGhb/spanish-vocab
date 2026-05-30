@@ -133,7 +133,9 @@ export default function DiscoverClient() {
   if (phase === 'grid') {
     return (
       <div className="flex flex-col min-h-screen pb-16">
-        <div className="p-5 flex flex-col gap-5">
+        {/* Edge-to-edge on this screen only: header + tiles span the full column
+            width to hug the full-bleed NavBar (no horizontal page gutter here). */}
+        <div className="py-5 flex flex-col gap-5">
           <div>
             <h1 className="font-serif text-3xl font-bold text-ink leading-none">Découvrir</h1>
             <p className="text-sm text-muted mt-1.5">Explore de nouveaux mots par thème</p>
