@@ -23,11 +23,15 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
 
   const { data } = await supabase
     .from('words')
-    .select('id, word, definition, examples, distractors, form_annotation, lemma, audio_urls, review_cards(state, due, stability, reps, last_review)')
+    .select('id, word, definition, examples, distractors, form_annotation, lemma, audio_urls, origin, discovery_status, review_cards(state, due, stability, reps, last_review)')
     .eq('id', id)
     .maybeSingle()
 
   if (!data) notFound()
+
+  // A discovery word that isn't promoted yet is partial (no es definition, no distractors,
+  // no review card) — never render it as a real collection word.
+  if (data.origin === 'discovery' && data.discovery_status !== 'promoted') notFound()
 
   const card = (data.review_cards as unknown as CardRow[])[0]
 

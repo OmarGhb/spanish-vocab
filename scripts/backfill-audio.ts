@@ -79,7 +79,11 @@ const limitArg = process.argv.find((a) => a.startsWith('--limit='))
 const limit = limitArg ? parseInt(limitArg.split('=')[1]!, 10) : undefined
 
 async function main() {
-  const { data: allRows, error } = await supabase.from('words').select('id, word, audio_urls')
+  // Skip partial discovery rows (pending/kept/known) — they get audio at promotion time.
+  const { data: allRows, error } = await supabase
+    .from('words')
+    .select('id, word, audio_urls')
+    .or('origin.eq.manual,discovery_status.eq.promoted')
   if (error) {
     console.error('Fetch failed:', error.message)
     process.exit(1)

@@ -17,6 +17,8 @@ export default async function WordsPage() {
   const { data } = await supabase
     .from('words')
     .select('id, word, definition, created_at, review_cards(state, due, stability, reps)')
+    // Discovery rows that aren't promoted yet (pending/kept/known) are partial — exclude them.
+    .or('origin.eq.manual,discovery_status.eq.promoted')
     .order('created_at', { ascending: false })
 
   const items: WordListItem[] = (data ?? []).map((w) => {

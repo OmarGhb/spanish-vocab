@@ -74,6 +74,8 @@ async function main() {
   const { data: allRows, error } = await supabase
     .from('words')
     .select('id, word, definition')
+    // Discovery rows are intentionally es-empty until promoted — don't "backfill" them.
+    .or('origin.eq.manual,discovery_status.eq.promoted')
 
   if (error) {
     console.error('Fetch failed:', error.message)

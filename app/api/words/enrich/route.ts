@@ -35,6 +35,9 @@ export async function POST(request: Request) {
     .from('words')
     .select('id, word, definition, examples, distractors, audio_urls, review_cards(id, due)')
     .ilike('word', word)
+    // Don't match partial discovery rows (pending/kept/known) — they have no review card
+    // and would compute a bogus deck status. Only real collection words are duplicates.
+    .or('origin.eq.manual,discovery_status.eq.promoted')
     .limit(1)
     .maybeSingle()
 
@@ -101,7 +104,13 @@ export async function POST(request: Request) {
   if (wordData.lemma.toLowerCase() !== word.toLowerCase()) {
     lemma = wordData.lemma
     const [lemmaRowResult, lemmaAudio] = await Promise.all([
-      supabase.from('words').select('id').ilike('word', wordData.lemma).limit(1).maybeSingle(),
+      supabase
+        .from('words')
+        .select('id')
+        .ilike('word', wordData.lemma)
+        .or('origin.eq.manual,discovery_status.eq.promoted')
+        .limit(1)
+        .maybeSingle(),
       getAudioForWord(wordData.lemma),
     ])
     lemma_status = lemmaRowResult.data ? 'already_in_deck' : 'available'

@@ -22,11 +22,16 @@ export default async function HomePage() {
 
   const [{ count: wordCount }, { count: dueCount }, { data: recent }, { data: logs }] =
     await Promise.all([
-      supabase.from('words').select('*', { count: 'exact', head: true }),
+      // Only real collection words count: manual, or discovery rows fully promoted.
+      supabase
+        .from('words')
+        .select('*', { count: 'exact', head: true })
+        .or('origin.eq.manual,discovery_status.eq.promoted'),
       supabase.from('review_cards').select('*', { count: 'exact', head: true }).lte('due', nowIso),
       supabase
         .from('words')
         .select('id, word, definition, review_cards(state, due, stability, reps)')
+        .or('origin.eq.manual,discovery_status.eq.promoted')
         .order('created_at', { ascending: false })
         .limit(10),
       supabase

@@ -44,6 +44,92 @@ Rules:
   - Be distinct from the target word and from each other.
   - Never be random unrelated fillers.`
 
+// ── Discovery batch generation (M5.1) ────────────────────────────────────────
+// Compact, partial entries for a swipe deck — NOT full enrichment. A kept word is
+// fully enriched later via getWordData. `word` is the bare dictionary headword
+// (no article); `gender` is explicit (null for non-nouns / invariable words).
+const DiscoveryEntrySchema = z.object({
+  word: z.string().min(1),
+  fr: z.string().min(1),
+  pos: z.string().min(1),
+  gender: z.enum(['m', 'f']).nullable(),
+  example: z.object({ es: z.string().min(1), fr: z.string().min(1) }),
+})
+
+export type DiscoveryEntry = z.infer<typeof DiscoveryEntrySchema>
+
+const DiscoveryBatchSchema = z.array(DiscoveryEntrySchema)
+
+function discoverySystemPrompt(count: number): string {
+  return `You are a vocabulary teaching assistant building a discovery deck for a French speaker learning A2–B1 Spanish.
+
+Return ONLY a valid JSON array — no markdown, no code blocks, no explanation. Each element matches this exact structure:
+{
+  "word": "mercado",
+  "fr": "le marché",
+  "pos": "n.m.",
+  "gender": "m",
+  "example": { "es": "...", "fr": "..." }
+}
+
+Rules:
+- Produce up to ${count} entries for the given theme, ordered from most to least common.
+- "word": the canonical dictionary headword in Spanish — bare, lower-case, NO article (write "mercado", never "el mercado"), singular for nouns, infinitive for verbs. Useful, everyday A2–B1 vocabulary for the theme.
+- "fr": a short French gloss (1–4 words), the kind you'd see in a bilingual dictionary. For nouns include the French article (e.g. "le marché", "la casa" → "la maison").
+- "pos": part of speech in standard notation. Use exactly one of: "v." (verb), "v.pron." (pronominal verb), "n.m." (masculine noun), "n.f." (feminine noun), "adj.", "adv.", "prep.", "conj.", "pron.", "interj.".
+- "gender": "m" or "f" for nouns; null for anything that is not a gendered noun.
+- "example": one natural A2–B1 Spanish sentence using the word verbatim, with a fluent French translation.
+- Do not include any word from the EXCLUDE list (case-insensitive), nor obvious inflections of those words.`
+}
+
+export async function getDiscoveryBatch(
+  topicEs: string,
+  count: number,
+  exclude: string[],
+  signal?: AbortSignal,
+): Promise<DiscoveryEntry[]> {
+  const excludeBlock = exclude.length
+    ? `\n\nEXCLUDE (do not propose these): ${exclude.join(', ')}`
+    : ''
+
+  const message = await client.messages
+    .stream(
+      {
+        model: 'claude-sonnet-4-6',
+        max_tokens: 4096,
+        system: discoverySystemPrompt(count),
+        messages: [{ role: 'user', content: `Thème : « ${topicEs} »${excludeBlock}` }],
+      },
+      { signal },
+    )
+    .finalMessage()
+
+  const rawText = message.content
+    .filter((block): block is Anthropic.TextBlock => block.type === 'text')
+    .map((block) => block.text)
+    .join('')
+
+  const match = rawText.match(/\[[\s\S]*\]/)
+  if (!match) {
+    throw new Error('Anthropic returned malformed response: no JSON array found')
+  }
+
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(match[0])
+  } catch {
+    throw new Error('Anthropic returned malformed response: invalid JSON')
+  }
+
+  const result = DiscoveryBatchSchema.safeParse(parsed)
+  if (!result.success) {
+    const msg = result.error.issues[0]?.message ?? 'schema mismatch'
+    throw new Error(`Anthropic returned malformed response: ${msg}`)
+  }
+
+  return result.data
+}
+
 export async function getWordData(word: string, signal?: AbortSignal): Promise<WordData> {
   const message = await client.messages
     .stream(
