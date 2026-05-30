@@ -6,9 +6,10 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useRef } from 'react'
 import { House, Library, Plus, Book, Compass, UserRound } from 'lucide-react'
 
-// Four pills only. Accueil (the wordmark) and Compte (the avatar) are the corner
-// buttons, never pills — see the two-row header below.
+// Five pills. Accueil also exists as the top-left home circle (both link to /);
+// Compte (the avatar) stays a corner button, never a pill — see the header below.
 const PILLS = [
+  { href: '/',         label: 'Accueil',   Icon: House    },
   { href: '/words',    label: 'Mes mots',  Icon: Library  },
   { href: '/add',      label: 'Ajouter',   Icon: Plus     },
   { href: '/review',   label: 'Réviser',   Icon: Book     },
