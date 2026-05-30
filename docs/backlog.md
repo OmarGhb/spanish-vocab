@@ -35,6 +35,7 @@
 ## Data hygiene
 - Clean up the duplicate "regañar" entries (specific instance — separate from generic M3 duplicate handling).
 - Backfill weak-example words from before M2.5 (soler, amanecer, others) — re-enrich to get richer definitions and examples.
+- Manual-add of a word currently `pending` in a discovery batch creates a duplicate entry — the filtered duplicate-check can't see pending rows. Folds under the generic duplicate-word handling.
 
 ## Lemma flow polish (from M3.3 testing)
 - Adjective annotations include POS prefix (`"Alguno — adj. indefinido, femenino plural"`) while verb annotations don't (`"Comer — 3ª pers. plural, pretérito perfecto simple"`). Anthropic's creative interpretation of "grammar info." Could tighten the prompt for strict consistency; currently keeping for the extra pedagogical context on adjectives.
@@ -77,3 +78,8 @@
   idle / on press-in) and/or a short-lived server-side per-topic cache of generated
   batches, so the deck opens instantly on the common path. Keep the cache-before-API
   resume path; this is purely about cold-generation perceived speed.
+
+- **Desktop / wide-viewport presentation + content↔nav edge alignment.** On the card
+  grid the bottom NavBar is full-bleed (no side gutter) while page content has a 20px
+  gutter, so their edges don't line up; broader wide-viewport / desktop layout is also
+  unaddressed. Handle in the nav rework.

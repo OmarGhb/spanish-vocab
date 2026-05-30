@@ -108,11 +108,8 @@ Shipped in three phases. Architectural pivot from original spec: chose Anthropic
 - Milestone celebrations at 10, 50, 100, 250, 500, 1000
 - Pagination becomes pressing here — 51 words and growing, list-fatigue starting
 
-## M5.1 — Discovery mode
-- ~2 sessions
-- Topic selection screen (comida, fiesta, trabajo, etc.)
-- Swipe deck for "knew it / learn it"
-- Schema decision: where do "discovered" words live
+## M5.1 — Discovery mode ✅ (v0.5.3)
+- Topic grid, lightweight generation + enrich-on-keep, reusable swipe deck, bilan; reuse `words` + discovery flag
 
 ## M5.2 — New game modes
 - Multiple sessions, pick one to start
