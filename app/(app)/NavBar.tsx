@@ -16,8 +16,11 @@ export default function NavBar() {
   const path = usePathname()
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-line z-50">
-      <div className="flex max-w-[430px] mx-auto">
+    <nav className="fixed bottom-0 left-0 right-0 z-50">
+      {/* Bar styling lives on the inner column so the NavBar matches the app's
+          max-w-[430px] content column (full-width on a phone; centered on a wider
+          window) instead of being the one element that spans the full viewport. */}
+      <div className="flex max-w-[430px] mx-auto bg-card border-t border-line">
         {TABS.map(({ href, label, Icon }) => {
           const active = path === href
           return (

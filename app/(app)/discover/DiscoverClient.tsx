@@ -132,11 +132,8 @@ export default function DiscoverClient() {
   // ── GRID (with NavBar) ──────────────────────────────────────────────────────
   if (phase === 'grid') {
     return (
-      <div className="min-h-screen pb-16">
-        {/* Full-bleed on this screen only: break out of the app's max-w-[430px] column so
-            the header + tiles span the viewport width like the full-bleed NavBar bar.
-            On a phone this equals the column; in a wider window it fills the width. */}
-        <div className="relative w-screen left-1/2 -ml-[50vw] px-5 py-5 flex flex-col gap-5">
+      <div className="flex flex-col min-h-screen pb-16">
+        <div className="p-5 flex flex-col gap-5">
           <div>
             <h1 className="font-serif text-3xl font-bold text-ink leading-none">Découvrir</h1>
             <p className="text-sm text-muted mt-1.5">Explore de nouveaux mots par thème</p>
