@@ -67,7 +67,7 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="flex-1 p-5 flex flex-col gap-6">
+      <div className="flex-1 px-5 pb-5 pt-3 flex flex-col gap-6">
         {/* Review status — the loudest element */}
         {due > 0 ? (
           <div className="bg-tint border border-accent/30 rounded-card p-5 flex flex-col">
