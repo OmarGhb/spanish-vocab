@@ -133,16 +133,18 @@ export default function DiscoverClient() {
   if (phase === 'grid') {
     return (
       <div className="flex flex-col min-h-screen pb-16">
-        {/* Header — Paco + title, flush-left; trimmed bottom padding so row 1 starts higher */}
-        <div className="pt-[14px] px-5 pb-3 flex items-center gap-3">
+        {/* Header — no side padding so its left edge lines up with the NavBar's leftmost
+            item (the NavBar fills the column with no gutter). Trimmed bottom padding. */}
+        <div className="pt-[14px] pb-3 flex items-center gap-3">
           <Image src="/paco.png" alt="Paco" width={56} height={56} className="object-contain shrink-0" />
           <div>
             <h1 className="font-serif text-3xl font-bold text-ink leading-none">Découvrir</h1>
             <p className="text-sm text-muted mt-1.5">Explore de nouveaux mots par thème</p>
           </div>
         </div>
-        {/* Grid — 2 equal columns, 13px gap, 18px side margin */}
-        <div className="px-[18px] grid grid-cols-2 gap-[13px]">
+        {/* Grid — 2 equal columns, 13px gap, no side padding so the tiles' left/right
+            edges line up with the NavBar's leftmost (Accueil) and rightmost (Compte) items. */}
+        <div className="grid grid-cols-2 gap-[13px]">
           {DISCOVERY_TOPICS.map((t) => (
             <button
               key={t.key}
@@ -151,7 +153,7 @@ export default function DiscoverClient() {
               // Content-sized card: simple top-down stack, single 10px gap, no auto-margins.
               className="bg-card border border-line rounded-card shadow-card px-4 pt-4 pb-3.5 flex flex-col gap-2.5 text-left active:bg-tint transition-colors"
             >
-              <span className="w-12 h-12 rounded-full bg-tint text-accent flex items-center justify-center shrink-0">
+              <span className="w-12 h-12 rounded-[13px] bg-tint text-accent flex items-center justify-center shrink-0">
                 <t.Icon size={22} strokeWidth={1.8} />
               </span>
               <div>
