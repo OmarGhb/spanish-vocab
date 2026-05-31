@@ -64,8 +64,10 @@ The next committed milestones. Items in `docs/backlog.md` are deferred until pro
 - StickyActions `bottom-16` → `bottom-0`; z simplified; every `pb-*` consumer revised; iOS top+bottom safe-area.
 - `/dictionary` + unlock gate split out → M5.2b.
 
-## M5.2b — Dictionary route + unlock gate
-- ~0.5–1 session. `/dictionary` alphabetical route + 10-word unlock gate (split from M5.2). Open: what `/dictionary` is (browsable reference vs A-Z of own deck) + its entry point (not one of the five pills).
+## M5.2b — Dictionnaire personnel ✅ (v0.5.5)
+- `/dictionary` — A–Z reference of the user's **memorized words only** (strict subset of `/words`: `isMemorized`); deliberately bare (word + gloss + audio; no pills/meter/filters/sorts), iOS-contacts jump rail, Ñ-after-N bucketing.
+- 10-word **sticky** unlock (`profiles.dictionary_unlocked`, never resets); flip via Server Action (prefetch-safe) → one-time confetti interstitial. Locked pill / Home card / `/dictionary` all show the locked state until then.
+- Resolved the open questions: `/dictionary` is the **A–Z of the user's own (memorized) deck**, and it **IS a 6th nav pill** (locked = dashed + lock glyph) — superseding "not one of the pills". (Detail in `PROJECT_STATE.md` → From M5.2b.)
 
 ## M5.3 — Game modes + conjugation substrate
 - Multiple sessions

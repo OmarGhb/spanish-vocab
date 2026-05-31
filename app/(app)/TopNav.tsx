@@ -4,10 +4,11 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef } from 'react'
-import { House, Library, Plus, Book, Compass, UserRound } from 'lucide-react'
+import { House, Library, Plus, Book, Compass, UserRound, BookA, Lock } from 'lucide-react'
 
-// Five pills. Accueil also exists as the top-left home circle (both link to /);
-// Compte (the avatar) stays a corner button, never a pill — see the header below.
+// Five always-on pills + a flag-gated Dictionnaire pill (rendered after the map below).
+// Accueil also exists as the top-left home circle (both link to /); Compte (the avatar)
+// stays a corner button, never a pill — see the header below.
 const PILLS = [
   { href: '/',         label: 'Accueil',   Icon: House    },
   { href: '/words',    label: 'Mes mots',  Icon: Library  },
@@ -16,9 +17,11 @@ const PILLS = [
   { href: '/discover', label: 'Découvrir', Icon: Compass  },
 ] as const
 
-export default function TopNav() {
+export default function TopNav({ dictionaryUnlocked }: { dictionaryUnlocked: boolean }) {
   const path = usePathname()
   const activeRef = useRef<HTMLAnchorElement>(null)
+  // The locked pill never shows active styling; only the unlocked pill lights on /dictionary*.
+  const dictActive = dictionaryUnlocked && (path === '/dictionary' || path.startsWith('/dictionary/'))
 
   // If the active pill is off-screen in the scroll row, bring it into view on mount.
   useEffect(() => {
@@ -79,6 +82,31 @@ export default function TopNav() {
             </Link>
           )
         })}
+
+        {/* Dictionnaire — flag-gated. Both states link to /dictionary (which renders the
+            locked screen when still locked). Locked = dashed border + lock glyph, never active. */}
+        {dictionaryUnlocked ? (
+          <Link
+            href="/dictionary"
+            ref={dictActive ? activeRef : undefined}
+            aria-current={dictActive ? 'page' : undefined}
+            className={`flex items-center gap-1.5 rounded-full px-5 py-1.5 text-sm font-serif font-bold whitespace-nowrap shrink-0 border ${
+              dictActive ? 'bg-accent text-white border-transparent' : 'bg-card text-ink border-accent/60'
+            }`}
+          >
+            <BookA size={16} strokeWidth={dictActive ? 2.2 : 1.8} className={dictActive ? undefined : 'text-accent/60'} />
+            Dictionnaire
+          </Link>
+        ) : (
+          <Link
+            href="/dictionary"
+            aria-label="Dictionnaire (verrouillé)"
+            className="flex items-center gap-1.5 rounded-full px-5 py-1.5 text-sm font-serif font-bold whitespace-nowrap shrink-0 border border-dashed border-accent/60 bg-card text-ink"
+          >
+            <Lock size={16} strokeWidth={1.8} className="text-accent/60" />
+            Dictionnaire
+          </Link>
+        )}
       </div>
     </header>
   )

@@ -1,9 +1,12 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { BookA, Lock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { oneEmbed, type WordCard } from '@/lib/word-status'
+import { DICTIONARY_UNLOCK_THRESHOLD, getDictionaryState } from '@/lib/dictionary'
 import WordRow from './WordRow'
 import EstimateInfo from './EstimateInfo'
+import UnlockSync from './UnlockSync'
 
 const COLD_START_MS = 12_000 // flat per-card estimate before we have enough data
 const MIN_USABLE_LOGS = 20
@@ -45,6 +48,10 @@ export default async function HomePage() {
   const totalWords = wordCount ?? 0
   const due = dueCount ?? 0
 
+  // Dictionary card state (memorized count is a JS-side filter, not a head count).
+  const { unlocked: dictUnlocked, memorizedCount } = await getDictionaryState(supabase)
+  const dictProgress = Math.min(memorizedCount, DICTIONARY_UNLOCK_THRESHOLD)
+
   // Effort estimate: median time-per-card over recent logs (outlier-robust),
   // falling back to a flat per-card cost until we have enough data.
   const times = (logs ?? []).map((l) => l.time_ms as number).filter((t) => t > 0)
@@ -67,6 +74,8 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col flex-1">
+      {/* Flips the sticky dictionary-unlock flag on app load once ≥10 words are memorized. */}
+      <UnlockSync />
       <div className="flex-1 px-5 pb-5 pt-3 flex flex-col gap-6">
         {/* Review status — the loudest element */}
         {due > 0 ? (
@@ -95,6 +104,37 @@ export default async function HomePage() {
               Tu as révisé tous tes mots du jour. Reviens un peu plus tard.
             </p>
           </div>
+        )}
+
+        {/* Dictionary card — secondary, below the Review CTA so it never competes with it */}
+        {dictUnlocked ? (
+          <Link
+            href="/dictionary"
+            className="flex items-center gap-3 bg-card border border-line rounded-card p-4"
+          >
+            <span className="w-10 h-10 rounded-full bg-tint text-accent flex items-center justify-center shrink-0">
+              <BookA size={20} strokeWidth={1.8} />
+            </span>
+            <div className="min-w-0">
+              <p className="font-serif text-base font-bold text-ink leading-none">Ton dictionnaire</p>
+              <p className="text-sm text-muted mt-1">
+                {memorizedCount} mot{memorizedCount !== 1 ? 's' : ''}
+              </p>
+            </div>
+          </Link>
+        ) : (
+          <Link
+            href="/dictionary"
+            className="flex items-center gap-3 bg-card border border-dashed border-line rounded-card p-4"
+          >
+            <span className="w-10 h-10 rounded-full bg-surface-alt text-muted flex items-center justify-center shrink-0">
+              <Lock size={18} strokeWidth={1.8} />
+            </span>
+            <div className="min-w-0">
+              <p className="font-serif text-base font-bold text-ink leading-none">Ton dictionnaire personnel</p>
+              <p className="text-sm text-muted mt-1">{dictProgress}/10 mémorisés</p>
+            </div>
+          </Link>
         )}
 
         {/* Ta collection — quieter ambient context, taps through to the full list */}

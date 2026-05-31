@@ -1,7 +1,7 @@
 # Paco — Project State
 
 > Snapshot of where the project stands. Update this when major milestones ship.
-> Last updated: end of session that shipped v0.5.4 (M5.2 — Top pill-tab nav). Prior: v0.5.3 (M5.1 — Discovery mode), v0.5.2 (M5.0c — Home + word-list editorial: `/words` list, editorial Home top with effort estimate, end-of-session recap, shared status/familiarity renderers, list-row redesign), v0.5.1 (M5.0b — add-flow loading polish), v0.5.0 (M5.0a — honest status taxonomy), v0.4.3 (M4.3 — Google Cloud TTS), v0.4.2, v0.4.1, v0.4.0.
+> Last updated: end of session that shipped v0.5.5 (M5.2b — Dictionnaire personnel). Prior: v0.5.4 (M5.2 — Top pill-tab nav), v0.5.3 (M5.1 — Discovery mode), v0.5.2 (M5.0c — Home + word-list editorial: `/words` list, editorial Home top with effort estimate, end-of-session recap, shared status/familiarity renderers, list-row redesign), v0.5.1 (M5.0b — add-flow loading polish), v0.5.0 (M5.0a — honest status taxonomy), v0.4.3 (M4.3 — Google Cloud TTS), v0.4.2, v0.4.1, v0.4.0.
 
 ## What Paco is
 
@@ -13,7 +13,7 @@ The product is mobile-first, French UI, designed for the user (Omar) to actually
 
 - **Live URL:** https://spanish-vocab-lyart.vercel.app (Vercel hobby tier, free)
 - **Repo:** https://github.com/OmarGhb/spanish-vocab (name unchanged — only product naming/visual is "Paco")
-- **Latest tag:** v0.5.4 (M5.2 — Top pill-tab nav) @ 1a3153e — top sticky pill-tab nav replaces the bottom NavBar
+- **Latest tag:** v0.5.5 (M5.2b — Dictionnaire personnel) — personal A–Z dictionary + 10-word sticky unlock (tag the milestone-close commit). Prior: v0.5.4 (M5.2 — Top pill-tab nav) @ 1a3153e
 - **Recent migration:** `supabase/migrations/20260529000000_discovery_words.sql` (M5.1) — already applied to live Supabase
 - **Real usage:** Omar uses it daily; deck at ~72 words and growing
 - **Active dev environment:** Mac, `/Users/gahbicheomar/spanish-vocab`, VS Code + integrated terminal, SSH key auth to GitHub
@@ -36,6 +36,7 @@ The product is mobile-first, French UI, designed for the user (Omar) to actually
 - `review_cards` — FSRS state per word: due, stability, difficulty, elapsed_days, scheduled_days, reps, lapses, state, last_review, learning_steps. **`UNIQUE (word_id)`** (M5.1 duplicate-card backstop — note the PostgREST embed-cardinality consequence in SESSION_PROTOCOL)
 - `review_logs` — full review history per card: rating, reviewed_at, scheduled_days, time_ms, hint_used
 - `add_events` — instrumentation for the lemma flow (5 event types, see M3.3 notes)
+- `profiles` (M5.2b) — **first per-user settings table**: `user_id` PK → `auth.users` (CASCADE), `dictionary_unlocked BOOLEAN NOT NULL DEFAULT false`, `created_at`. RLS own-row (select/insert/update). Holds the sticky dictionary-unlock flag.
 - All FK use `ON DELETE CASCADE` so account deletion removes everything cleanly
 
 ## Architecture decisions worth remembering
@@ -141,6 +142,16 @@ The product is mobile-first, French UI, designed for the user (Omar) to actually
 - StickyActions ripple: `bottom-16` → `bottom-0`; `z-[39]` → `z-30`; `/add` `pb-36` → `pb-20` (drop 64px NavBar height, keep bar clearance); toast `bottom-36` → `bottom-24`.
 - Top-only nav (decision): no second bottom bar — two navs for the same destinations is an anti-pattern, and the bottom thumb-zone is reserved for in-task review actions. Don't relitigate.
 - Pill styling: Lora serif bold labels (deliberate brand-chrome departure from Inter-for-UI); inactive = card fill + subtle accent-tinted border with the icon in that same tone; active = amber fill + white. No divider under the nav (tried, removed).
+
+### From M5.2b (v0.5.5)
+
+- **Personal dictionary** (`/dictionary`): an A–Z reference of the user's **memorized words only** — `isMemorized(card)`, the strict memorized SUBSET of `/words` (reuses the exact `origin.eq.manual,discovery_status.eq.promoted` filter, so no word is in one but not the other). Deliberately bare vs `/words`: NO status pills, familiarity meter, due-tint, reps, filters, or sorts — just word + gloss + audio. Content is LIVE (words enter/leave as mastery shifts). **Spanish-first override:** the spec asked for a French gloss; kept the inline gloss Spanish (`definition.es`) per the standing Spanish-first rule (French stays a fiche/reveal).
+- **A–Z bucketing** (`lib/dictionary.ts`, pure + unit-tested): Ñ is its own bucket AFTER N (checked before accent-folding, else NFD would fold it into N); accented initials fold to base letter for BUCKETING ONLY (display keeps accents); non-letter → `'#'`. iOS-contacts jump rail (right edge) with tap + pointer-drag scrubbing that snaps to the nearest present letter; empty letters greyed/disabled.
+- **`profiles` table — sticky unlock.** `DICTIONARY_UNLOCK_THRESHOLD = 10` memorized words. ACCESS is governed SOLELY by `dictionary_unlocked` — once true it **never resets**, even if the memorized count later drops below 10 (locked↔unlocked is driven by the flag, not the live count).
+- **Unlock flip is a Server Action** (`app/(app)/dictionary/actions.ts` `syncDictionaryUnlock`), triggered from a mounted `<UnlockSync/>` on Home + `/dictionary` — **NOT an RSC-render side effect**, so a route prefetch can't flip the flag. `getDictionaryState` (`lib/dictionary.ts`) is **read-only**. On the false→true transition the action `redirect`s to the one-time interstitial (`/dictionary/unlocked`).
+- **Dictionary IS a pill destination** (6th pill, last): unlocked = normal pill → `/dictionary`; locked = dashed border + lock glyph → `/dictionary` (which renders the locked screen). The locked pill never shows active styling. **Supersedes the M5.2b roadmap open question ("its entry point — not one of the five pills").** Layout does a cheap single-row flag read for the pill state.
+- **Accepted v1 limits** (single-user, harmless): (1) the interstitial re-shows on a direct visit / browser-back — the page renders whenever the flag is set; `router.replace` on the CTA mitigates the normal-flow back; (2) a double-show race if two loads cross the threshold simultaneously. Revisit with an `unlock_celebrated` column only if it ever matters.
+- **Dependency-free confetti** (`Confetti.tsx` + `confetti-fall` keyframe in globals.css): deterministic (SSR-safe, no `Math.random`), reduced-motion-aware. No new dep.
 
 ## Lemma flow UX (M3.3)
 

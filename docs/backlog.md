@@ -43,6 +43,7 @@
 - Once instrumentation data (from `add_events`) shows clear patterns: revisit whether to swap Option A (Anthropic-supplied lemma) for Option B (bundled inflection→lemma dataset). Trigger: if `lemma_suggestion_accepted` rate climbs above ~10-15% of inflected adds, the wasted-enrichment cost of A starts justifying B.
 
 ## Gamification (defer aggressively)
+- Achievements section — needs an anti-ceremony philosophy decision before it's a milestone. (M5.2b shipped a single self-contained dictionary unlock; a broader achievements system would need to reconcile with the ceremony-fatigue / no-streaks standing decisions first.)
 - Session streak / XP counters.
 - Game mode selection in Settings (becomes meaningful only after multiple game modes exist).
 - Verb conjugation exercise mode — drill specific conjugations (tense + person) of a verb the user knows. (Now the verb-conjugation drill under M5.3 in roadmap.)

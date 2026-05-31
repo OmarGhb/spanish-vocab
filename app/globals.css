@@ -46,6 +46,23 @@ body {
   display: none; /* WebKit/Blink */
 }
 
+/* Dependency-free confetti for the dictionary unlock interstitial (Confetti.tsx).
+   Hidden by default; only animates when the user hasn't asked for reduced motion. */
+@keyframes confetti-fall {
+  0% { transform: translateY(-10%) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(540deg); opacity: 0; }
+}
+.confetti-piece {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .confetti-piece {
+    animation-name: confetti-fall;
+    animation-timing-function: ease-in;
+    animation-iteration-count: infinite;
+  }
+}
+
 @media print {
   body {
     background-color: #FFFBF3 !important;
