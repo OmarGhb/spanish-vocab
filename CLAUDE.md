@@ -6,6 +6,13 @@
 Next.js 16 (App Router) · React 19 · TypeScript · Tailwind 4
 Supabase (Postgres + Auth) · ts-fsrs · Anthropic API · Vercel
 
+## Start of every task — read these first
+The four living docs are repo-canonical (maintained in `docs/`, in place, as part of each milestone's close commit):
+- `docs/PROJECT_STATE.md` — where the project stands: shipped milestones, schema, architecture decisions, current pain points
+- `docs/roadmap.md` — committed/sequenced milestones
+- `docs/backlog.md` — deferred, not-yet-scheduled items
+- `docs/SESSION_PROTOCOL.md` — how we work together + hard-won lessons
+
 ## Architecture rules
 
 **Server Components by default.**

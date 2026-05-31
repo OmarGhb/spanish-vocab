@@ -2,125 +2,88 @@
 
 The next committed milestones. Items in `docs/backlog.md` are deferred until promoted here.
 
+> Re-sequenced after the M5 design pass (7 design boards reviewed) + the pill-tab nav deferral.
+> The original monolithic **M5.0** was split into **M5.0a–d** (M5.0d later **dropped** — its
+> interim conjugation fix folded into M5.3 to avoid throwaway code). The original **M5.2 (game
+> modes)** was renumbered to **M5.3**. Pill-tab nav was inserted as **M5.2** (deferred to after
+> M5.1 by explicit call).
+
 ## M1 — Deploy to Vercel ✅ (v0.1.0)
-- Connect GitHub repo to Vercel
-- Add env vars (Supabase URL, Supabase anon key, Anthropic key)
-- Add Vercel URL to Supabase auth redirects
-- Verify auth + add-word + review work on the public URL
-
 ## M2 — /add experience overhaul ✅ (v0.2.4)
-
-### M2.1 — Settings + legal + delete account ✅
-- Account info + log out + delete account (real implementation, cascades via FK)
-- Privacy policy + Terms of use (boilerplate)
-- Service-role key infrastructure for admin operations
-
-### M2.2 — Streaming + idiom card scaffold ✅
-- Streaming Anthropic response under the hood
-- Idiom card UX (placeholder) on /add loading state
-- "Voir la définition" reveal flow (no auto-flip)
-- AbortController plumbing for cancellation on navigation
-
-### M2.3 — Real idiom cards ✅
-- 10 hand-curated Spanish idioms in `data/idioms.json`
-- Per-idiom images in `public/idioms/`
-- Origin badge with country flag (Espagne, Mexique, Amérique latine, etc.)
-- Soft tinted pill style for origin badge
-
-### M2.4 — Tappable distractors → bulk add ✅
-- Distractor pills become tappable
-- "Tout sélectionner / Tout désélectionner" toggle
-- Bulk add via parallel Anthropic calls
-- Background processing — user can navigate during add
-- Bottom toast for success/error feedback
-- Pedagogical hint text under "MOTS SIMILAIRES" section
-
-### M2-polish — iOS + sticky nav + button placement ✅
-- iOS Safari input zoom fix (16px font, locked viewport scale)
-- Sticky bottom NavBar across all (app) routes
-- Confirm button placement on /add input
-
 ## M2.5 — Spanish-first definitions ✅ (v0.2.5)
-- Schema migration: `definition` becomes `{ es, fr, pos? }` JSONB
-- Anthropic prompt update: generates both Spanish and French definitions
-- /add result UI: Spanish definition primary, French behind "Voir en français" reveal
-- /review MCQ: Spanish definition primary, French reveal counts as a hint
-- Backfill script for existing words
+## M3.1 — Two-step add flow + duplicate handling ✅ (v0.3.1)
+## M3.2 — Wordlist-driven spelling correction ✅ (v0.3.2)
+## M3.3 — Lemma normalization ✅ (v0.3.3, three phases)
+## M4 — Word audio + detail view ✅ (v0.4.0)
+## M4.1 — Definition backfill + styled 404 + empty-DÉFINITION guard ✅ (v0.4.1)
+## M4.2 — /add polish ✅ (v0.4.2)
+## M4.3 — Audio quality (Google Cloud TTS) ✅ (v0.4.3)
 
-## M3 — Friction fixes
+*(Detail for shipped milestones lives in `PROJECT_STATE.md`.)*
 
-### M3.1 — Two-step add flow + duplicate handling ✅ (v0.3.1)
-- Two-step add flow with explicit "Ajouter à ma collection" confirmation
-- Duplicate word handling (offer "Reset scheduling" instead of silent insert)
+---
 
-### M3.2 — Wordlist-driven spelling correction ✅ (v0.3.2)
-- Bundled Spanish dictionary (`dictionary-es` + `nspell`, ~656k accent-preserving inflected forms)
-- Autocomplete dropdown on /add input (prefix match, triggers at 2 chars)
-- Post-submit spellcheck: exact match → proceed; fuzzy candidates → confirmation UI; no match → hard block
-- Fuzzy match: Levenshtein distance via `fastest-levenshtein` against fully-expanded forms, threshold 1 (≤4 chars) / 2 (≥5 chars)
-- Deck cache check runs before spellcheck — pre-M3.2 entries always accessible
-- Cache hits skip the idiom loading screen and go directly to the word card
-- No LLM involved in spellcheck; zero added cost/latency on the common path
-- Architectural pivot from original spec: replaced the proposed Haiku-based LLM spellcheck with deterministic wordlist infrastructure
-- Known bug deferred to follow-up: accent-tolerant autocomplete prefix matching not actually working (see backlog)
+## M5.0a — Honest status taxonomy ✅ (v0.5.0)
+- Canonical `lib/word-status.ts` primitive — single source of truth for word status
+- `getWordStatus(card|null)` — 6-state stability-based partition, first-match, uses ts-fsrs `State` enum
+- `isMemorized(card|null)` — mastery predicate; excludes `Relearning` regardless of stored stability
+- **Two-derivation model**: the pill is action-priority (a due-now card reads "À réviser" even at high stability); the mastery class is stability-based and ignores transient due-ness. M5.0c counts/filters consume `isMemorized`.
+- Constants `MEMORIZED_STABILITY_DAYS = 30`, `LEARNING_STABILITY_DAYS = 7`
+- `/words/[id]` pill rewired; inline `statusPill` removed; 21 vitest unit tests (incl. the decoupling invariant + `State.Learning` fall-through lock)
+- Home list rows out of scope **by design** — rewired in M5.0c
 
-### M3.3 — Lemma normalization ✅ (v0.3.3)
+## M5.0b — Add-flow loading polish ✅ (v0.5.1)
+- ② Timed phase checklist (Définition / Exemples / Famille / Phonétique) replacing the single-line loader. Last phase stays an indeterminate pulse until real data lands. Label is "Exemples" (not "Trois exemples").
+- ③ "¡Listo!" screen **variant A** — informative card preview, hold-plus-tap (no auto-advance), reads as the resolution of ②'s checklist.
+- Existing-word routing keyed on `data.status` (early return before any `ready`); 400ms loading-shell delay gate so fast deck-only lookups never paint the loader.
+- Extension-hydration one-liner: `suppressHydrationWarning` on `<html>` + `<body>` (Grammarly + Scribe).
 
-Shipped in three phases. Architectural pivot from original spec: chose Anthropic-supplied lemma over a bundled inflection→lemma dataset. Zero added bundle, perfect accuracy, leverages the enrichment call we were already making.
+## M5.0c — Home + word-list editorial ✅ (v0.5.2)
+- ① Home top section **variant A** — editorial weight, "≈ N min de révision" effort estimate (median of recent `review_logs.time_ms`). **No streak. No phrase-du-jour hero.** Review CTA loudest; "Tout est à jour" State B.
+- ⑥ Word-list at `/words` — rows on `getWordStatus` via shared `StatusPill`; Tous / À revoir / **Mémorisés** filter pills; familiarity dot meter (`getFamiliarity`); sorts alphabétique / date / familiarité.
+- ⑤ End-of-session **variant A** — per-word ✓/✗ recap, honest stats (Révisés / Réussite / Temps), **no streak**, "Encore N mots" only if cards remain.
+- Resolves the transient M5.0a→M5.0c list/detail status inconsistency.
+- Post-tag polish folded into v0.5.2: list-row redesign (left vertical familiarity meter, bordered/tinted-due rows, italic definition preview, "N révision(s)" reps line), collection-line spec, CTA-bold convention.
 
-**M3.3 core — Lemma flow** (initial pass)
-- Anthropic enrichment prompt updated to return `lemma` field on every response
-- New `lemma_suggestion` phase in /add (interstitial between submit and revealed card)
-- Three states: no inflection (`lemma == input` → straight to revealed), suggestion (`lemma != input`, lemma not in deck), collision (lemma in deck)
-- Primary CTA "+ Ajouter «<lemma>»" / secondary "Garder «<input>»" / collision adds "Ouvrir «<lemma>»" routing to home dashboard as placeholder
-- Schema: `words.lemma` (nullable TEXT)
-
-**M3.3 Phase A — Form annotation polish**
-- Fixed correctness bug: pre-A, the "Garder" path saved the inflected form with the lemma's definition and no acknowledgment of the form
-- Added `form_annotation` field (compact Spanish, e.g. `"Comer — 3ª pers. plural, pretérito perfecto simple"`) rendered as a FORME section above DÉFINITION on the revealed card and as preview content in the interstitial's previously-empty middle
-- Schema: `words.form_annotation` (nullable TEXT)
-- Lemma rule binding tightened: `form_annotation == null` iff `lemma == input`
-- Save-route error logging fix: `/api/words/save` now `console.error`s underlying Supabase errors instead of swallowing them under a generic 500
-- Migration includes `NOTIFY pgrst, 'reload schema';` to prevent PGRST204 cache-stale errors
-- Noun-plural normalization accepted (original spec excluded plurals; with form_annotation, normalization is informative rather than mechanical)
-
-**M3.3 Phase B — Instrumentation**
-- New `add_events` table with RLS (`user_id`, `event_type` from a 5-value enum, `input_word`, `lemma`, `created_at`)
-- New `/api/events/log` endpoint with Zod validation + server-side user_id from session
-- Five fire points in /add (all fire-and-forget via `void fetch().catch(console.error)`): `lemma_suggestion_shown`, `lemma_suggestion_accepted`, `lemma_collision_shown`, `lemma_collision_open_existing`, `lemma_collision_add_anyway`
-- Collision context tracked via `useRef` with defensive clear at the start of every `handleSubmit` to prevent stale-fire bugs across navigation paths
-- Added the "Ouvrir «lemma»" button itself (specced in M3.3 core but not yet implemented — necessary for `open_existing` to have anywhere to fire from)
-- Goal: collect production data on lemma flow usage to decide whether to revisit the bundled-dataset option later
-
-## M4 — Word audio + detail view (next)
-- ~1-2 sessions
-- Audio playback (word only, browser SpeechSynthesis API)
-- `/words/[id]` route with rich detail
-- Status tag on detail page ("Déjà ajouté" / "En cours d'apprentissage" / etc.)
-- Replaces the M3.3 "Ouvrir «lemma»" home-dashboard placeholder with proper detail routing
-
-## M5.0 — My Dictionary view
-- ~1-2 sessions
-- Home dashboard shows last 10-15 added words with "Voir tout"
-- New `/dictionary` route: alphabetical contact-list-style view
-- Sort options: alphabetical, by date, by familiarity
-- Dictionary tab unlocks at 10 words
-- Milestone celebrations at 10, 50, 100, 250, 500, 1000
-- Pagination becomes pressing here — 51 words and growing, list-fatigue starting
+## M5.0d — Interim inflection-tolerant matching — **DROPPED**
+- Was: a cheap `nspell` stem-heuristic stopgap for the fill-in-blank conjugation mismatch. **Dropped** — it would be thrown away the moment M5.3's deterministic conjugator lands, so the whole fix lives in M5.3 instead. (Daily workaround until then: type the dictionary form.)
 
 ## M5.1 — Discovery mode ✅ (v0.5.3)
-- Topic grid, lightweight generation + enrich-on-keep, reusable swipe deck, bilan; reuse `words` + discovery flag
+- Topic grid, lightweight generation + enrich-on-keep, reusable swipe deck, bilan; reuse `words` + discovery flag (**Model A**).
+- Built the **reusable `SwipeCard` primitive** (also unblocks backlog swipe-to-delete/archive). Schema: `words` discovery columns + `UNIQUE(review_cards.word_id)` backstop. (Detail in `PROJECT_STATE.md` → From M5.1.)
 
-## M5.2 — New game modes
-- Multiple sessions, pick one to start
-- TBD between: write-a-sentence, reorder, crosswords, **verb-conjugation drill** (added during M3.3 — drill specific conjugations of a known verb across tense + person)
-- Choice deferred until M5.1 ships and real usage informs which is most needed
+### M5.1 follow-ons (designed-for in M5.1, not built)
+- **M5.1b — Adjacency mode** ("plus de mots comme les tiens"): same swipe primitive + generation, seeded from a sample of the user's library instead of a topic; new entry tile on Découvrir.
+- **Onboarding slice:** empty-state Home → the same discovery flow (pairs with the backlog first-run item).
+
+## M5.2 — Top pill-tab nav ✅ (v0.5.4)
+- Top sticky nav replaces the bottom NavBar entirely. Lives inside the `max-w-[430px]` column so nav + content share edges by construction (resolves the M5.1 wide-viewport/edge-alignment pain point).
+- Row 1: home circle (house) far-left + centered Paco brand lockup (mascot + wordmark + APRENDE·RECUERDA·HABLA, → /) + account avatar far-right. Row 2: horizontally-scrollable pills — Accueil, Mes mots, Ajouter, Réviser, Découvrir.
+- Brand de-duplicated: old large home-body hero removed; tagline now lives in the nav lockup.
+- Mes mots is now a first-class destination (supersedes M5.0c's "sole entry = TA COLLECTION block"; the block stays as redundant entry). Accueil is both a pill and the corner circle so a tab is always selected.
+- StickyActions `bottom-16` → `bottom-0`; z simplified; every `pb-*` consumer revised; iOS top+bottom safe-area.
+- `/dictionary` + unlock gate split out → M5.2b.
+
+## M5.2b — Dictionary route + unlock gate
+- ~0.5–1 session. `/dictionary` alphabetical route + 10-word unlock gate (split from M5.2). Open: what `/dictionary` is (browsable reference vs A-Z of own deck) + its entry point (not one of the five pills).
+
+## M5.3 — Game modes + conjugation substrate
+- Multiple sessions
+- **OPENER: deterministic Spanish conjugator** (rule engine + irregular table), POS-gated to verbs via `definition.pos`. Library validated by Claude Code at plan time. **Not LLM-sourced** — same lesson as M3.2 (wordlist beat LLM), higher stakes (a wrong conjugation taught to a learner is real harm).
+- Inflection-tolerant matching built on the paradigm — the conjugation-mismatch fix lives here **in full** (no interim; M5.0d was dropped)
+- ④ "Astuce de Paco" morphology hint; **frame-5** lemma-interstitial conjugation table (the `comieron`→`comer` screen). **Frame 6 rejected** (reintroduces the M3.3 duplicate-fiche confusion).
+- Then one game mode: **verb-conjugation drill** (natural first, given the substrate)
+- Substrate feeds four things: this interstitial table, the ④ hint, the inflection fix, and the drill — one investment, four payoffs
 
 ## M6 — Companion character (post-M5)
+- Visual/voice half shipped in v0.3.3. Remaining: non-pushy, opt-in personalized AI check-ins (small Anthropic call per check-in).
+- **Data-gated** — needs ~100+ words before it's meaningful (currently ~72); naturally blocked on accumulation, not dev.
 
-**Visual/voice half landed early in v0.3.3** (Paco visual identity rollout, tu voice, mixed Spanish/French celebration phrases — see project state). Remaining scope:
+---
 
-- Multi-session feature
-- Non-pushy, opt-in personalized AI feedback (Anthropic check-ins)
-- Costs: small Anthropic call per check-in
-- Requires sufficient user data (~100+ words) before launching
+### Design-pass standing decisions (apply across M5.x)
+- **No streaks** anywhere. Streak counters appeared in ①/⑤ mockups — do not reintroduce.
+- ④ correction logic is **ours** — designs do not dictate how answers are graded. The near-miss/typo *display* (Levenshtein, already loaded) is decoupled and can ride whenever `/review` is next opened.
+- Terminology unified on **"Mémorisé"** everywhere (filter = "Mémorisés", count = "N mémorisés"). "Maîtrisé" not used.
+- Ceremony-fatigue rule: informative-over-celebratory on the per-use path; big editorial moments reserved for genuinely low-frequency events.
+- The frame-5 "revu N fois · prochaine révision dans Xj" line is a **free, decoupled** near-term slice (pure `review_cards` data) — can land in the existing interstitial anytime, independent of the conjugator.

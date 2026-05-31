@@ -1,7 +1,7 @@
 # Paco — Backlog
 
-> Mirrors `docs/backlog.md` in the repo. Items here are not yet scheduled.
-> Committed work lives in `PACO_ROADMAP.md`. When a backlog item is promoted to a milestone, it moves out of this file.
+> The repo-canonical backlog (as of v0.5.4). Items here are not yet scheduled.
+> Committed work lives in `docs/roadmap.md`. When a backlog item is promoted to a milestone, it moves out of this file.
 
 ## Word list improvements
 - Pagination: show 10 newest by default, "Voir plus" button or infinite scroll. Important at 50+ words — now pressing at 51.
@@ -45,7 +45,7 @@
 ## Gamification (defer aggressively)
 - Session streak / XP counters.
 - Game mode selection in Settings (becomes meaningful only after multiple game modes exist).
-- Verb conjugation exercise mode — drill specific conjugations (tense + person) of a verb the user knows. (Also listed as an M5.2 candidate in roadmap.)
+- Verb conjugation exercise mode — drill specific conjugations (tense + person) of a verb the user knows. (Now the verb-conjugation drill under M5.3 in roadmap.)
 
 ## i18n / future direction
 - Support languages other than Spanish (the architecture is mostly language-agnostic but the Anthropic prompt is Spanish-specific).
@@ -79,7 +79,6 @@
   batches, so the deck opens instantly on the common path. Keep the cache-before-API
   resume path; this is purely about cold-generation perceived speed.
 
-- **Desktop / wide-viewport presentation + content↔nav edge alignment.** On the card
-  grid the bottom NavBar is full-bleed (no side gutter) while page content has a 20px
-  gutter, so their edges don't line up; broader wide-viewport / desktop layout is also
-  unaddressed. Handle in the nav rework.
+  _(The desktop / wide-viewport + content↔nav edge-alignment item was **resolved by M5.2** —
+  the top nav lives inside the `max-w-[430px]` column so nav and content share edges by
+  construction. Removed from the backlog.)_
