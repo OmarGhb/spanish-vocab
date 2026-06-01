@@ -30,14 +30,6 @@
                  0 4px 18px rgba(61,43,26,0.07);
 }
 
-/* Clip horizontal overflow at the true scroll root (html is the scroller on iOS).
-   Prevents the page from ever panning sideways / landing zoomed on iOS Safari when a
-   descendant (e.g. the nav pill row) leaks past the viewport. overflow-x:clip leaves the
-   y-axis a normal scroller, so vertical scrolling and position:sticky are unaffected. */
-html {
-  overflow-x: clip;
-}
-
 body {
   background-color: var(--color-page);
   color: var(--color-ink);

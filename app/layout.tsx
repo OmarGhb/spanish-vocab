@@ -41,7 +41,7 @@ export default function RootLayout({
       className={`${inter.variable} ${lora.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col overflow-x-clip" suppressHydrationWarning>{children}</body>
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>{children}</body>
     </html>
   )
 }
