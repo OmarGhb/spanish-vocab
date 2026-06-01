@@ -153,6 +153,11 @@ The product is mobile-first, French UI, designed for the user (Omar) to actually
 - **Accepted v1 limits** (single-user, harmless): (1) the interstitial re-shows on a direct visit / browser-back — the page renders whenever the flag is set; `router.replace` on the CTA mitigates the normal-flow back; (2) a double-show race if two loads cross the threshold simultaneously. Revisit with an `unlock_celebrated` column only if it ever matters.
 - **Dependency-free confetti** (`Confetti.tsx` + `confetti-fall` keyframe in globals.css): deterministic (SSR-safe, no `Math.random`), reduced-motion-aware. No new dep.
 
+### Review focus-mode (review rework, slice 1)
+
+- **`FocusModeContext`** (`app/(app)/FocusMode.tsx`): a `FocusModeProvider` wraps `TopNav` + children in `(app)/layout.tsx`; `TopNav` returns `null` when `focus` is set. An active `/review` session flips `setFocus(!done)` so the app nav is suppressed **only while answering** (recap + 0-due empty-state keep the nav). Chosen over a route group (auth-layout duplication) and over a discovery-style `fixed inset-0` overlay (an overlay blocks the soft keyboard from scrolling the answer field into view). The active session adds `paddingTop: max(1.25rem, env(safe-area-inset-top))` since the nav no longer supplies the notch inset.
+- **Answer-field keyboard visibility** (`FillInBlank.tsx`): autofocus on mount (no programmatic keyboard-open — iOS needs the gesture) + `scrollIntoView({block:'center'})` on `onFocus` and on `visualViewport` `resize`, so when the keyboard opens the question + field stay visible without a manual scroll.
+
 ## Lemma flow UX (M3.3)
 
 When a user submits a Spanish word and Anthropic returns `lemma != input`, the /add page transitions to a `lemma_suggestion` phase before revealing the card:

@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import type { ReviewCard } from './page'
 import FillInBlank from './FillInBlank'
 import MultipleChoice from './MultipleChoice'
+import { useFocusMode } from '../FocusMode'
 
 type Props = { cards: ReviewCard[] }
 
@@ -25,6 +26,14 @@ export default function ReviewSession({ cards }: Props) {
   const [done, setDone] = useState(false)
   const [outcomes, setOutcomes] = useState<Outcome[]>([])
   const [dueRemaining, setDueRemaining] = useState(0)
+
+  // Full-focus while answering: suppress the app nav. Restore it on the recap (done) and
+  // when leaving the session (unmount). The recap + empty-state keep the nav (slice 2).
+  const { setFocus } = useFocusMode()
+  useEffect(() => {
+    setFocus(!done)
+    return () => setFocus(false)
+  }, [done, setFocus])
 
   // Timer boundary: cardStartRef is written in an effect on each card change and read
   // only inside child event handlers — never during render. Using a ref (not state)
@@ -145,7 +154,8 @@ export default function ReviewSession({ cards }: Props) {
   const mode = chooseMode(card, index)
 
   return (
-    <div className="px-5 pt-5 pb-4">
+    // Nav is hidden in focus-mode, so pad the top for the notch (as the nav used to).
+    <div className="px-5 pb-4" style={{ paddingTop: 'max(1.25rem, env(safe-area-inset-top))' }}>
       {/* Header: × | 1/N | ÉCRITURE */}
       <div className="flex justify-between items-center mb-3">
         <Link href="/" className="text-2xl text-muted hover:text-ink leading-none select-none">

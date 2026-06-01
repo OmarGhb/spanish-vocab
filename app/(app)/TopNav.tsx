@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef } from 'react'
 import { House, Library, Plus, Book, Compass, UserRound, BookA, Lock } from 'lucide-react'
+import { useFocusMode } from './FocusMode'
 
 // Five always-on pills + a flag-gated Dictionnaire pill (rendered after the map below).
 // Accueil also exists as the top-left home circle (both link to /); Compte (the avatar)
@@ -19,6 +20,7 @@ const PILLS = [
 
 export default function TopNav({ dictionaryUnlocked }: { dictionaryUnlocked: boolean }) {
   const path = usePathname()
+  const { focus } = useFocusMode()
   const activeRef = useRef<HTMLAnchorElement>(null)
   // The locked pill never shows active styling; only the unlocked pill lights on /dictionary*.
   const dictActive = dictionaryUnlocked && (path === '/dictionary' || path.startsWith('/dictionary/'))
@@ -27,6 +29,9 @@ export default function TopNav({ dictionaryUnlocked }: { dictionaryUnlocked: boo
   useEffect(() => {
     activeRef.current?.scrollIntoView({ inline: 'center', block: 'nearest' })
   }, [path])
+
+  // Full-focus screens (e.g. an active /review session) suppress the nav entirely.
+  if (focus) return null
 
   return (
     <header

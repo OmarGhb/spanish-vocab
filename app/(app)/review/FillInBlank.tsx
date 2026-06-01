@@ -68,8 +68,15 @@ export default function FillInBlank({ card, cardStartRef, onRate }: Props) {
   const [frozenTimeMs, setFrozenTimeMs] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  // Autofocus the field on mount (iOS still needs a user gesture to open the keyboard).
+  // When the soft keyboard does open, the visualViewport shrinks — bring the field back
+  // into view then so the question + input stay visible without a manual scroll-up.
   useEffect(() => {
     inputRef.current?.focus()
+    const bring = () => inputRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    const vv = window.visualViewport
+    vv?.addEventListener('resize', bring)
+    return () => vv?.removeEventListener('resize', bring)
   }, [])
 
   function handleHint() {
@@ -126,6 +133,7 @@ export default function FillInBlank({ card, cardStartRef, onRate }: Props) {
             type="text"
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
+            onFocus={() => inputRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })}
             placeholder="Ta réponse…"
             required
             className="w-full border border-line rounded-card px-4 py-4 text-base bg-card text-ink placeholder:text-muted focus:outline-none focus:border-accent"
