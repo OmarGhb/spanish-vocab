@@ -351,8 +351,8 @@ export default function AddPage() {
     return (
       <div className="flex flex-col pb-16">
         <div className="p-5">
-          <Link href="/" className="text-muted text-sm">←</Link>
-          <div className="mt-4">
+          {/* No back arrow — the top nav (home circle + Accueil pill) already covers going back. */}
+          <div>
             <h1 className="font-serif text-2xl font-bold text-ink">Nouveau mot</h1>
             <p className="text-sm text-muted mt-0.5">Entre un mot espagnol</p>
           </div>
