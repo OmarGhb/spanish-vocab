@@ -22,11 +22,12 @@ export const metadata: Metadata = {
   },
 }
 
+// No maximumScale / userScalable: those lock the scale (and iOS traps you zoomed-in,
+// unable to pinch out). They were added to stop iOS input-focus zoom, but the real
+// guard is ≥16px inputs (all inputs now comply), so the lock is redundant + harmful.
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
 }
 
 export default function RootLayout({
