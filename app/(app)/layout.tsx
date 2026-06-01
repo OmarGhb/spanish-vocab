@@ -19,7 +19,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     .maybeSingle()
 
   return (
-    <div className="max-w-[430px] mx-auto min-h-screen flex flex-col">
+    <div className="w-full max-w-[430px] mx-auto min-h-screen flex flex-col">
       <TopNav dictionaryUnlocked={profile?.dictionary_unlocked === true} />
       {children}
     </div>
