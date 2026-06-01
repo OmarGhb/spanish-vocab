@@ -73,7 +73,7 @@ export default function AccountClient() {
             value={confirmInput}
             onChange={(e) => setConfirmInput(e.target.value)}
             placeholder={CONFIRM_WORD}
-            className="w-full border border-err/30 rounded-card px-4 py-3 text-sm bg-card text-ink placeholder:text-muted focus:outline-none focus:border-err"
+            className="w-full border border-err/30 rounded-card px-4 py-3 text-base bg-card text-ink placeholder:text-muted focus:outline-none focus:border-err"
           />
           {deleteError && <p className="text-xs text-err">{deleteError}</p>}
           <div className="flex gap-2">
