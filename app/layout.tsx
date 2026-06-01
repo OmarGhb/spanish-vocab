@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next"
 import { Inter, Lora } from "next/font/google"
 import "./globals.css"
+import ZoomLock from "./ZoomLock"
 
 const inter = Inter({
   variable: "--font-inter",
@@ -40,7 +41,10 @@ export default function RootLayout({
       className={`${inter.variable} ${lora.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col" suppressHydrationWarning>{children}</body>
+      <body className="min-h-full flex flex-col overflow-x-clip" suppressHydrationWarning>
+        <ZoomLock />
+        {children}
+      </body>
     </html>
   )
 }
