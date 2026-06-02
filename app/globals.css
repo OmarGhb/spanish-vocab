@@ -11,6 +11,7 @@
   --color-ink:         #3D2B1A;
   --color-muted:       #7A5A3A;
   --color-line:        #D9C9A8;
+  --color-hair:        #E7DBC2; /* softer inner divider (rows / stat columns) — lighter than line */
   --color-accent:      #C27A2C;
   --color-tint:        #F5E0C0;
   --color-ok:          #4A7C6F;

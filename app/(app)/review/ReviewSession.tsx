@@ -22,21 +22,66 @@ function chooseMode(card: ReviewCard, index: number): 'blank' | 'mc' {
   return index % 2 === 0 ? 'blank' : 'mc'
 }
 
-export default function ReviewSession({ cards }: Props) {
+// Same shape + ordering as the server query in page.tsx, run client-side so the
+// "Encore N" CTA can continue the session in place without a route navigation
+// (a <Link href="/review"> from /review served a stale Router-Cache page — the
+// rescheduled cards never came back).
+async function fetchDueCards(): Promise<ReviewCard[]> {
+  const supabase = createClient()
+  const { data: rows } = await supabase
+    .from('review_cards')
+    .select('*, words(word, definition, examples, distractors)')
+    .lte('due', new Date().toISOString())
+    .order('due', { ascending: true })
+    .limit(20)
+
+  return (rows ?? []).map((row) => {
+    const w = row.words as {
+      word: string
+      definition: { es: string; fr: string; pos?: string }
+      examples: Array<{ es: string; fr: string }>
+      distractors: string[]
+    }
+    return {
+      id: row.id as string,
+      word_id: row.word_id as string,
+      due: row.due as string,
+      stability: row.stability as number,
+      difficulty: row.difficulty as number,
+      elapsed_days: row.elapsed_days as number,
+      scheduled_days: row.scheduled_days as number,
+      reps: row.reps as number,
+      lapses: row.lapses as number,
+      state: row.state as number,
+      last_review: row.last_review as string | null,
+      word: w.word,
+      definition: w.definition,
+      examples: w.examples,
+      distractors: w.distractors,
+    }
+  })
+}
+
+export default function ReviewSession({ cards: initialCards }: Props) {
+  // Card deck is stateful so "Encore N" can swap in the next due batch in place.
+  const [cards, setCards] = useState<ReviewCard[]>(initialCards)
   const [index, setIndex] = useState(0)
   const [done, setDone] = useState(false)
   const [outcomes, setOutcomes] = useState<Outcome[]>([])
   const [dueRemaining, setDueRemaining] = useState(0)
+  const [continuing, setContinuing] = useState(false)
   // écriture verdict for the current card → flips the header to success on a correct answer.
   const [verdict, setVerdict] = useState<BlankQuality | null>(null)
 
-  // Full-focus while answering: suppress the app nav. Restore it on the recap (done) and
-  // when leaving the session (unmount). The recap + empty-state keep the nav (slice 2).
+  // Full-focus for the WHOLE session, including the bilan (slice 3): suppress the app nav
+  // from the first card through the recap, restoring it only on unmount. Encore→next batch
+  // stays mounted (nav stays hidden); Accueil navigates away → unmount → nav restored. The
+  // 0-due "Tout est à jour" empty-state is a separate component (page.tsx), so it keeps nav.
   const { setFocus } = useFocusMode()
   useEffect(() => {
-    setFocus(!done)
+    setFocus(true)
     return () => setFocus(false)
-  }, [done, setFocus])
+  }, [setFocus])
 
   // Timer boundary: cardStartRef is written in an effect on each card change and read
   // only inside child event handlers — never during render. Using a ref (not state)
@@ -86,6 +131,29 @@ export default function ReviewSession({ cards }: Props) {
     }
   }
 
+  // "Encore N" — pull the next due batch and continue the session in place.
+  // Outcomes accumulate, so the recap stays cumulative across batches.
+  async function handleContinue() {
+    if (continuing) return
+    setContinuing(true)
+    try {
+      const next = await fetchDueCards()
+      if (next.length === 0) {
+        setDueRemaining(0) // nothing left (raced to 0) — recap now offers only Accueil
+        return
+      }
+      setCards(next)
+      setIndex(0)
+      cardStartRef.current = Date.now() // index may already be 0 → reset the timer manually
+      setVerdict(null)
+      setDone(false) // re-enters focus mode via the done effect
+    } catch {
+      console.warn('[review] continue: failed to load next due batch')
+    } finally {
+      setContinuing(false)
+    }
+  }
+
   if (done) {
     const total = outcomes.length
     const correct = outcomes.filter((o) => o.correct).length
@@ -93,59 +161,104 @@ export default function ReviewSession({ cards }: Props) {
     const totalMs = outcomes.reduce((sum, o) => sum + o.timeMs, 0)
     const timeLabel = totalMs < 60_000 ? '< 1 min' : `${Math.round(totalMs / 60_000)} min`
 
+    // Fixed vertical frame (fills the column below TopNav); ONLY the word list scrolls.
     return (
-      <div className="px-5 pt-8 pb-8 flex flex-col gap-6">
-        {/* Header */}
-        <div className="flex flex-col items-center text-center gap-2">
-          <Image src="/paco-feliz.png" alt="Paco" width={96} height={96} className="object-contain" />
-          <p className="font-serif text-2xl font-bold text-ink">¡Buen trabajo!</p>
-          <p className="text-sm text-muted">Session terminée</p>
+      <div className="flex-1 min-h-0 flex flex-col">
+        {/* 1 — light warm header (mascot + the one Spanish phrase carry the warmth).
+            Nav is hidden through the recap now, so pad the top for the notch (as the
+            answering view does) instead of relying on TopNav to supply the inset. */}
+        <div
+          className="flex items-center gap-3.5 px-6 pb-4 shrink-0"
+          style={{ paddingTop: 'max(0.875rem, env(safe-area-inset-top))' }}
+        >
+          <Image src="/paco-feliz.png" alt="Paco" width={56} height={56} className="object-contain shrink-0" />
+          <div>
+            <p className="font-serif text-[27px] font-bold italic leading-none tracking-[-0.01em] text-ink">
+              ¡Buen trabajo!
+            </p>
+            <p className="text-[13.5px] text-muted mt-[5px]">Session terminée</p>
+          </div>
         </div>
 
-        {/* Words reviewed this session */}
-        {outcomes.length > 0 && (
-          <ul className="bg-card rounded-card shadow-card divide-y divide-line">
-            {outcomes.map((o, i) => (
-              <li key={i} className="flex items-center gap-3 px-4 py-3">
-                <span className={`text-base leading-none ${o.correct ? 'text-ok' : 'text-err'}`}>
-                  {o.correct ? '✓' : '✗'}
-                </span>
-                <div className="min-w-0">
-                  <p className="font-serif text-sm font-bold text-ink">{o.word}</p>
-                  {o.defEs && <p className="text-xs text-muted line-clamp-1">{o.defEs}</p>}
-                </div>
-              </li>
+        {/* 2 — stats card, kept ABOVE the list (override): summarize before per-word detail */}
+        <div className="px-[18px] shrink-0">
+          <div className="flex bg-card border border-line rounded-2xl py-3.5">
+            {[
+              { label: 'Révisés', value: String(total) },
+              { label: 'Réussite', value: `${successPct}%` },
+              { label: 'Temps', value: timeLabel },
+            ].map((s, i) => (
+              <div key={s.label} className={`flex-1 text-center ${i > 0 ? 'border-l border-hair/60' : ''}`}>
+                <p className="font-serif text-[23px] font-bold tracking-[-0.02em] text-ink">{s.value}</p>
+                <p className="text-[10.5px] font-bold uppercase tracking-[0.12em] text-muted mt-[3px]">{s.label}</p>
+              </div>
             ))}
-          </ul>
-        )}
+          </div>
+        </div>
 
-        {/* Stats */}
-        <div className="flex">
-          {[
-            { label: 'Révisés', value: String(total) },
-            { label: 'Réussite', value: `${successPct}%` },
-            { label: 'Temps', value: timeLabel },
-          ].map((s) => (
-            <div key={s.label} className="flex-1 flex flex-col items-center gap-1">
-              <p className="font-serif text-2xl font-bold text-ink">{s.value}</p>
-              <p className="text-[10px] uppercase tracking-widest text-muted">{s.label}</p>
+        {/* 3 — words reviewed this session (the scrollable core). Rows stagger in
+            top-to-bottom on mount via `.fade-up` (globals.css) + per-row animationDelay
+            — the proven, reduced-motion-gated keyframe ResultReveal uses, NOT a Tailwind
+            motion-safe utility (the PhaseChecklist `motion-safe:animate-pulse` never
+            rendered). Hairline divider between rows; nothing else staggers. */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-[18px] pt-3 pb-2 divide-y divide-hair/60">
+          {outcomes.map((o, i) => (
+            <div
+              key={i}
+              className="fade-up flex items-center gap-3.5 px-1.5 py-[11px]"
+              style={{ animationDelay: `${i * 35}ms` }}
+            >
+              <span
+                className={`flex items-center justify-center w-[26px] h-[26px] rounded-full shrink-0 ${
+                  o.correct ? 'bg-ok-bg text-ok' : 'bg-err-bg text-err'
+                }`}
+              >
+                {o.correct ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M6 6l12 12M18 6L6 18" />
+                  </svg>
+                )}
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="font-serif text-[17px] font-bold tracking-[-0.02em] text-ink">{o.word}</p>
+                {o.defEs && <p className="text-[13px] text-muted truncate mt-px">{o.defEs}</p>}
+              </div>
             </div>
           ))}
         </div>
 
-        {/* Actions */}
-        <div className="flex flex-col gap-3">
+        {/* 4 — fixed footer: Encore (continue this session) when cards remain; Accueil kept below */}
+        <div
+          className="px-[18px] pt-3.5 flex flex-col gap-3 shrink-0"
+          style={{ paddingBottom: 'max(1.125rem, env(safe-area-inset-bottom))' }}
+        >
           {dueRemaining > 0 && (
-            <Link
-              href="/review"
-              className="block bg-accent text-white rounded-card py-4 font-serif font-semibold text-sm text-center"
+            <button
+              type="button"
+              onClick={handleContinue}
+              disabled={continuing}
+              className="w-full flex items-center justify-center gap-2.5 rounded-card py-[15px] px-5 bg-accent text-card font-serif text-base font-semibold tracking-[-0.01em] disabled:opacity-60"
+              style={{ boxShadow: '0 2px 6px rgba(154,90,28,0.28)' }}
             >
-              Encore {dueRemaining} mot{dueRemaining !== 1 ? 's' : ''} à revoir →
-            </Link>
+              {continuing ? (
+                'Chargement…'
+              ) : (
+                <>
+                  Encore {dueRemaining} mot{dueRemaining !== 1 ? 's' : ''} à revoir
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.1} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </>
+              )}
+            </button>
           )}
           <Link
             href="/"
-            className="block border border-line rounded-card py-4 font-serif text-sm text-center text-ink"
+            className="w-full rounded-card border border-line bg-card py-[14px] text-center font-serif text-base font-semibold text-ink"
           >
             ← Accueil
           </Link>
