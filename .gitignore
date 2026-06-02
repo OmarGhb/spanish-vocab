@@ -45,3 +45,5 @@ next-env.d.ts
 *.swo
 .*.swp
 .*.swo
+
+certificates

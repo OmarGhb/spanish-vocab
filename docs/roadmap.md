@@ -77,7 +77,11 @@ The next committed milestones. Items in `docs/backlog.md` are deferred until pro
 - Then one game mode: **verb-conjugation drill** (natural first, given the substrate)
 - Substrate feeds four things: this interstitial table, the ④ hint, the inflection fix, and the drill — one investment, four payoffs
 
-## M6 — Companion character (post-M5)
+## M6 - App onboarding & login screen upgrade
+- App's first opening should trigger an onboarding with interactive steps showing how the app works.
+- Login screen should be reworked to have Paco's branded content, to actually allow to login or to create a new account.
+
+## M7 — Companion character
 - Visual/voice half shipped in v0.3.3. Remaining: non-pushy, opt-in personalized AI check-ins (small Anthropic call per check-in).
 - **Data-gated** — needs ~100+ words before it's meaningful (currently ~72); naturally blocked on accumulation, not dev.
 
