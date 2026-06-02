@@ -74,13 +74,25 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
   function optionStyle(option: string): string {
     const base = 'w-full text-left rounded-lg border px-4 py-3 text-sm transition-colors'
     if (!result) return `${base} border-line bg-card text-ink hover:border-accent`
-    if (option === word) return `${base} border-ok bg-ok/10 text-ok`
-    if (option === chosen && chosen !== word) return `${base} border-err bg-err/10 text-err`
+    // Canonical success/danger tint tokens (same hue + intensity as the écriture result
+    // surfaces and the bilan ✓/✗ circles) — not the old math-derived bg-ok/10 alphas.
+    if (option === word) return `${base} border-ok bg-ok-bg text-ok`
+    if (option === chosen && chosen !== word) return `${base} border-err bg-err-bg text-err`
     return `${base} border-line text-muted opacity-50`
   }
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Verdict at the TOP, matching écriture (verdict → answer detail → rating). Same Paco
+          reveal as FillInBlank; MCQ is binary — no ¡Casi!; the correct option stays tinted in
+          the list below, so no extra "answer" line is needed. */}
+      {result && (
+        <ResultReveal
+          verdict={chosen === word ? 'correct' : 'wrong'}
+          note={chosen === word ? (hintUsed ? 'avec un indice' : 'du premier coup') : null}
+        />
+      )}
+
       <div>
         {prompt.type === 'definition' ? (
           <>
@@ -116,13 +128,8 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
       </div>
 
       {result && (
-        <div className="flex flex-col gap-4">
-          {/* Same Paco reveal as FillInBlank. MCQ is binary — no ¡Casi!; the correct option
-              stays tinted in the list above, so no extra "answer" line is needed. */}
-          <ResultReveal
-            verdict={chosen === word ? 'correct' : 'wrong'}
-            note={chosen === word ? (hintUsed ? 'avec un indice' : 'du premier coup') : null}
-          />
+        // Quiet fade-up cascade matching écriture's rating slot (verdict already fades itself).
+        <div className="fade-up" style={{ animationDelay: '0.18s' }}>
           <RatingButtons result={result} onRate={(r) => onRate(r, frozenTimeMs, hintUsed)} />
         </div>
       )}
