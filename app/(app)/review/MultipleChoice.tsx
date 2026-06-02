@@ -1,11 +1,11 @@
 'use client'
 
-import Image from 'next/image'
 import type React from 'react'
 import { useMemo, useState } from 'react'
 import { computeRating, type RatingResult } from '@/lib/rating'
 import type { ReviewCard } from './page'
 import RatingButtons from './RatingButtons'
+import ResultReveal from './ResultReveal'
 
 type Props = {
   card: ReviewCard
@@ -117,16 +117,12 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
 
       {result && (
         <div className="flex flex-col gap-4">
-          <div
-            className={`rounded-card p-4 flex items-center gap-3 border ${
-              chosen === word ? 'bg-ok/10 border-ok/25' : 'bg-err/10 border-err/20'
-            }`}
-          >
-            <Image src={chosen === word ? '/paco-feliz.png' : '/paco-sad.png'} alt="Paco" width={64} height={64} className="object-contain shrink-0" />
-            <p className={`font-serif font-medium text-sm ${chosen === word ? 'text-ok' : 'text-err'}`}>
-              {chosen === word ? '¡Correcto! Sigue así.' : `¡Inténtalo! → ${word}`}
-            </p>
-          </div>
+          {/* Same Paco reveal as FillInBlank. MCQ is binary — no ¡Casi!; the correct option
+              stays tinted in the list above, so no extra "answer" line is needed. */}
+          <ResultReveal
+            verdict={chosen === word ? 'correct' : 'wrong'}
+            note={chosen === word ? (hintUsed ? 'avec un indice' : 'du premier coup') : null}
+          />
           <RatingButtons result={result} onRate={(r) => onRate(r, frozenTimeMs, hintUsed)} />
         </div>
       )}

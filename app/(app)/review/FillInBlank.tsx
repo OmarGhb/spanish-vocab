@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import type React from 'react'
 import { classifyBlankAnswer, computeRating, type BlankQuality, type RatingResult } from '@/lib/rating'
@@ -9,8 +8,7 @@ import { wordDiff, type DiffOp } from '@/lib/worddiff'
 import type { ReviewCard } from './page'
 import RatingButtons from './RatingButtons'
 import AnswerBlank from './AnswerBlank'
-
-type Verdict = 'correct' | 'close' | 'wrong'
+import ResultReveal, { type Verdict } from './ResultReveal'
 
 type Props = {
   card: ReviewCard
@@ -18,12 +16,6 @@ type Props = {
   onRate: (rating: 1 | 2 | 3 | 4, timeMs: number, hintUsed: boolean) => void
   // Reported when the answer is graded, so the session header can flip to success on correct.
   onResult?: (quality: BlankQuality) => void
-}
-
-const VERDICT_META: Record<Verdict, { img: string; excl: string; color: string }> = {
-  correct: { img: '/paco-feliz.png', excl: '¡Eso es!', color: 'text-ok' },
-  close: { img: '/paco-pensando.png', excl: '¡Casi!', color: 'text-warm' },
-  wrong: { img: '/paco-sad.png', excl: '¡Uy!', color: 'text-err' },
 }
 
 const QUALITY_TO_VERDICT: Record<BlankQuality, Verdict> = {
@@ -197,7 +189,6 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
   // ── RESULT CARD ─────────────────────────────────────────────────────────────
   const { quality, distance } = classifyBlankAnswer(word, answer)
   const verdict = QUALITY_TO_VERDICT[quality]
-  const meta = VERDICT_META[verdict]
   const note =
     verdict === 'correct'
       ? hintUsed
@@ -211,16 +202,7 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Reveal */}
-      <div className="fade-up flex items-end gap-3.5">
-        <Image src={meta.img} alt="Paco" width={72} height={72} className="object-contain shrink-0" />
-        <div className="pb-1.5">
-          <p className={`font-serif text-[2.375rem] font-bold italic leading-none tracking-[-0.02em] ${meta.color}`}>
-            {meta.excl}
-          </p>
-          {note && <p className="mt-1 text-[13px] text-muted">{note}</p>}
-        </div>
-      </div>
+      <ResultReveal verdict={verdict} note={note} />
 
       {/* Body */}
       {verdict === 'correct' && (
