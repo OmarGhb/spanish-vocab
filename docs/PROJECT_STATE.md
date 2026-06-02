@@ -1,7 +1,7 @@
 # Paco — Project State
 
 > Snapshot of where the project stands. Update this when major milestones ship.
-> Last updated: end of session that shipped v0.5.5 (M5.2b — Dictionnaire personnel). Prior: v0.5.4 (M5.2 — Top pill-tab nav), v0.5.3 (M5.1 — Discovery mode), v0.5.2 (M5.0c — Home + word-list editorial: `/words` list, editorial Home top with effort estimate, end-of-session recap, shared status/familiarity renderers, list-row redesign), v0.5.1 (M5.0b — add-flow loading polish), v0.5.0 (M5.0a — honest status taxonomy), v0.4.3 (M4.3 — Google Cloud TTS), v0.4.2, v0.4.1, v0.4.0.
+> Last updated: end of session that shipped v0.6.0 (review rework close — slice 3 bilan + QCM result-state alignment). Prior: v0.5.6 (review rework slices 1–2 — focus-mode + write-in result card + rating restyle + MCQ reveal), v0.5.5 (M5.2b — Dictionnaire personnel), v0.5.4 (M5.2 — Top pill-tab nav), v0.5.3 (M5.1 — Discovery mode), v0.5.2 (M5.0c — Home + word-list editorial: `/words` list, editorial Home top with effort estimate, end-of-session recap, shared status/familiarity renderers, list-row redesign), v0.5.1 (M5.0b — add-flow loading polish), v0.5.0 (M5.0a — honest status taxonomy), v0.4.3 (M4.3 — Google Cloud TTS), v0.4.2, v0.4.1, v0.4.0.
 
 ## What Paco is
 
@@ -13,7 +13,7 @@ The product is mobile-first, French UI, designed for the user (Omar) to actually
 
 - **Live URL:** https://spanish-vocab-lyart.vercel.app (Vercel hobby tier, free)
 - **Repo:** https://github.com/OmarGhb/spanish-vocab (name unchanged — only product naming/visual is "Paco")
-- **Latest tag:** v0.5.5 (M5.2b — Dictionnaire personnel) — personal A–Z dictionary + 10-word sticky unlock (tag the milestone-close commit). Prior: v0.5.4 (M5.2 — Top pill-tab nav) @ 1a3153e
+- **Latest tag:** v0.6.0 (review rework close) — slice 3 bilan redesign + Encore-continues-session + QCM result-state aligned to the écriture card (tag the milestone-close commit). Prior: v0.5.6 (review rework slices 1–2 — focus-mode + write-in/MCQ result cards + rating restyle) @ 633aae0, v0.5.5 (M5.2b — Dictionnaire personnel)
 - **Recent migration:** `supabase/migrations/20260529000000_discovery_words.sql` (M5.1) — already applied to live Supabase
 - **Real usage:** Omar uses it daily; deck at ~72 words and growing
 - **Active dev environment:** Mac, `/Users/gahbicheomar/spanish-vocab`, VS Code + integrated terminal, SSH key auth to GitHub
