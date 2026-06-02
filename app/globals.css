@@ -17,6 +17,7 @@
   --color-ok-bg:       #D4EDE9;
   --color-err:         #B84C2A;
   --color-err-bg:      #F5E0D8;
+  --color-warm:        #E8A24A; /* "close / ¡Casi!" accent — between accent and easy */
 
   /* Rating buttons — amber gradation (darkest = worst, lightest = best) */
   --color-again: oklch(0.65 0.13 55);
@@ -60,6 +61,39 @@ body {
     animation-name: confetti-fall;
     animation-timing-function: ease-in;
     animation-iteration-count: infinite;
+  }
+}
+
+/* Review result-card entrance: a single quiet staggered fade-up (no bounce/confetti). */
+@keyframes fadeUp {
+  0% { transform: translateY(8px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+/* Visible by default (reduced-motion shows content immediately); the animation's
+   `both` fill supplies the hidden-before state during any delay when motion is on. */
+@media (prefers-reduced-motion: no-preference) {
+  .fade-up {
+    animation: fadeUp 0.4s ease-out both;
+  }
+}
+
+/* Faux text caret for the écriture inline blank — a hard on/off blink (reads as a
+   cursor, not a pulsing dot). Solid (no blink) under reduced motion. */
+@keyframes caretBlink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.caret {
+  display: inline-block;
+  width: 1.5px;
+  height: 1em;
+  margin-left: 1px;
+  background: var(--color-accent);
+  vertical-align: -0.12em;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .caret {
+    animation: caretBlink 1.06s steps(1) infinite;
   }
 }
 

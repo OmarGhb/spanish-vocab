@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import type { BlankQuality } from '@/lib/rating'
 import type { ReviewCard } from './page'
 import FillInBlank from './FillInBlank'
 import MultipleChoice from './MultipleChoice'
@@ -26,6 +27,8 @@ export default function ReviewSession({ cards }: Props) {
   const [done, setDone] = useState(false)
   const [outcomes, setOutcomes] = useState<Outcome[]>([])
   const [dueRemaining, setDueRemaining] = useState(0)
+  // écriture verdict for the current card → flips the header to success on a correct answer.
+  const [verdict, setVerdict] = useState<BlankQuality | null>(null)
 
   // Full-focus while answering: suppress the app nav. Restore it on the recap (done) and
   // when leaving the session (unmount). The recap + empty-state keep the nav (slice 2).
@@ -78,6 +81,7 @@ export default function ReviewSession({ cards }: Props) {
       }
       setDone(true)
     } else {
+      setVerdict(null) // reset header color before the next card
       setIndex((i) => i + 1)
     }
   }
@@ -152,6 +156,8 @@ export default function ReviewSession({ cards }: Props) {
 
   const card = cards[index]
   const mode = chooseMode(card, index)
+  // Header + progress flip to success once an écriture answer is graded correct.
+  const correct = verdict === 'exact'
 
   return (
     // Nav is hidden in focus-mode, so pad the top for the notch (as the nav used to).
@@ -164,7 +170,7 @@ export default function ReviewSession({ cards }: Props) {
         <span className="text-sm text-ink">
           {index + 1} / {cards.length}
         </span>
-        <span className="text-xs text-accent font-semibold uppercase tracking-widest">
+        <span className={`text-xs font-semibold uppercase tracking-widest transition-colors ${correct ? 'text-ok' : 'text-accent'}`}>
           {mode === 'blank' ? 'Écriture' : 'QCM'}
         </span>
       </div>
@@ -172,13 +178,13 @@ export default function ReviewSession({ cards }: Props) {
       {/* Progress bar */}
       <div className="h-0.5 bg-line rounded-full mb-8">
         <div
-          className="h-0.5 bg-accent rounded-full transition-all duration-300"
+          className={`h-0.5 rounded-full transition-all duration-300 ${correct ? 'bg-ok' : 'bg-accent'}`}
           style={{ width: `${((index + 1) / cards.length) * 100}%` }}
         />
       </div>
 
       {mode === 'blank' ? (
-        <FillInBlank key={card.id} card={card} cardStartRef={cardStartRef} onRate={handleRate} />
+        <FillInBlank key={card.id} card={card} cardStartRef={cardStartRef} onRate={handleRate} onResult={setVerdict} />
       ) : (
         <MultipleChoice key={card.id} card={card} cardStartRef={cardStartRef} onRate={handleRate} />
       )}

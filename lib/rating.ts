@@ -27,6 +27,23 @@ function timeLabel(ms: number): string {
   return `${s} seconde${s !== 1 ? 's' : ''}`
 }
 
+export type BlankQuality = 'exact' | 'near' | 'wrong'
+
+// Single source of truth for écriture answer classification, shared by computeRating
+// (grading) and the result-card display so the verdict shown always matches the grade.
+// near = within 2 edits on a word longer than 3 chars (a typo, not a different word).
+export function classifyBlankAnswer(
+  correctWord: string,
+  userAnswer: string,
+): { quality: BlankQuality; distance: number } {
+  const normalized = userAnswer.trim().toLowerCase()
+  const target = correctWord.toLowerCase()
+  const distance = levenshtein(normalized, target)
+  const quality: BlankQuality =
+    distance === 0 ? 'exact' : distance <= 2 && target.length > 3 ? 'near' : 'wrong'
+  return { quality, distance }
+}
+
 export function computeRating(params: {
   correctWord: string
   userAnswer: string
@@ -59,12 +76,7 @@ export function computeRating(params: {
       reason = 'Bonne réponse · rapide'
     }
   } else {
-    const normalized = userAnswer.trim().toLowerCase()
-    const target = correctWord.toLowerCase()
-    const dist = levenshtein(normalized, target)
-
-    const quality: 'exact' | 'near' | 'wrong' =
-      dist === 0 ? 'exact' : dist <= 2 && target.length > 3 ? 'near' : 'wrong'
+    const { quality } = classifyBlankAnswer(correctWord, userAnswer)
 
     if (quality === 'wrong') {
       rating = 1
