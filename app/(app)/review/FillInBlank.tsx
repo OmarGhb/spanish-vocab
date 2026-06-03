@@ -29,8 +29,13 @@ type Props = {
 const QUALITY_TO_VERDICT: Record<BlankQuality, Verdict> = {
   exact: 'correct',
   near: 'close',
+  // wrongForm shares the ¡Uy! chrome (no new badge/label/colour — the dedicated "right verb,
+  // wrong form" visual is deferred to M5.3b); only the result-card copy differs (below).
+  wrongForm: 'wrong',
   wrong: 'wrong',
 }
+
+const WRONG_FORM_COPY = 'Tu connais le verbe — mais ce n’est pas la forme attendue ici'
 
 const isVerbPos = (pos?: string) => pos === 'v.' || pos === 'v.pron.'
 
@@ -252,25 +257,21 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
   }
 
   // ── RESULT CARD ─────────────────────────────────────────────────────────────
-  const { quality, reason, distance } = classify(answer)
+  const { quality, distance } = classify(answer)
   const verdict = QUALITY_TO_VERDICT[quality]
-  // ¡Casi! subline explains *why* it's close: a typo near-miss, the lemma instead of the
-  // conjugated form, or a different valid inflection. (Distance is meaningless for the latter two.)
-  const closeNote =
-    reason === 'lemma'
-      ? 'tu connais le verbe — conjugue-le'
-      : reason === 'inflection'
-        ? 'presque — ce n’est pas la bonne forme ici'
-        : `${distance} lettre${distance > 1 ? 's' : ''} près`
+  // ¡Casi! (close) is now only ever a near-miss of the correct form (accent or genuine typo) —
+  // lemma/other-inflection moved to wrongForm. So the close subline is always the distance.
   const note =
     verdict === 'correct'
       ? hintUsed
         ? 'avec un indice'
         : 'du premier coup'
       : verdict === 'close'
-        ? closeNote
+        ? `${distance} lettre${distance > 1 ? 's' : ''} près`
         : null
-  const diffOps = verdict === 'correct' ? [] : wordDiff(answer.trim(), correctWord)
+  // Letter-diff is meaningful for close (near-miss) and a genuine wrong word; for wrongForm the
+  // answer is a different valid form, so a letter-diff would be noise — shown plain instead.
+  const diffOps = verdict === 'correct' || quality === 'wrongForm' ? [] : wordDiff(answer.trim(), correctWord)
   const example = card.examples[0]
 
   return (
@@ -305,7 +306,18 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
         </p>
       )}
 
-      {verdict === 'wrong' && (
+      {/* Right verb, wrong form: ¡Uy! chrome (above) + distinct copy, the expected form shown
+          plain, no letter-diff. À revoir rating comes through computeRating (rating 1). */}
+      {quality === 'wrongForm' && (
+        <div className="fade-up bg-card border border-line rounded-card p-4" style={{ animationDelay: '0.1s' }}>
+          <p className="text-sm text-ink leading-snug">{WRONG_FORM_COPY}</p>
+          <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.14em] text-muted">La forme attendue</p>
+          <p className="mt-1 font-serif text-[1.75rem] font-bold tracking-[-0.02em] text-ink">{correctWord}</p>
+          <p className="mt-2 text-xs italic text-muted">Ta réponse : {answer.trim()}</p>
+        </div>
+      )}
+
+      {quality === 'wrong' && (
         <div className="fade-up bg-card border border-line rounded-card p-4" style={{ animationDelay: '0.1s' }}>
           <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted">La bonne réponse</p>
           <p className="mt-1 font-serif text-[1.75rem] font-bold tracking-[-0.02em] text-ink">

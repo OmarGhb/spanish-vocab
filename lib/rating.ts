@@ -27,11 +27,14 @@ function timeLabel(ms: number): string {
   return `${s} seconde${s !== 1 ? 's' : ''}`
 }
 
-export type BlankQuality = 'exact' | 'near' | 'wrong'
+// 'wrongForm' (M5.3a fix): the right verb but the wrong form — the lemma typed instead of the
+// conjugated target, or a different valid inflection. Distinct from 'near' (a near-miss of the
+// correct form, still ¡Casi!) and 'wrong' (unrelated). It carries the ¡Uy! chrome and an
+// À revoir rating — "you know the verb, but not this form" is a lapse to review, not "close".
+export type BlankQuality = 'exact' | 'near' | 'wrongForm' | 'wrong'
 
-// 'lemma' / 'inflection' are reasons that still map to the near verdict (¡Casi!) but let the
-// result card explain *why* it's close ("you know the verb, conjugate it"). The grade is
-// unchanged — they grade exactly like 'near'.
+// Reasons annotate the result-card copy. 'lemma'/'inflection' pair with quality 'wrongForm';
+// 'typo' pairs with 'near' (accent-only miss OR a genuine misspelling of the correct form).
 export type BlankReason = 'exact' | 'typo' | 'lemma' | 'inflection' | 'wrong'
 
 // Single source of truth for écriture answer classification, shared by computeRating
@@ -51,13 +54,18 @@ export function classifyBlankAnswer(
 
 // Verb-aware classification (M5.3a), POS-gated to verbs by the caller. The "correct word" is
 // the contextually-correct conjugated form actually blanked from the sentence (`target`), NOT
-// the stored lemma — which is the bug this fixes. Acceptance (option C):
-//   • target form (or an accent/typo near-miss of it) → exact / near (¡Eso es! / ¡Casi!)
-//   • the lemma (infinitive) → near (¡Casi! — "you know the verb, you didn't conjugate it")
-//   • a different valid inflection of the same lemma → near (¡Casi!)
-//   • anything else → wrong (¡Uy!)
-// Reuses the existing near verdict + its existing FSRS rating — no new rating mapping. `isVerb`
-// from `inParadigm` is supplied by the caller (the pure conjugator) to keep this module I/O-free.
+// the stored lemma — which is the bug this fixes. Six checks, IN ORDER (the order matters):
+//   1. exact match to the target                       → exact     (¡Eso es!)
+//   2. accent-only miss of the target                  → near      (¡Casi! — right form, accent)
+//   3. the lemma (infinitive) typed                    → wrongForm (right verb, wrong form)
+//   4. a different valid inflection of the same verb   → wrongForm (right verb, wrong form)
+//   5. a genuine misspelling near-miss of the target   → near      (¡Casi! — N lettres près)
+//   6. anything else                                   → wrong     (¡Uy!)
+// Step 2 must precede 3/4 so a pure accent-drop of the RIGHT form (e.g. "estudio" for "estudió",
+// where "estudio" also exists in the paradigm) is credited as a near miss, not mislabeled
+// "wrong form". Step 4 must precede 5 so a real distinct inflection within 2 edits of the target
+// (crees→creías, distance 2) reads as "wrong form", not "2 lettres près". `inParadigm` is injected
+// by the caller (the pure conjugator) to keep this module I/O-free.
 export function classifyVerbBlank(params: {
   target: string
   lemma: string
@@ -71,17 +79,21 @@ export function classifyVerbBlank(params: {
   const distance = levenshtein(answer, target.toLowerCase())
   if (distance === 0) return { quality: 'exact', reason: 'exact', distance }
 
-  // The lemma typed instead of the conjugated form (accent-folded so "estudiar" matches).
-  if (fold(answer) === fold(lemma.toLowerCase())) {
-    return { quality: 'near', reason: 'lemma', distance }
-  }
-  // Existing accent/typo near-miss path against the target — unchanged.
-  if (distance <= 2 && target.length > 3) {
+  // 2. Accent-only miss of the target (right form, dropped/added accent).
+  if (fold(answer) === fold(target.toLowerCase())) {
     return { quality: 'near', reason: 'typo', distance }
   }
-  // A different valid inflection of the same verb.
+  // 3. The lemma (infinitive) typed instead of the conjugated form.
+  if (fold(answer) === fold(lemma.toLowerCase())) {
+    return { quality: 'wrongForm', reason: 'lemma', distance }
+  }
+  // 4. A different valid inflection of the same verb (before the generic typo branch).
   if (inParadigm(userAnswer)) {
-    return { quality: 'near', reason: 'inflection', distance }
+    return { quality: 'wrongForm', reason: 'inflection', distance }
+  }
+  // 5. A genuine misspelling near-miss of the target.
+  if (distance <= 2 && target.length > 3) {
+    return { quality: 'near', reason: 'typo', distance }
   }
   return { quality: 'wrong', reason: 'wrong', distance }
 }
@@ -128,6 +140,10 @@ export function computeRating(params: {
     if (quality === 'wrong') {
       rating = 1
       reason = 'Mauvaise réponse'
+    } else if (quality === 'wrongForm') {
+      // Right verb, wrong form — a lapse to review (À revoir), not "close".
+      rating = 1
+      reason = 'Bon verbe, mauvaise forme'
     } else if (quality === 'near' && speed === 'slow') {
       rating = 2
       reason = `Quasi correct · ${timeLabel(timeMs)}`

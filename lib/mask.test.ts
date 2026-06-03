@@ -50,6 +50,14 @@ describe('maskVerbSentence — paradigm-aware verb masking', () => {
   it('returns null when no paradigm token is present', () => {
     expect(maskVerbSentence('La casa es azul.', 'comer')).toBeNull()
   })
+
+  it('backfilled inflected-add (lemma=volver) now resolves a verb target', () => {
+    // Before the lemma backfill, verbLemma was the inflected word "volvíamos" (not conjugable)
+    // → null → verb path bypassed. With lemma="volver" the imperfecto form is masked + coordinated.
+    const r = maskVerbSentence('Antes volvíamos a casa caminando.', 'volver')
+    expect(r).not.toBeNull()
+    expect(r!.target).toMatchObject({ surface: 'volvíamos', tense: 'imperfecto', person: 'nosotros' })
+  })
 })
 
 describe('maskSentence — unchanged non-verb path', () => {
