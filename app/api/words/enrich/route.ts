@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { getWordData } from '@/lib/anthropic'
-import { contains, fuzzyMatch } from '@/lib/wordlist'
+import { checkSpelling } from '@/lib/wordlist'
 import { getAudioForWord } from '@/lib/tts'
 import { oneEmbed } from '@/lib/word-status'
 
@@ -73,10 +73,12 @@ export async function POST(request: Request) {
   }
 
   // Spellcheck — only runs on deck miss so existing entries are never blocked.
-  if (!contains(word)) {
-    const candidates = fuzzyMatch(word, 5)
-    if (candidates.length > 0) {
-      return Response.json({ error: 'SPELLCHECK_CANDIDATES', candidates }, { status: 422 })
+  // Token-aware: multi-word phrases pass iff every token is a known form (the
+  // wordlist is single-token, so a whole-string lookup always failed on phrases).
+  const spell = checkSpelling(word)
+  if (!spell.ok) {
+    if (spell.candidates.length > 0) {
+      return Response.json({ error: 'SPELLCHECK_CANDIDATES', candidates: spell.candidates }, { status: 422 })
     }
     return Response.json({ error: 'SPELLCHECK_UNKNOWN' }, { status: 422 })
   }

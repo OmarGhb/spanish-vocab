@@ -59,6 +59,37 @@ export function prefixMatch(query: string, limit = 5): string[] {
   return matches.slice(0, limit)
 }
 
+export type SpellResult = { ok: true } | { ok: false; candidates: string[] }
+
+/**
+ * Phrase-aware spellcheck gate. Single-token inputs behave exactly as before
+ * (`contains` → ok; else `fuzzyMatch`). Multi-token inputs (e.g. "te acuestas",
+ * "a menudo", "sin embargo") are checked PER TOKEN — the 656k Hunspell set holds
+ * only single tokens, so the old whole-string `contains` lookup failed on every
+ * phrase regardless of validity. A phrase passes iff every whitespace-separated
+ * token is a known form. On exactly one missing token, the fuzzy candidates are
+ * reconstructed into the full phrase (corrected token swapped in, the rest kept)
+ * so the caller surfaces a usable phrase, never a bare token. Two or more missing
+ * tokens → no candidate (SPELLCHECK_UNKNOWN).
+ */
+export function checkSpelling(input: string): SpellResult {
+  const tokens = input.trim().split(/\s+/)
+  const missing: number[] = []
+  for (let i = 0; i < tokens.length; i++) {
+    if (!contains(tokens[i])) missing.push(i)
+  }
+  if (missing.length === 0) return { ok: true }
+  if (missing.length > 1) return { ok: false, candidates: [] }
+
+  const i = missing[0]
+  const candidates = fuzzyMatch(tokens[i], 5).map((c) => {
+    const swapped = [...tokens]
+    swapped[i] = c
+    return swapped.join(' ')
+  })
+  return { ok: false, candidates }
+}
+
 export function fuzzyMatch(word: string, limit = 5): string[] {
   const q = word.toLowerCase()
   const threshold = q.length <= 4 ? 1 : 2
