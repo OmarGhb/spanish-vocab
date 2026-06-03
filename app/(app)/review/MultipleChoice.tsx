@@ -3,6 +3,7 @@
 import type React from 'react'
 import { useMemo, useState } from 'react'
 import { computeRating, type RatingResult } from '@/lib/rating'
+import { pickClozeExample, isVerbPos } from '@/lib/review-cloze'
 import type { ReviewCard } from './page'
 import RatingButtons from './RatingButtons'
 import ResultReveal from './ResultReveal'
@@ -44,6 +45,21 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
     | { type: 'example'; es: string; fr: string }
   >(() => {
     if (examples.length === 0) return { type: 'definition', es: definition.es, fr: definition.fr }
+
+    // Verb cards (v./v.pron.) must NEVER get the bare-definition cue — it shows the lemma's
+    // meaning + word options and structurally can't test the conjugated form. Force the cloze,
+    // masked via the SAME paradigm-aware path as écriture (maskVerbSentence → maskSentence
+    // fallback). The literal-word replace below silently failed for lemma-stored verbs (the
+    // infinitive isn't verbatim in form-matched examples → a blank-less cloze on ~24% of the
+    // real verb deck). Fall back to the definition cue only when no example can be masked at all
+    // (0/42 on the real deck; kept for robustness). Distractors are unchanged (stored, semantic).
+    if (isVerbPos(definition.pos)) {
+      const picked = pickClozeExample({ examples, word, id: card.id, lemma: card.lemma, pos: definition.pos })
+      if (picked) return { type: 'example', es: picked.masked, fr: picked.example.fr }
+      return { type: 'definition', es: definition.es, fr: definition.fr }
+    }
+
+    // Non-verb cards: unchanged seed%2 split + existing literal-word masking.
     const useExample = seed % 2 === 0
     if (!useExample) return { type: 'definition', es: definition.es, fr: definition.fr }
     const ex = examples[seed % examples.length]

@@ -10,7 +10,7 @@ import {
   type BlankReason,
   type RatingResult,
 } from '@/lib/rating'
-import { maskSentence, maskVerbSentence, type VerbTarget } from '@/lib/mask'
+import { pickClozeExample } from '@/lib/review-cloze'
 import { isInParadigm, unambiguousPerson } from '@/lib/conjugator'
 import { wordDiff, type DiffOp } from '@/lib/worddiff'
 import type { ReviewCard } from './page'
@@ -36,42 +36,6 @@ const QUALITY_TO_VERDICT: Record<BlankQuality, Verdict> = {
 }
 
 const WRONG_FORM_COPY = 'Tu connais le verbe — mais ce n’est pas la forme attendue ici'
-
-const isVerbPos = (pos?: string) => pos === 'v.' || pos === 'v.pron.'
-
-type Picked = {
-  example: { es: string; fr: string }
-  masked: string
-  // Verb cards: the blanked token's surface + coordinates (paradigm-aware masking). null for
-  // non-verbs and for the verb fallback to plain maskSentence.
-  target: VerbTarget | null
-}
-
-// Deterministic example selection (server + client agree — no hydration mismatch). For verb
-// cards, paradigm-aware masking blanks the contextually-correct conjugated form (M5.3a); the
-// plain stem-heuristic maskSentence is the fallback for non-verbs and unmatched verb sentences.
-function pickExample(card: ReviewCard): Picked | null {
-  const { examples, word, id, lemma, definition } = card
-  if (examples.length === 0) return null
-  const seed = parseInt(id.replace(/-/g, '').slice(0, 8), 16) || id.charCodeAt(0)
-  const start = seed % examples.length
-
-  if (isVerbPos(definition?.pos)) {
-    const verbLemma = lemma ?? word
-    for (let i = 0; i < examples.length; i++) {
-      const ex = examples[(start + i) % examples.length]
-      const vr = maskVerbSentence(ex.es, verbLemma)
-      if (vr) return { example: ex, masked: vr.masked, target: vr.target }
-    }
-  }
-
-  for (let i = 0; i < examples.length; i++) {
-    const ex = examples[(start + i) % examples.length]
-    const masked = maskSentence(ex.es, word)
-    if (masked !== null) return { example: ex, masked, target: null }
-  }
-  return null
-}
 
 // Typed answer with the differing letters marked. allDanger=true (close): whole answer in
 // danger, slipped letters underlined. allDanger=false (wrong): neutral, only wrong letters danger.
@@ -117,7 +81,9 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
   const { word, lemma, definition } = card
   const pos = definition?.pos
 
-  const [picked] = useState(() => pickExample(card))
+  const [picked] = useState(() =>
+    pickClozeExample({ examples: card.examples, word: card.word, id: card.id, lemma: card.lemma, pos: card.definition?.pos }),
+  )
   // The answer to grade against = the blanked token (the conjugated form) for verb cards,
   // else the stored word. This is the M5.3a fix: grade against the contextual form, not the lemma.
   const verbLemma = lemma ?? word
