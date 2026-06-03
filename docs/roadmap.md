@@ -69,13 +69,29 @@ The next committed milestones. Items in `docs/backlog.md` are deferred until pro
 - 10-word **sticky** unlock (`profiles.dictionary_unlocked`, never resets); flip via Server Action (prefetch-safe) → one-time confetti interstitial. Locked pill / Home card / `/dictionary` all show the locked state until then.
 - Resolved the open questions: `/dictionary` is the **A–Z of the user's own (memorized) deck**, and it **IS a 6th nav pill** (locked = dashed + lock glyph) — superseding "not one of the pills". (Detail in `PROJECT_STATE.md` → From M5.2b.)
 
+## Review rework ✅ (v0.5.6 + v0.6.0)
+- **v0.5.6 — slices 1–2:** review focus-mode (`FocusModeContext`; TopNav suppressed through the bilan); write-in mechanic (`AnswerBlank` — transparent input over an inline blank); three-verdict result card (¡Eso es! / ¡Casi! / ¡Uy!) with letter-level diff (`lib/worddiff.ts`); shared `ResultReveal` (MCQ reuses the Paco reveal); uniform rating-pill restyle; `--color-warm` token.
+- **v0.6.0 — slice 3 close:** bilan recap redesign (fixed vertical frame, scrolling word list, stats-above-list override, `--color-hair` token, staggered row reveal); **"Encore N" continues the session in place** (client-fetches the next due batch — the old `<Link href="/review">` served a stale Router-Cache page); QCM result-state aligned to the écriture card (canonical tint tokens, verdict-on-top, shared `RatingButtons` selection-fill beat).
+- Grading was extracted to `classifyBlankAnswer` in `lib/rating.ts` (shared by `computeRating` + the result card) — the seam M5.3a's verb grading extends. (Detail in `PROJECT_STATE.md` → review-rework sections.)
+
 ## M5.3 — Game modes + conjugation substrate
-- Multiple sessions
-- **OPENER: deterministic Spanish conjugator** (rule engine + irregular table), POS-gated to verbs via `definition.pos`. Library validated by Claude Code at plan time. **Not LLM-sourced** — same lesson as M3.2 (wordlist beat LLM), higher stakes (a wrong conjugation taught to a learner is real harm).
-- Inflection-tolerant matching built on the paradigm — the conjugation-mismatch fix lives here **in full** (no interim; M5.0d was dropped)
-- ④ "Astuce de Paco" morphology hint; **frame-5** lemma-interstitial conjugation table (the `comieron`→`comer` screen). **Frame 6 rejected** (reintroduces the M3.3 duplicate-fiche confusion).
-- Then one game mode: **verb-conjugation drill** (natural first, given the substrate)
-- Substrate feeds four things: this interstitial table, the ④ hint, the inflection fix, and the drill — one investment, four payoffs
+*Split into M5.3a/b/c. The conjugator is built once (M5.3a) and feeds four consumers across the three slices: the inflection-fix (a), the ④ Astuce hint + frame-5 table (b), and the verb drill (c).*
+
+### M5.3a — Conjugation substrate + fill-in-blank matching fix + in-question hint ✅ (this milestone)
+- **Deterministic hand-rolled conjugator** (`lib/conjugator.ts`, pure/unit-tested, client-safe). Library-vs-handrolled was demonstrated at plan time: `spanish-verbs` (RosaeNLG) **failed the battery** (no stem changes — `pedir→"pedo"`; no imperative/gerund/participle), `verbos` is CC-BY-NC. Hand-rolled passes 67 battery + regression tests. A2/B1 tense union; **not LLM-sourced** (M3.2 lesson, higher stakes).
+- **Paradigm-aware masking** (`maskVerbSentence`) blanks the contextually-correct conjugated form — fixes the lemma-vs-conjugation mismatch AND the dio/fue MC-gap (irregular stems the 4-char heuristic missed). `maskSentence` kept as non-verb + no-match fallback.
+- **5-branch verb grading** (`classifyVerbBlank`, POS-gated): target form → ¡Eso es!; lemma → ¡Casi!; other valid inflection → ¡Casi!; typo near-miss → ¡Casi!; else ¡Uy!. Reuses the existing ¡Casi! verdict + FSRS rating. Non-verb grading untouched.
+- **In-question hint**: blank → tap → `(lemma, person)`, tense withheld, lemma-only on ambiguous person. Coordinates **derived on the fly** (no stored data).
+- **Storage of {lemma,tense,person} DEFERRED to M5.3b** — derive is deterministic + self-healing and grading never reads stored coords; nothing to persist yet.
+- **Safety property:** M5.3a never DISPLAYS a generated conjugation (the answer shown is the real blanked token; the hint shows facts). So an untabled-irregular verb degrades verdict generosity, never miseducates.
+
+### M5.3b — Astuce de Paco + conjugation table (NOT YET BUILT)
+- ④ "Astuce de Paco" post-answer morphology hint; **frame-5** lemma-interstitial conjugation table (the `comieron`→`comer` screen). **Frame 6 rejected** (reintroduces M3.3 duplicate-fiche confusion).
+- **HARD REQUIREMENT (carried from M5.3a):** once the conjugator's output is DISPLAYED, it must **refuse to show a paradigm for an untabled/uncertain verb** rather than show a guessed one (the M5.3a "regular-rule fallback is OK because nothing is shown" property no longer holds once forms are displayed). Add an irregular-coverage guard / known-verb gate here.
+- May add the persisted `examples[].target = {lemma,tense,person}` field at enrich if the Astuce/table actually need it (deferred from M5.3a).
+
+### M5.3c — Verb-conjugation drill (NOT YET BUILT)
+- One game mode: **verb-conjugation drill** (natural first, given the substrate). Multiple sessions / session infra.
 
 ## M6 - App onboarding & login screen upgrade
 - App's first opening should trigger an onboarding with interactive steps showing how the app works.

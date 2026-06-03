@@ -30,7 +30,7 @@ async function fetchDueCards(): Promise<ReviewCard[]> {
   const supabase = createClient()
   const { data: rows } = await supabase
     .from('review_cards')
-    .select('*, words(word, definition, examples, distractors)')
+    .select('*, words(word, lemma, definition, examples, distractors)')
     .lte('due', new Date().toISOString())
     .order('due', { ascending: true })
     .limit(20)
@@ -38,6 +38,7 @@ async function fetchDueCards(): Promise<ReviewCard[]> {
   return (rows ?? []).map((row) => {
     const w = row.words as {
       word: string
+      lemma: string | null
       definition: { es: string; fr: string; pos?: string }
       examples: Array<{ es: string; fr: string }>
       distractors: string[]
@@ -55,6 +56,7 @@ async function fetchDueCards(): Promise<ReviewCard[]> {
       state: row.state as number,
       last_review: row.last_review as string | null,
       word: w.word,
+      lemma: w.lemma,
       definition: w.definition,
       examples: w.examples,
       distractors: w.distractors,

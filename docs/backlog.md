@@ -1,6 +1,6 @@
 # Paco — Backlog
 
-> The repo-canonical backlog (as of v0.5.4). Items here are not yet scheduled.
+> The repo-canonical backlog (as of v0.6.1 — M5.3a). Items here are not yet scheduled.
 > Committed work lives in `docs/roadmap.md`. When a backlog item is promoted to a milestone, it moves out of this file.
 
 ## Word list improvements
@@ -33,6 +33,7 @@
 - Rating button scan-speed check: amber single-hue gradation was introduced in v0.3.3 (replacing Anki-convention RGB). Worth a deliberate check after a few weeks of daily use — if review pace slows because the buttons are harder to distinguish at a glance, consider reverting to RGB or adding secondary visual cues (icons, position).
 
 ## Data hygiene
+- **Corrupted "beber" row — Cyrillic homoglyphs in the stored `word`.** Surfaced by the M5.3a diagnostic: one `beber` row stores the word as `bebер` (Latin `beb` + Cyrillic `е`/`р`), so the non-verb `maskSentence` exact/stem match silently failed and the card fell to MC. Harmless in M5.3a (the verb path masks on the clean `lemma`), but the stored `word` is wrong. Fix: re-save/re-enrich that row (or a one-off homoglyph sweep `[а-яёА-ЯЁ]` over `words.word`). Low urgency, single instance.
 - Clean up the duplicate "regañar" entries (specific instance — separate from generic M3 duplicate handling).
 - Backfill weak-example words from before M2.5 (soler, amanecer, others) — re-enrich to get richer definitions and examples.
 - Manual-add of a word currently `pending` in a discovery batch creates a duplicate entry — the filtered duplicate-check can't see pending rows. Folds under the generic duplicate-word handling.
