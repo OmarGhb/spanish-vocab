@@ -16,6 +16,7 @@ import { wordDiff, type DiffOp } from '@/lib/worddiff'
 import type { ReviewCard } from './page'
 import RatingButtons from './RatingButtons'
 import AnswerBlank from './AnswerBlank'
+import AccentBar from './AccentBar'
 import ResultReveal, { type Verdict } from './ResultReveal'
 
 type Props = {
@@ -193,6 +194,9 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
           )}
           {picked && <p className="mt-2 font-serif italic text-[13px] text-muted">{picked.example.fr}</p>}
         </div>
+
+        {/* Desktop-only accent row, tied to the blank above (null on touch). */}
+        <AccentBar inputRef={inputRef} value={answer} onChange={setAnswer} />
 
         <div className="flex gap-2">
           {!hintUsed ? (
