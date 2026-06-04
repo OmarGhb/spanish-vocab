@@ -60,6 +60,29 @@ describe('maskVerbSentence — paradigm-aware verb masking', () => {
   })
 })
 
+describe('maskVerbSentence — accent-homograph denylist (#2)', () => {
+  it('does NOT mask the preposition "de" (dé→de); masks the real verb "dio" instead', () => {
+    const r = maskVerbSentence('Esa película de terror me dio tanto miedo que no dormí.', 'dar')
+    expect(r).not.toBeNull()
+    expect(r!.target.surface).toBe('dio')
+    expect(r!.masked).toBe('Esa película de terror me ' + BLANK + ' tanto miedo que no dormí.')
+  })
+
+  it('still masks an accent-EXACT form that is not a function word (está)', () => {
+    const r = maskVerbSentence('La tienda está cerrada hoy.', 'estar')
+    expect(r!.target.surface).toBe('está')
+  })
+
+  it('skips the demonstrative "esta" (esta→está) and declines when no real form is present', () => {
+    expect(maskVerbSentence('Esta casa es azul.', 'estar')).toBeNull()
+  })
+
+  it('does NOT mask the clitic/pronoun "se" via saber\'s "sé" (sé→se)', () => {
+    // "se" is the impersonal pronoun here; the only paradigm fold is saber's "sé".
+    expect(maskVerbSentence('Aquí no se permite fumar.', 'saber')).toBeNull()
+  })
+})
+
 describe('maskSentence — unchanged non-verb path', () => {
   it('exact case-insensitive match', () => {
     expect(maskSentence('El mercado está cerrado.', 'mercado')).toBe(`El ${BLANK} está cerrado.`)

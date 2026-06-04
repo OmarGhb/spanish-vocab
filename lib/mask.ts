@@ -4,6 +4,16 @@ export const BLANK = '_____'
 
 export type VerbTarget = { surface: string; tense: Tense; person: Person | null }
 
+// Function words a paradigm form accent-folds onto (dé→de, sé→se, está→esta, estás→estas, él→el,
+// té→te, mí→mi, tú→tu, sí→si, más→mas, aún→aun, sólo→solo). When a sentence token matches the
+// paradigm ONLY via accent-folding and the bare token is one of these, it's the function word,
+// not the verb — so the masker must skip it (require an accent-EXACT hit for these) and keep
+// scanning for the genuine verb form. Without this, e.g. dar masks the preposition "de" in
+// "…película de terror me dio…" instead of "dio". Affects écriture too (no cue-gate there).
+const HOMOGRAPH_DENYLIST = new Set([
+  'de', 'se', 'el', 'te', 'mi', 'tu', 'si', 'mas', 'esta', 'estas', 'aun', 'solo',
+])
+
 /**
  * Verb-aware masking (M5.3a). Blanks the first sentence token that is a member of `lemma`'s
  * conjugation paradigm — so it masks the *contextually-correct conjugated form* actually in the
@@ -37,7 +47,14 @@ export function maskVerbSentence(sentence: string, lemma: string): { masked: str
     // Strip leading/trailing punctuation (¿¡"«» . , ; : ! ? …) for the membership test.
     const bare = tokens[i].replace(/^[^\p{L}]+|[^\p{L}]+$/gu, '')
     if (!bare) continue
-    const hit = exact.get(bare.toLowerCase()) ?? folded.get(normalize(bare))
+    const lower = bare.toLowerCase()
+    // Never select a function-word homograph as the verb form. The denylist holds the UNACCENTED
+    // function words (de/se/esta…); the accented verb forms (dé/está/estás…) are not in it, so a
+    // genuine accented form in the sentence still masks. This also guards the conjugator's
+    // unaccented usted-imperative table entries ("de"/"esta") — which sit in the exact map and
+    // would otherwise blank the preposition/demonstrative (e.g. dar masking "de" in "…de terror…").
+    if (HOMOGRAPH_DENYLIST.has(lower)) continue
+    const hit = exact.get(lower) ?? folded.get(normalize(bare))
     if (hit) {
       const masked = tokens.map((t, j) => (j === i ? t.replace(bare, BLANK) : t)).join(' ')
       return { masked, target: { surface: bare, tense: hit.tense, person: hit.person } }
