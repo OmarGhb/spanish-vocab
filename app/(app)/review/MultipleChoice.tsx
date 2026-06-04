@@ -44,22 +44,28 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
     | { type: 'definition'; es: string; fr: string }
     | { type: 'example'; es: string; fr: string }
   >(() => {
-    // Verb cards reuse the paradigm-aware mask (same path as écriture); non-verbs don't need it.
-    const picked = isVerbPos(definition.pos)
+    const isVerb = isVerbPos(definition.pos)
+
+    // Cue decision uses a reps-INDEPENDENT pick so the FORMAT never changes across reviews — only
+    // the example does (#3 non-goal). chooseQcmCue is a PURE, unit-tested helper (locked because the
+    // inline version regressed): a verb gets the cloze ONLY when stored in the example's form, so
+    // the blank and the options agree; infinitive-stored verbs fall to the lemma-level
+    // definition-MCQ until conjugated distractors land (M5.3c).
+    const pickedForCue = isVerb
       ? pickClozeExample({ examples, word, id: card.id, lemma: card.lemma, pos: definition.pos })
       : null
-
-    // Cue decision is a PURE, unit-tested helper (chooseQcmCue) — locked because the inline
-    // version regressed: a verb gets the cloze ONLY when stored in the example's form, so the
-    // blank and the infinitive options agree. Infinitive-stored verbs (blank is a conjugation)
-    // fall to the lemma-level definition-MCQ until conjugated distractors land (M5.3c).
-    if (chooseQcmCue(card, picked, seed) === 'definition') {
+    if (chooseQcmCue(card, pickedForCue, seed) === 'definition') {
       return { type: 'definition', es: definition.es, fr: definition.fr }
     }
 
-    // Cloze cue. Verb path: the paradigm-aware masked sentence. Non-verb path: the existing
-    // literal-word replace (unchanged).
-    if (picked) return { type: 'example', es: picked.masked, fr: picked.example.fr }
+    // Cloze cue. Verb path: paradigm-aware mask, example rotated by reps. Non-verb path: the
+    // existing literal-word replace (unchanged — not part of the maskable-rotation scope).
+    if (isVerb) {
+      const picked =
+        pickClozeExample({ examples, word, id: card.id, lemma: card.lemma, pos: definition.pos, reps: card.reps }) ??
+        pickedForCue!
+      return { type: 'example', es: picked.masked, fr: picked.example.fr }
+    }
     const ex = examples[seed % examples.length]
     const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     return { type: 'example', es: ex.es.replace(new RegExp(escaped, 'i'), '_____'), fr: ex.fr }

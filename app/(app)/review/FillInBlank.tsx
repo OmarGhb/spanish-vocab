@@ -81,7 +81,14 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
   const { word, lemma, definition } = card
 
   const [picked] = useState(() =>
-    pickClozeExample({ examples: card.examples, word: card.word, id: card.id, lemma: card.lemma, pos: card.definition?.pos }),
+    pickClozeExample({
+      examples: card.examples,
+      word: card.word,
+      id: card.id,
+      lemma: card.lemma,
+      pos: card.definition?.pos,
+      reps: card.reps, // rotate the example among the maskable ones across reviews (#3)
+    }),
   )
   // The answer to grade against = the blanked token (the conjugated form) for verb cards,
   // else the stored word. This is the M5.3a fix: grade against the contextual form, not the lemma.

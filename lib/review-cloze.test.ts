@@ -126,6 +126,35 @@ describe('pickClozeExample — proclitic reflexive (#1)', () => {
   })
 })
 
+describe('pickClozeExample — reps rotation (#3)', () => {
+  // id0 → start 0. Maskable examples (contain "atardecer"), in stable order: [a, c]; b is skipped.
+  const exs = [
+    { es: 'Vimos el atardecer en la playa.', fr: 'a' },
+    { es: 'No hay nada que ver aquí.', fr: 'b' }, // not maskable
+    { es: 'Otro atardecer naranja sobre el mar.', fr: 'c' },
+  ]
+  const pick = (reps: number) =>
+    pickClozeExample({ examples: exs, word: 'atardecer', id: id0, lemma: null, pos: 'n.m.', reps })
+
+  it('cycles among the MASKABLE examples by reps (skipping unmaskable ones)', () => {
+    expect(pick(0)!.example.fr).toBe('a')
+    expect(pick(1)!.example.fr).toBe('c')
+    expect(pick(2)!.example.fr).toBe('a') // wraps (2 maskable)
+    expect(pick(3)!.example.fr).toBe('c')
+  })
+
+  it('reps omitted → defaults to the first maskable (no rotation)', () => {
+    expect(pickClozeExample({ examples: exs, word: 'atardecer', id: id0, lemma: null, pos: 'n.m.' })!.example.fr).toBe('a')
+  })
+
+  it('a single maskable example → no rotation regardless of reps', () => {
+    const one = [{ es: 'Vimos el atardecer.', fr: 'x' }, { es: 'Nada aquí.', fr: 'y' }]
+    for (const reps of [0, 1, 5, 99]) {
+      expect(pickClozeExample({ examples: one, word: 'atardecer', id: id0, lemma: null, pos: 'n.m.', reps })!.example.fr).toBe('x')
+    }
+  })
+})
+
 describe('chooseQcmCue', () => {
   const ex = [{ es: 'frase', fr: 'phrase' }]
   const cloze = (surface: string): ClozeExample => ({

@@ -22,6 +22,9 @@ export type ClozeInput = {
   id: string
   lemma: string | null
   pos?: string
+  // ts-fsrs review count — rotates the chosen example among the MASKABLE ones across reviews so a
+  // card doesn't fix on its first form forever. Optional (default 0 = no rotation / first maskable).
+  reps?: number
 }
 
 /**
@@ -32,15 +35,16 @@ export type ClozeInput = {
  * when there is no example or no example can be masked at all — the caller then falls back (MC for
  * FillInBlank; the definition cue for MultipleChoice).
  */
-export function pickClozeExample({ examples, word, id, lemma, pos }: ClozeInput): ClozeExample | null {
+export function pickClozeExample({ examples, word, id, lemma, pos, reps = 0 }: ClozeInput): ClozeExample | null {
   if (examples.length === 0) return null
   const seed = parseInt(id.replace(/-/g, '').slice(0, 8), 16) || id.charCodeAt(0)
   const start = seed % examples.length
+  const verbLemma = lemma ?? word
+  const verb = isVerbPos(pos)
 
-  if (isVerbPos(pos)) {
-    const verbLemma = lemma ?? word
-    for (let i = 0; i < examples.length; i++) {
-      const ex = examples[(start + i) % examples.length]
+  // Mask a single example under the card's path, or null if it can't be masked.
+  const maskOne = (ex: { es: string; fr: string }): ClozeExample | null => {
+    if (verb) {
       // Proclitic-reflexive stored words ("te levantas") mask the full clitic+verb unit so the
       // blank == the stored word + full-reflexive options. Falls through (null) for non-reflexive
       // words and legacy lemma-null cards → existing verb masking.
@@ -49,14 +53,22 @@ export function pickClozeExample({ examples, word, id, lemma, pos }: ClozeInput)
       const vr = maskVerbSentence(ex.es, verbLemma)
       if (vr) return { example: ex, masked: vr.masked, target: vr.target }
     }
-  }
-
-  for (let i = 0; i < examples.length; i++) {
-    const ex = examples[(start + i) % examples.length]
     const masked = maskSentence(ex.es, word)
     if (masked !== null) return { example: ex, masked, target: null }
+    return null
   }
-  return null
+
+  // UUID-stable ordering, then rotate among the MASKABLE examples by reps so a card cycles its
+  // usable forms across reviews instead of fixing on the first. reps is constant during a single
+  // review (determinism preserved); 1 maskable example → no rotation. Format selection
+  // (chooseMode / chooseQcmCue) does NOT read reps — only the example does.
+  const maskable: ClozeExample[] = []
+  for (let i = 0; i < examples.length; i++) {
+    const r = maskOne(examples[(start + i) % examples.length])
+    if (r) maskable.push(r)
+  }
+  if (maskable.length === 0) return null
+  return maskable[reps % maskable.length]
 }
 
 export type QcmCue = 'cloze' | 'definition'
