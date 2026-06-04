@@ -63,6 +63,55 @@ export function maskVerbSentence(sentence: string, lemma: string): { masked: str
   return null
 }
 
+const REFLEX_CLITICS = new Set(['me', 'te', 'se', 'nos', 'os'])
+
+/**
+ * Clitic-aware masking for a proclitic-reflexive STORED word ("te levantas"). The conjugator's
+ * paradigm yields the BARE verb form ("levantas"), so plain maskVerbSentence masks only the verb,
+ * leaving target.surface ("levantas") ≠ the stored word ("te levantas") → chooseQcmCue routes the
+ * card to definition-MCQ (lemma-def + tú-form options — the reflexive complaint). Here we mask the
+ * full "clitic + verb" UNIT and set target.surface to the stored form, so the cloze blank equals
+ * the word and the (full-reflexive) distractor options → coherent cloze-MCQ; écriture blanks the
+ * full unit too. Reuses the homograph-hardened maskVerbSentence to locate the verb + its
+ * {tense, person}; `lemma` is passed RAW (paradigm/isConjugable strip -se internally — no manual
+ * strip, conjugator untouched). Returns null when `word` is not a proclitic reflexive, or the verb
+ * can't be located (legacy lemma-null cards before backfill → graceful: caller falls back and the
+ * card simply stays definition-MCQ, so there's no broken window before the lemma backfill).
+ */
+export function maskProcliticReflexive(
+  sentence: string,
+  word: string,
+  lemma: string,
+): { masked: string; target: VerbTarget } | null {
+  const m = word.trim().match(/^(me|te|se|nos|os)\s+(\S+)$/iu)
+  if (!m) return null
+  const verbN = normalize(m[2])
+
+  // Locate the finite verb + coordinates via the (#2-hardened) verb masker. The clitic "te"/"se"
+  // is denylisted there, so it is never chosen AS the verb — only the verb token is, which is
+  // exactly what we extend leftward below. That is the #1 × #2 composition.
+  const vr = maskVerbSentence(sentence, lemma)
+  if (!vr || normalize(vr.target.surface) !== verbN) return null
+
+  const tokens = sentence.split(/\s+/)
+  for (let i = 1; i < tokens.length; i++) {
+    const bare = tokens[i].replace(/^[^\p{L}]+|[^\p{L}]+$/gu, '')
+    if (normalize(bare) !== normalize(vr.target.surface)) continue
+    if (!REFLEX_CLITICS.has(tokens[i - 1].toLowerCase())) return null
+    // Drop the clitic token (i-1) and blank the verb token (i) → one unit.
+    const out: string[] = []
+    for (let j = 0; j < tokens.length; j++) {
+      if (j === i - 1) continue
+      out.push(j === i ? tokens[j].replace(bare, BLANK) : tokens[j])
+    }
+    return {
+      masked: out.join(' '),
+      target: { surface: `${tokens[i - 1]} ${bare}`, tense: vr.target.tense, person: vr.target.person },
+    }
+  }
+  return null
+}
+
 /**
  * Attempts to mask the target word in a Spanish example sentence (non-verb path + verb fallback).
  *

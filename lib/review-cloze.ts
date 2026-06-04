@@ -1,4 +1,4 @@
-import { maskVerbSentence, maskSentence, type VerbTarget } from './mask'
+import { maskVerbSentence, maskSentence, maskProcliticReflexive, type VerbTarget } from './mask'
 import { normalize } from './conjugator'
 
 // Pure, client-safe (no server-only, no Next/Supabase) — runs in the client review
@@ -41,6 +41,11 @@ export function pickClozeExample({ examples, word, id, lemma, pos }: ClozeInput)
     const verbLemma = lemma ?? word
     for (let i = 0; i < examples.length; i++) {
       const ex = examples[(start + i) % examples.length]
+      // Proclitic-reflexive stored words ("te levantas") mask the full clitic+verb unit so the
+      // blank == the stored word + full-reflexive options. Falls through (null) for non-reflexive
+      // words and legacy lemma-null cards → existing verb masking.
+      const rr = maskProcliticReflexive(ex.es, word, verbLemma)
+      if (rr) return { example: ex, masked: rr.masked, target: rr.target }
       const vr = maskVerbSentence(ex.es, verbLemma)
       if (vr) return { example: ex, masked: vr.masked, target: vr.target }
     }

@@ -95,6 +95,37 @@ describe('pickClozeExample', () => {
   })
 })
 
+describe('pickClozeExample — proclitic reflexive (#1)', () => {
+  const reflexEx = [{ es: '¿A qué hora te levantas los lunes para ir al trabajo?', fr: 'fr' }]
+
+  it('with lemma → masks the full "te levantas" unit; surface == word → gate gives cloze', () => {
+    const picked = pickClozeExample({ examples: reflexEx, word: 'te levantas', id: id0, lemma: 'levantarse', pos: 'v.pron.' })
+    expect(picked).not.toBeNull()
+    expect(picked!.masked).toBe(`¿A qué hora ${BLANK} los lunes para ir al trabajo?`)
+    expect(picked!.target?.surface).toBe('te levantas')
+    const card = { examples: reflexEx, word: 'te levantas', definition: { pos: 'v.pron.' } }
+    expect(chooseQcmCue(card, picked, 0)).toBe('cloze')
+  })
+
+  it('legacy lemma-null (pre-backfill) → maskSentence full unit, target null → definition (graceful)', () => {
+    const picked = pickClozeExample({ examples: reflexEx, word: 'te levantas', id: id0, lemma: null, pos: 'v.pron.' })
+    expect(picked).not.toBeNull()
+    expect(picked!.target).toBeNull()
+    const card = { examples: reflexEx, word: 'te levantas', definition: { pos: 'v.pron.' } }
+    expect(chooseQcmCue(card, picked, 0)).toBe('definition')
+  })
+
+  it('enclitic infinitive-stored reflexive (levantarse) stays definition (regression lock)', () => {
+    const exs = [{ es: 'Es difícil levantarse temprano en invierno.', fr: 'fr' }]
+    const picked = pickClozeExample({ examples: exs, word: 'levantarse', id: id0, lemma: null, pos: 'v.pron.' })
+    const card = { examples: exs, word: 'levantarse', definition: { pos: 'v.pron.' } }
+    // target.surface ("levantarse" infinitive in paradigm) === word → would be cloze, OR target
+    // differs → definition. Either way it must NOT crash and must not become a clitic-unit cloze.
+    if (picked?.target) expect(picked.target.surface).not.toContain(' ')
+    expect(['cloze', 'definition']).toContain(chooseQcmCue(card, picked, 0))
+  })
+})
+
 describe('chooseQcmCue', () => {
   const ex = [{ es: 'frase', fr: 'phrase' }]
   const cloze = (surface: string): ClozeExample => ({

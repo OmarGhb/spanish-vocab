@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { maskSentence, maskVerbSentence, BLANK } from './mask'
+import { maskSentence, maskVerbSentence, maskProcliticReflexive, BLANK } from './mask'
 
 describe('maskVerbSentence — paradigm-aware verb masking', () => {
   it('blanks the conjugated form and recovers coordinates', () => {
@@ -80,6 +80,56 @@ describe('maskVerbSentence — accent-homograph denylist (#2)', () => {
   it('does NOT mask the clitic/pronoun "se" via saber\'s "sé" (sé→se)', () => {
     // "se" is the impersonal pronoun here; the only paradigm fold is saber's "sé".
     expect(maskVerbSentence('Aquí no se permite fumar.', 'saber')).toBeNull()
+  })
+})
+
+describe('maskProcliticReflexive — clitic-aware masking (#1)', () => {
+  it('masks the full "te + verb" unit and sets surface to the stored form', () => {
+    const r = maskProcliticReflexive(
+      '¿A qué hora te levantas los lunes para ir al trabajo?',
+      'te levantas',
+      'levantarse',
+    )
+    expect(r).not.toBeNull()
+    expect(r!.masked).toBe(`¿A qué hora ${BLANK} los lunes para ir al trabajo?`)
+    expect(r!.target).toMatchObject({ surface: 'te levantas', tense: 'presente', person: 'tú' })
+  })
+
+  it('masks a "se + verb" unit (3rd person reflexive)', () => {
+    const r = maskProcliticReflexive('Mi hermano se levanta muy temprano.', 'se levanta', 'levantarse')
+    expect(r!.masked).toBe(`Mi hermano ${BLANK} muy temprano.`)
+    expect(r!.target.surface).toBe('se levanta')
+  })
+
+  it('lemma passed RAW handles an o→ue stem-changer (dormirse → duermes)', () => {
+    // Proves Claim 1: the -se lemma is passed raw (paradigm strips internally) AND a stem-change
+    // verb resolves — "duermes" is in dormirse's paradigm.
+    const r = maskProcliticReflexive('Siempre te duermes en el sofá por la noche.', 'te duermes', 'dormirse')
+    expect(r).not.toBeNull()
+    expect(r!.target.surface).toBe('te duermes')
+  })
+
+  it('declines for an e→ie verb the conjugator lacks (sentarse → sientas) — known coverage gap', () => {
+    // The conjugator does NOT have sentar as an e→ie present stem-changer, so "sientas" is not in
+    // its paradigm → the verb is not located → null → "te sientas" stays definition-MCQ (graceful,
+    // no regression). Locked so a future conjugator fix flips this deliberately. (v0.6.x backlog.)
+    expect(maskProcliticReflexive('¿Por qué siempre te sientas al fondo?', 'te sientas', 'sentarse')).toBeNull()
+  })
+
+  it('declines for a non-proclitic word (returns null → caller falls back)', () => {
+    expect(maskProcliticReflexive('Esta tarde estudiamos mucho.', 'estudiamos', 'estudiar')).toBeNull()
+  })
+
+  it('declines gracefully when the lemma is non-conjugable (legacy lemma-null before backfill)', () => {
+    // verbLemma = the stored word itself ("te levantas"); maskVerbSentence declines → null.
+    expect(
+      maskProcliticReflexive('¿A qué hora te levantas?', 'te levantas', 'te levantas'),
+    ).toBeNull()
+  })
+
+  it('declines when the clitic is absent before the verb in the sentence', () => {
+    // Sentence uses a different person ("se levanta") than the stored proclitic word ("te levantas").
+    expect(maskProcliticReflexive('Ella se levanta tarde.', 'te levantas', 'levantarse')).toBeNull()
   })
 })
 
