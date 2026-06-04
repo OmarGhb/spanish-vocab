@@ -68,7 +68,15 @@ export function pickClozeExample({ examples, word, id, lemma, pos, reps = 0 }: C
     if (r) maskable.push(r)
   }
   if (maskable.length === 0) return null
-  return maskable[reps % maskable.length]
+
+  // Prefer examples whose masked form IS the stored word — a COHERENT cloze (chooseQcmCue's gate),
+  // so a card with a mixed example set (e.g. "te duermes" alongside a "me dormiría" sentence) masks
+  // its own form, not a different paradigm member that would mis-route it to definition-MCQ.
+  // Infinitive-stored verbs have no coherent example → pool = maskable → definition (unchanged).
+  // reps then rotates WITHIN the chosen pool (the #3 spec should have read "coherent-maskable").
+  const coherent = maskable.filter((m) => m.target && normalize(m.target.surface) === normalize(word))
+  const pool = coherent.length > 0 ? coherent : maskable
+  return pool[reps % pool.length]
 }
 
 export type QcmCue = 'cloze' | 'definition'

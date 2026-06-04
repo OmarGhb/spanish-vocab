@@ -126,6 +126,38 @@ describe('pickClozeExample — proclitic reflexive (#1)', () => {
   })
 })
 
+describe('pickClozeExample — prefer the coherent (stored-in-form) example (#5)', () => {
+  // "te duermes" shape: a non-coherent "me dormiría" sentence sits where the seed lands first,
+  // plus two coherent "te duermes" sentences. id0 → start 0.
+  const exs = [
+    { es: 'Siempre te duermes en el sofá por la noche.', fr: 'A' }, // coherent → "te duermes"
+    { es: 'Yo me dormiría en cinco minutos con ese ruido.', fr: 'B' }, // non-coherent → "dormiría"
+    { es: 'Si te duermes ahora, no dormirás luego.', fr: 'C' }, // coherent → "te duermes"
+  ]
+  const pick = (reps: number) =>
+    pickClozeExample({ examples: exs, word: 'te duermes', id: id0, lemma: 'dormirse', pos: 'v.pron.', reps })
+
+  it('prefers a coherent example (surface == word) over a same-card non-matching form', () => {
+    const p = pick(0)
+    expect(p!.target?.surface).toBe('te duermes')
+    expect(['A', 'C']).toContain(p!.example.fr)
+  })
+
+  it('rotation stays WITHIN the coherent pool — never the non-coherent "me dormiría"', () => {
+    for (const reps of [0, 1, 2, 3, 4]) {
+      const p = pick(reps)
+      expect(p!.target?.surface).toBe('te duermes')
+      expect(p!.example.fr).not.toBe('B') // the "dormiría" example is never chosen
+    }
+  })
+
+  it('infinitive-stored verb (no coherent example) is unchanged → definition-routed form', () => {
+    const ex = [{ es: 'El árbol creció muy rápido este año.', fr: 'x' }]
+    const p = pickClozeExample({ examples: ex, word: 'crecer', id: id0, lemma: null, pos: 'v.', reps: 0 })
+    expect(p!.target?.surface).toBe('creció') // ≠ "crecer" → chooseQcmCue gives definition
+  })
+})
+
 describe('pickClozeExample — reps rotation (#3)', () => {
   // id0 → start 0. Maskable examples (contain "atardecer"), in stable order: [a, c]; b is skipped.
   const exs = [
