@@ -1,4 +1,5 @@
 import { maskVerbSentence, maskSentence, type VerbTarget } from './mask'
+import { normalize } from './conjugator'
 
 // Pure, client-safe (no server-only, no Next/Supabase) — runs in the client review
 // components. Single source of truth for "which example becomes the cloze, and how it
@@ -51,4 +52,34 @@ export function pickClozeExample({ examples, word, id, lemma, pos }: ClozeInput)
     if (masked !== null) return { example: ex, masked, target: null }
   }
   return null
+}
+
+export type QcmCue = 'cloze' | 'definition'
+
+/**
+ * Decides the QCM cue type for a card. Pure — no I/O, no React. Locked by unit tests because an
+ * inline, untested version of this regressed (commit 2e858f0 routed infinitive-stored verbs to a
+ * cloze whose blank is a conjugation while the options are infinitives — incoherent).
+ *
+ * - No example → 'definition' (only option).
+ * - Verb (v./v.pron.): 'cloze' ONLY when the card is stored in the example's form — the masked
+ *   blank and the word/distractor options are then the same morphological form
+ *   (normalize(target.surface) === normalize(word)). Otherwise (infinitive-stored verb whose blank
+ *   is a conjugation ≠ the stored infinitive, or no paradigm token matched → target null) →
+ *   'definition', coherent at the lemma level. Form-test MCQ for infinitive cards needs conjugated
+ *   distractors → M5.3c.
+ * - Non-verb: unchanged seed%2 split (the existing literal-word cloze is built by the caller).
+ */
+export function chooseQcmCue(
+  card: { examples: Array<{ es: string; fr: string }>; word: string; definition: { pos?: string } },
+  picked: ClozeExample | null,
+  seed: number,
+): QcmCue {
+  if (card.examples.length === 0) return 'definition'
+  if (isVerbPos(card.definition.pos)) {
+    return picked?.target && normalize(picked.target.surface) === normalize(card.word)
+      ? 'cloze'
+      : 'definition'
+  }
+  return seed % 2 === 0 ? 'cloze' : 'definition'
 }

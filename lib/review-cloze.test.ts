@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { pickClozeExample, isVerbPos } from './review-cloze'
+import { pickClozeExample, isVerbPos, chooseQcmCue, type ClozeExample } from './review-cloze'
 import { BLANK } from './mask'
 
 // seed = parseInt('00000000', 16) = 0 → start at examples[0].
@@ -92,5 +92,53 @@ describe('pickClozeExample', () => {
     const b = pickClozeExample({ examples, word: 'atardecer', id: id0, lemma: null, pos: 'n.m.' })
     expect(a!.example.fr).toBe('a')
     expect(b!.example.fr).toBe('a')
+  })
+})
+
+describe('chooseQcmCue', () => {
+  const ex = [{ es: 'frase', fr: 'phrase' }]
+  const cloze = (surface: string): ClozeExample => ({
+    example: ex[0],
+    masked: `... ${BLANK} ...`,
+    target: { surface, tense: 'presente', person: 'yo' },
+  })
+
+  it('no example → definition (only option)', () => {
+    const card = { examples: [], word: 'crecer', definition: { pos: 'v.' } }
+    expect(chooseQcmCue(card, null, 0)).toBe('definition')
+  })
+
+  it('verb stored in the example form (target == word) → cloze', () => {
+    const card = { examples: ex, word: 'estudiamos', definition: { pos: 'v.' } }
+    expect(chooseQcmCue(card, cloze('estudiamos'), 0)).toBe('cloze')
+  })
+
+  it('verb stored in form — accent-tolerant match (volvíamos) → cloze', () => {
+    const card = { examples: ex, word: 'volvíamos', definition: { pos: 'v.' } }
+    expect(chooseQcmCue(card, cloze('volvíamos'), 1)).toBe('cloze')
+  })
+
+  it('infinitive-stored verb (blank is a conjugation ≠ stored word) → definition', () => {
+    const card = { examples: ex, word: 'crecer', definition: { pos: 'v.' } }
+    expect(chooseQcmCue(card, cloze('creció'), 0)).toBe('definition')
+  })
+
+  it('verb with target null (gerund/participle-stored, no paradigm match) → definition', () => {
+    const card = { examples: ex, word: 'saltando', definition: { pos: 'v.' } }
+    const picked: ClozeExample = { example: ex[0], masked: `... ${BLANK} ...`, target: null }
+    expect(chooseQcmCue(card, picked, 0)).toBe('definition')
+  })
+
+  it('verb with no maskable example (picked null) → definition', () => {
+    const card = { examples: ex, word: 'crecer', definition: { pos: 'v.' } }
+    expect(chooseQcmCue(card, null, 0)).toBe('definition')
+  })
+
+  it('non-verb → existing seed%2 split (even = cloze, odd = definition); picked ignored', () => {
+    const card = { examples: ex, word: 'mercado', definition: { pos: 'n.m.' } }
+    expect(chooseQcmCue(card, null, 0)).toBe('cloze')
+    expect(chooseQcmCue(card, null, 2)).toBe('cloze')
+    expect(chooseQcmCue(card, null, 1)).toBe('definition')
+    expect(chooseQcmCue(card, null, 3)).toBe('definition')
   })
 })

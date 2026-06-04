@@ -3,7 +3,7 @@
 import type React from 'react'
 import { useMemo, useState } from 'react'
 import { computeRating, type RatingResult } from '@/lib/rating'
-import { pickClozeExample, isVerbPos } from '@/lib/review-cloze'
+import { pickClozeExample, isVerbPos, chooseQcmCue } from '@/lib/review-cloze'
 import type { ReviewCard } from './page'
 import RatingButtons from './RatingButtons'
 import ResultReveal from './ResultReveal'
@@ -44,24 +44,22 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
     | { type: 'definition'; es: string; fr: string }
     | { type: 'example'; es: string; fr: string }
   >(() => {
-    if (examples.length === 0) return { type: 'definition', es: definition.es, fr: definition.fr }
+    // Verb cards reuse the paradigm-aware mask (same path as écriture); non-verbs don't need it.
+    const picked = isVerbPos(definition.pos)
+      ? pickClozeExample({ examples, word, id: card.id, lemma: card.lemma, pos: definition.pos })
+      : null
 
-    // Verb cards (v./v.pron.) must NEVER get the bare-definition cue — it shows the lemma's
-    // meaning + word options and structurally can't test the conjugated form. Force the cloze,
-    // masked via the SAME paradigm-aware path as écriture (maskVerbSentence → maskSentence
-    // fallback). The literal-word replace below silently failed for lemma-stored verbs (the
-    // infinitive isn't verbatim in form-matched examples → a blank-less cloze on ~24% of the
-    // real verb deck). Fall back to the definition cue only when no example can be masked at all
-    // (0/42 on the real deck; kept for robustness). Distractors are unchanged (stored, semantic).
-    if (isVerbPos(definition.pos)) {
-      const picked = pickClozeExample({ examples, word, id: card.id, lemma: card.lemma, pos: definition.pos })
-      if (picked) return { type: 'example', es: picked.masked, fr: picked.example.fr }
+    // Cue decision is a PURE, unit-tested helper (chooseQcmCue) — locked because the inline
+    // version regressed: a verb gets the cloze ONLY when stored in the example's form, so the
+    // blank and the infinitive options agree. Infinitive-stored verbs (blank is a conjugation)
+    // fall to the lemma-level definition-MCQ until conjugated distractors land (M5.3c).
+    if (chooseQcmCue(card, picked, seed) === 'definition') {
       return { type: 'definition', es: definition.es, fr: definition.fr }
     }
 
-    // Non-verb cards: unchanged seed%2 split + existing literal-word masking.
-    const useExample = seed % 2 === 0
-    if (!useExample) return { type: 'definition', es: definition.es, fr: definition.fr }
+    // Cloze cue. Verb path: the paradigm-aware masked sentence. Non-verb path: the existing
+    // literal-word replace (unchanged).
+    if (picked) return { type: 'example', es: picked.masked, fr: picked.example.fr }
     const ex = examples[seed % examples.length]
     const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     return { type: 'example', es: ex.es.replace(new RegExp(escaped, 'i'), '_____'), fr: ex.fr }
