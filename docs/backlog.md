@@ -57,6 +57,13 @@
 - Vercel URL rename (currently spanish-vocab-lyart.vercel.app — could become paco.vercel.app or similar)
 - GitHub repo rename (currently spanish-vocab → paco)
 
+## Conjugator audit (M5.3c hardening gate)
+
+> Surfaced during v0.6.3. The conjugator's correctness was **non-load-bearing** through v0.6.3 (nothing displays a generated form — `maskVerbSentence` only *locates* the real Anthropic-authored token, and the #2 denylist *skips* uncertain ones). **M5.3c makes generated forms user-facing** (drill prompts + wrong-FORM distractors), so these must be fixed (and a "refuse to display untabled/uncertain forms" guard added) BEFORE M5.3c ships — they are the leading edge of a conjugator stem-changer/irregular audit, not loose bugs. See the M5.3c gate in `roadmap.md`.
+
+- **(a) Unaccented usted-imperative forms.** `paradigm('dar')` yields `"de"` (should be `"dé"`); `paradigm('estar')` yields `"esta"` (should be `"está"`). These sit in the exact map and matched the preposition/demonstrative — the real root of the v0.6.3 `dar`→`"de"` masking misfire (worked around by the #2 denylist, not fixed). Harmless while nothing displays them; teaches a wrong accent the moment a form is shown.
+- **(b) Missing `sentar` e→ie present stem.** `paradigm('sentarse')` lacks `"sientas"` (produces the regular `"sentas"`), so `te sientas` can't be located → stays definition-MCQ post-backfill (test-locked, graceful). One instance of a broader stem-changer coverage gap to audit (e→ie / o→ue / e→i across the A2/B1 verb set).
+
 ## Known bugs (shipped, deferred)
 
 - **Accent-tolerant autocomplete prefix matching is broken** (M3.2 spec).
