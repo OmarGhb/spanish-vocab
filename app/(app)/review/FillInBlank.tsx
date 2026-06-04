@@ -79,7 +79,6 @@ function RenderCorrect({ ops }: { ops: DiffOp[] }) {
 
 export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Props) {
   const { word, lemma, definition } = card
-  const pos = definition?.pos
 
   const [picked] = useState(() =>
     pickClozeExample({ examples: card.examples, word: card.word, id: card.id, lemma: card.lemma, pos: card.definition?.pos }),
@@ -167,11 +166,7 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
       : `« ${word[0]}… »`
     return (
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex items-center gap-2">
-          <span className="font-serif text-lg font-bold text-ink tracking-[-0.02em]">{word}</span>
-          {pos && <span className="text-[11px] text-muted italic">· {pos}</span>}
-        </div>
-
+        {/* No word header — the word IS the answer; the sentence + French cue are the prompt. */}
         <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted">
           {picked ? 'Complétez la phrase' : 'Définition'}
         </p>
