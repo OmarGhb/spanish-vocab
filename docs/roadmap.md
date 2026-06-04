@@ -85,6 +85,18 @@ The next committed milestones. Items in `docs/backlog.md` are deferred until pro
 - **Storage of {lemma,tense,person} DEFERRED to M5.3b** — derive is deterministic + self-healing and grading never reads stored coords; nothing to persist yet.
 - **Safety property:** M5.3a never DISPLAYS a generated conjugation (the answer shown is the real blanked token; the hint shows facts). So an untabled-irregular verb degrades verdict generosity, never miseducates.
 
+### v0.6.2 — post-M5.3a review-format coherence ✅
+Three independent fixes after M5.3a, each diagnosed against the real deck before coding.
+- **Token-aware spellcheck gate** (`lib/wordlist.ts` `checkSpelling`) — multi-word adds (`"te acuestas"`, `"a menudo"`) no longer 422 before the Anthropic call; per-token validity, one-miss reconstructs the full corrected phrase. Single-word unchanged.
+- **Verb cloze-MCQ stored-in-form gate** (`lib/review-cloze.ts` `chooseQcmCue`, pure + unit-tested) — a verb gets the cloze only when `normalize(target.surface) === normalize(word)`; infinitive-stored verbs use the lemma-level definition-MCQ. Supersedes the intermediate "force cloze for all maskable verbs" over-correction (which made an infinitive-stored blank/option mismatch on 16/45 verbs). Decision lifted out of the inline initializer into a tested helper because the inline version regressed.
+- **Écriture word-header removed** (`FillInBlank.tsx`) — the answering screen no longer prints the headword above the sentence.
+- (Detail in `PROJECT_STATE.md` → From v0.6.2.)
+
+### v0.6.3 — écriture-polish (NEXT — scoped separately, not open backlog)
+- **Clitic-aware masking** — clitic-stored reflexives (`"te duermes"`) currently route to definition-MCQ because `maskVerbSentence` masks only the finite verb token (`duermes` ≠ `te duermes`); mask both tokens (or strip the clitic from the option) so they get a coherent cloze.
+- **`maskVerbSentence` accent-homograph false positive** — `dé→de`, `sé→se`, `él→el`, `té→te` accent-fold to function words, so the verb path can mask a preposition/article instead of the verb (confirmed: `dar` blanks `"de"`). Affects **écriture too** (no cue-gate there), so écriture would test the function word. Real `maskVerbSentence` fix.
+- **Spanish accent-row** — accent input affordance for the écriture answer field (á/é/í/ó/ú/ñ), so typed conjugations can carry accents (M5.3a noted accents aren't handled in the plain input; near-miss grading currently cushions).
+
 ### M5.3b — Astuce de Paco + conjugation table (NOT YET BUILT)
 - ④ "Astuce de Paco" post-answer morphology hint; **frame-5** lemma-interstitial conjugation table (the `comieron`→`comer` screen). **Frame 6 rejected** (reintroduces M3.3 duplicate-fiche confusion).
 - **HARD REQUIREMENT (carried from M5.3a):** once the conjugator's output is DISPLAYED, it must **refuse to show a paradigm for an untabled/uncertain verb** rather than show a guessed one (the M5.3a "regular-rule fallback is OK because nothing is shown" property no longer holds once forms are displayed). Add an irregular-coverage guard / known-verb gate here.
@@ -92,6 +104,8 @@ The next committed milestones. Items in `docs/backlog.md` are deferred until pro
 
 ### M5.3c — Verb-conjugation drill (NOT YET BUILT)
 - One game mode: **verb-conjugation drill** (natural first, given the substrate). Multiple sessions / session infra.
+- **Format-philosophy note (the coherence principle behind the v0.6.2 gate, carried into M5.3c).** A question may only ask what its materials can coherently test. An MCQ's **options and its blank must be the same morphological form** — so a verb card can form-test via MCQ only when it is stored in the example's form (blank == option, the v0.6.2 cloze case) OR when the option set contains the right **conjugated** wrong-form distractors. Until those exist, an infinitive-stored verb is tested at the **lemma level** (definition-MCQ: meaning, not form). Écriture already form-tests — the user types the conjugation, graded against the blanked token. **M5.3c is what makes form-level MCQ coherent for *any* verb:** the drill generates wrong-FORM distractors (same lemma, wrong tense/person) from the conjugator, so the options finally match a conjugated blank. Form-testing is M5.3c's natural home; the v0.6.2 `chooseQcmCue` gate is the interim that keeps every other path coherent until then. (Corollary: do NOT widen the v0.6.2 gate to force conjugated blanks into the existing semantic-distractor MCQ — that's the incoherence the gate exists to prevent. The fix is conjugated distractors here, not a looser gate.)
+> ⚠️ Drafted by Claude Code from this session's decisions — Omar's "text provided separately" was never pasted into the thread. Replace with the intended wording if it differs.
 
 ## M6 - App onboarding & login screen upgrade
 - App's first opening should trigger an onboarding with interactive steps showing how the app works.
