@@ -81,6 +81,21 @@ describe('maskVerbSentence — accent-homograph denylist (#2)', () => {
     // "se" is the impersonal pronoun here; the only paradigm fold is saber's "sé".
     expect(maskVerbSentence('Aquí no se permite fumar.', 'saber')).toBeNull()
   })
+
+  // v0.6.4 re-verify: the conjugator's usted-imperatives are now accent-correct (dar→"dé",
+  // estar→"está"/"esté"), so the UNACCENTED homographs ("de"/"esta") leave dar's/estar's paradigm
+  // entirely and the denylist now guards ONLY the genuine function words. Confirm it neither
+  // over-skips a real accented form nor under-guards the preposition.
+  it('keeps masking dar→"dio" after the imperative fix (denylist still skips the preposition "de")', () => {
+    const r = maskVerbSentence('Esa película de terror me dio tanto miedo.', 'dar')
+    expect(r!.target.surface).toBe('dio')
+    expect(r!.masked).toBe('Esa película de terror me ' + BLANK + ' tanto miedo.')
+  })
+  it('masks the now-correct accented imperative "dé" (NOT skipped — only unaccented "de" is denylisted)', () => {
+    const r = maskVerbSentence('Quiero que me dé una respuesta.', 'dar')
+    expect(r).not.toBeNull()
+    expect(r!.target.surface).toBe('dé')
+  })
 })
 
 describe('maskProcliticReflexive — clitic-aware masking (#1)', () => {
@@ -109,11 +124,14 @@ describe('maskProcliticReflexive — clitic-aware masking (#1)', () => {
     expect(r!.target.surface).toBe('te duermes')
   })
 
-  it('declines for an e→ie verb the conjugator lacks (sentarse → sientas) — known coverage gap', () => {
-    // The conjugator does NOT have sentar as an e→ie present stem-changer, so "sientas" is not in
-    // its paradigm → the verb is not located → null → "te sientas" stays definition-MCQ (graceful,
-    // no regression). Locked so a future conjugator fix flips this deliberately. (v0.6.x backlog.)
-    expect(maskProcliticReflexive('¿Por qué siempre te sientas al fondo?', 'te sientas', 'sentarse')).toBeNull()
+  it('AUTO-UPGRADE (v0.6.4): now masks "te sientas" once sentar has the e→ie stem (sientas)', () => {
+    // Was the v0.6.3 known gap: the conjugator lacked sentar's e→ie present stem, so "sientas" was
+    // not in the paradigm → null → "te sientas" stayed definition-MCQ. v0.6.4 adds PRES_STEM['sentar']
+    // = 'sient', so "sientas" resolves and the full clitic+verb unit masks → coherent cloze-MCQ.
+    const r = maskProcliticReflexive('¿Por qué siempre te sientas al fondo?', 'te sientas', 'sentarse')
+    expect(r).not.toBeNull()
+    expect(r!.masked).toBe(`¿Por qué siempre ${BLANK} al fondo?`)
+    expect(r!.target).toMatchObject({ surface: 'te sientas', tense: 'presente', person: 'tú' })
   })
 
   it('declines for a non-proclitic word (returns null → caller falls back)', () => {

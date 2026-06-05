@@ -57,12 +57,26 @@
 - Vercel URL rename (currently spanish-vocab-lyart.vercel.app — could become paco.vercel.app or similar)
 - GitHub repo rename (currently spanish-vocab → paco)
 
-## Conjugator audit (M5.3c hardening gate)
+## Conjugator audit (M5.3c hardening gate) — ✅ RESOLVED in v0.6.4
 
-> Surfaced during v0.6.3. The conjugator's correctness was **non-load-bearing** through v0.6.3 (nothing displays a generated form — `maskVerbSentence` only *locates* the real Anthropic-authored token, and the #2 denylist *skips* uncertain ones). **M5.3c makes generated forms user-facing** (drill prompts + wrong-FORM distractors), so these must be fixed (and a "refuse to display untabled/uncertain forms" guard added) BEFORE M5.3c ships — they are the leading edge of a conjugator stem-changer/irregular audit, not loose bugs. See the M5.3c gate in `roadmap.md`.
+> Surfaced during v0.6.3, hardened in **v0.6.4** (standalone slice ahead of M5.3b). The audit ran
+> against the live deck (51 verbs) + the conjugator's tabled set; the fix landed the display-guard
+> primitive (`canDisplayParadigm`) + a self-verifying golden-fixture harness. (Detail in
+> `PROJECT_STATE.md` → From v0.6.4.)
 
-- **(a) Unaccented usted-imperative forms.** `paradigm('dar')` yields `"de"` (should be `"dé"`); `paradigm('estar')` yields `"esta"` (should be `"está"`). These sit in the exact map and matched the preposition/demonstrative — the real root of the v0.6.3 `dar`→`"de"` masking misfire (worked around by the #2 denylist, not fixed). Harmless while nothing displays them; teaches a wrong accent the moment a form is shown.
-- **(b) Missing `sentar` e→ie present stem.** `paradigm('sentarse')` lacks `"sientas"` (produces the regular `"sentas"`), so `te sientas` can't be located → stays definition-MCQ post-backfill (test-locked, graceful). One instance of a broader stem-changer coverage gap to audit (e→ie / o→ue / e→i across the A2/B1 verb set).
+- ~~**(a) Unaccented usted-imperative forms.**~~ **FIXED.** Root cause was deeper than the exact map: `imperativeAffirmative()` + the negative-imperative branch built on the rule-computed `present()`/`subjunctive()`, which **bypass `IRREGULAR_FORMS`** — so **all 16** fully-irregular verbs had wrong imperatives (`ser`→`"sa"`, `estar`→`"este"`, `dar`→`"de"`…), not just dar/estar. Systemic fix: route both through `formsFor` (table-aware). Now `dar`→`"dé"`, `estar`→`"está"`/`"esté"`. Locked by a Finding-1 invariant test.
+- ~~**(b) Missing `sentar` e→ie present stem.**~~ **FIXED** (`PRES_STEM['sentar']='sient'`), plus the broader A2/B1 stem-change set the audit surfaced: e→ie (despertar, encender, mentir), o→ue (acostar, mostrar, recordar, costar, soñar, almorzar, mover, doler), e→i (vestir, seguir, conseguir — incl. the new `-guir` gu→g ortho rule). `te sientas` auto-upgraded to coherent cloze-MCQ (mask test flipped).
+
+### Conjugator follow-ups (deferred from the v0.6.4 audit — excluded from the trusted set, graceful no-table)
+
+> Each is a single wrong cell that fails the golden-fixture admission rule, so `canDisplayParadigm`
+> returns **false** for it (it will simply never get a displayed table) until fixed. Low urgency.
+
+- **`poder` gerund** = `"podiendo"` (should be `"pudiendo"`). poder is a rare -er verb with a weak gerund; can't be fixed via `WEAK_STEM` without breaking its regular subjunctive `"podamos"`→`"pudamos"`. Needs a small special-case (gerund-only weak stem).
+- **`creer` preterite hiatus accents** = `"creiste"/"creimos"/"creisteis"` (should be `"creíste"/"creímos"/"creísteis"`). The `-eer`/`-aer` vowel-stem verbs need the hiatus accent on the 2nd-person/1st-plural preterite, which the engine omits (it only adds the i→y on 3rd person). Affects the deck verb `creer`.
+- **`haber`** — auxiliary; no meaningful learner imperative (`"ha"`/`"habed"`). Excluded by design.
+- **`llover`** — impersonal/weather verb; full personal paradigm is grammatical but pedagogically odd. Excluded; revisit if a weather-verb display is ever wanted.
+- **Comprehensive A2/B1 regular + stem-changer seeding** of `TRUSTED_LEMMAS` is M5.3b-prep — v0.6.4 seeded the deck regulars + the audited stem-changers/irregulars only. Trusted-set coverage = how often M5.3b's table actually appears, so expand it there with a vetted fixture.
 
 ## Known bugs (shipped, deferred)
 

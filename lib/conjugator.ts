@@ -250,6 +250,10 @@ const PRES_STEM: Record<string, string> = {
   divertir: 'diviert',
   hervir: 'hierv',
   preferir: 'prefier',
+  sentar: 'sient', // v0.6.4 — the te-sientas deck gap
+  despertar: 'despiert',
+  encender: 'enciend',
+  mentir: 'mient',
   // o→ue
   poder: 'pued',
   volver: 'vuelv',
@@ -259,11 +263,22 @@ const PRES_STEM: Record<string, string> = {
   volcar: 'vuelc',
   dormir: 'duerm',
   morir: 'muer',
+  acostar: 'acuest', // v0.6.4
+  mostrar: 'muestr',
+  recordar: 'recuerd',
+  costar: 'cuest',
+  soñar: 'sueñ',
+  almorzar: 'almuerz', // z→c handled by orthoStem at front-vowel endings (almuerce / almorcé)
+  mover: 'muev',
+  doler: 'duel',
   // e→i (-ir)
   pedir: 'pid',
   despedir: 'despid',
   repetir: 'repit',
   servir: 'sirv',
+  vestir: 'vist', // v0.6.4
+  seguir: 'sigu', // -guir: gu→g before back vowels (sigo / siga) via orthoStem
+  conseguir: 'consigu',
   // u→ue
   jugar: 'jueg',
   // hiatus accent
@@ -284,6 +299,10 @@ const WEAK_STEM: Record<string, string> = {
   preferir: 'prefir',
   dormir: 'durm',
   morir: 'mur',
+  mentir: 'mint', // v0.6.4 (-ir weakeners: él/ellos preterite + gerund)
+  vestir: 'vist',
+  seguir: 'sigu', // siguió / siguieron / siguiendo
+  conseguir: 'consigu',
 }
 
 // Verbs whose irregular yo-present form is consonantal (so it PERSISTS into all subjunctive
@@ -316,6 +335,9 @@ function orthoStem(stem: string, inf: string, nextChar: string): string {
   }
   if (back) {
     if (inf.endsWith('ger') || inf.endsWith('gir')) return stem.replace(/g$/, 'j')
+    // -guir: drop the diaeresis-less u before a back vowel (sigo/siga, not siguo/sigua). Gated
+    // on the -guir infinitive so it can't touch -uir (construir) or any other class.
+    if (inf.endsWith('guir')) return stem.replace(/gu$/, 'g')
   }
   return stem
 }
@@ -452,14 +474,22 @@ function participle(inf: string, end: Ending): string {
   return reg + 'ido'
 }
 
-// affirmative imperative: tú, usted(él), nosotros, vosotros, ustedes(ellos) — no yo
+// affirmative imperative: tú, usted(él), nosotros, vosotros, ustedes(ellos) — no yo.
+// Sources the present (tú) and subjunctive (usted/nosotros/ustedes) via formsFor, so the
+// IRREGULAR_FORMS table is honoured — present()/subjunctive() bypass it and produced wrong
+// imperatives for every fully-irregular verb (ser→"sa", estar→"este", dar→"de"…). tú stays
+// table-first (IRREG_IMP_TU[inf] ?? …) so ten/ven/pon/sal/haz/di/sé/ven survive the reroute.
 function imperativeAffirmative(inf: string, end: Ending): (string | null)[] {
-  const subj = subjunctive(inf, end)
-  const pres = present(inf, end)
+  const subj = formsFor(inf, end, 'subjPresente')
+  const pres = formsFor(inf, end, 'presente')
   const tu = IRREG_IMP_TU[inf] ?? pres[2] // él indicative
-  const vosotros = inf.slice(0, -1) + 'd' // comer→comed, ir→id
+  const vosotros = inf.slice(0, -1) + 'd' // comer→comed, ir→id, decir→decid
   // PERSONS order; yo has no imperative
-  return [null, tu, subj[2], subj[3], vosotros, subj[5]]
+  const forms: (string | null)[] = [null, tu, subj[2], subj[3], vosotros, subj[5]]
+  // ir's affirmative nosotros is the indicative "vamos", not the subjunctive "vayamos".
+  // (Negative nosotros stays "no vayamos" — that path is the subjunctive, untouched here.)
+  if (inf === 'ir') forms[3] = 'vamos'
+  return forms
 }
 
 // ════════════════════════════════════════════════════════════════════════════════════════
@@ -519,7 +549,9 @@ export function conjugate(lemma: string, tense: Tense, person?: Person | null): 
   }
   if (tense === 'imperativoNegativo') {
     if (!person || person === 'yo') return null
-    const subj = subjunctive(inf, end)[PERSONS.indexOf(person)]
+    // formsFor (not subjunctive()) so the IRREGULAR_FORMS subjunctive table is honoured:
+    // "no seas"/"no vayas"/"no des", never the rule-derived "no sas"/"no vas"/"no de".
+    const subj = formsFor(inf, end, 'subjPresente')[PERSONS.indexOf(person)]
     return `no ${subj}`
   }
 
@@ -574,4 +606,54 @@ export function unambiguousPerson(surface: string, lemma: string): Person | null
     if (person) persons.add(person)
   }
   return persons.size === 1 ? [...persons][0] : null
+}
+
+// ════════════════════════════════════════════════════════════════════════════════════════
+// DISPLAY GUARD (v0.6.4) — the primitive M5.3b/c consume to refuse showing a guessed paradigm.
+// ════════════════════════════════════════════════════════════════════════════════════════
+//
+// Through v0.6.3 the conjugator was non-load-bearing: nothing DISPLAYED a generated form, so a
+// regular-rule fallback for an untabled-irregular verb (forzar→"forzo" instead of "fuerzo") only
+// degraded verdict generosity. M5.3b's conjugation table + M5.3c's drill/wrong-FORM distractors
+// make generated forms USER-FACING, where a guessed form miseducates. canDisplayParadigm is the
+// gate: true ONLY for verbs whose FULL paradigm is reference-verified (see lib/conjugator.expected.ts
+// + the data-driven harness in conjugator.test.ts), false for everything else.
+//
+// Deliberately a CONSERVATIVE ALLOWLIST, not a heuristic: "is this untabled verb secretly irregular?"
+// is undecidable from the lemma alone (forzar/aprobar/contar all look regular), so a rule-class guess
+// would falsely green-light a guessed paradigm. Anything not explicitly vetted → false (graceful
+// no-table). It does NOT catch a tabled-but-WRONG form — keeping the tabled forms correct is the job
+// of the fixture+harness (a verb leaves the set the moment a cell regresses). Excluded-and-logged:
+// haber (auxiliary), poder (gerund "pudiendo"), creer (preterite hiatus accents), llover (impersonal).
+const TRUSTED_LEMMAS: ReadonlySet<string> = new Set([
+  // ── fully-irregular (15; haber excluded — auxiliary, no learner imperative) ──
+  'ser', 'ir', 'ver', 'estar', 'dar', 'hacer', 'decir', 'tener', 'venir',
+  'poner', 'salir', 'saber', 'traer', 'extraer', 'conducir',
+  // ── stem-changers, existing (poder excluded — gerund "pudiendo") ──
+  'pensar', 'cerrar', 'comenzar', 'empezar', 'entender', 'perder', 'querer',
+  'sentir', 'divertir', 'hervir', 'preferir', 'volver', 'contar', 'encontrar',
+  'probar', 'volcar', 'dormir', 'morir', 'pedir', 'despedir', 'repetir',
+  'servir', 'jugar', 'vaciar', 'reunir',
+  // ── stem-changers, new in v0.6.4 ──
+  'sentar', 'despertar', 'encender', 'mentir', 'acostar', 'mostrar', 'recordar',
+  'costar', 'soñar', 'almorzar', 'mover', 'doler', 'vestir', 'seguir', 'conseguir',
+  // ── deck regulars (creer excluded — preterite hiatus accents); verified by the
+  //    clean-room regularReference() in conjugator.test.ts ──
+  'hablar', 'comer', 'beber', 'comprender', 'estudiar', 'celebrar', 'lograr',
+  'bailar', 'brindar', 'pasear', 'circular', 'llenar', 'cocinar', 'subrayar',
+  'intentar', 'solicitar', 'dejar', 'saltar', 'tocar', 'destacar', 'tachar',
+  'aprovechar', 'levantar',
+])
+
+// True iff `lemma`'s full paradigm is reference-verified and safe to DISPLAY (M5.3b/c gate).
+// Reflexive variants inherit via stripReflexive ("sentarse" → "sentar"). Matches on the canonical
+// lowercase infinitive WITHOUT accent-folding, so "soñar" (to dream) is not conflated with "sonar".
+export function canDisplayParadigm(lemma: string): boolean {
+  return TRUSTED_LEMMAS.has(stripReflexive(lemma))
+}
+
+// Exposed for the harness only — lets the test assert the trusted set is exactly the union of the
+// fixture (irregulars + stem-changers) and the regularReference-verified regulars. Not for UI use.
+export function trustedLemmas(): ReadonlySet<string> {
+  return TRUSTED_LEMMAS
 }
