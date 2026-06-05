@@ -8,6 +8,8 @@ import AudioButton from '../AudioButton'
 import StickyActions from '../StickyActions'
 import LoadingIdiom from './LoadingIdiom'
 import WordInput from './WordInput'
+import ConjugationGrid from '../ConjugationGrid'
+import { buildConjugationGrid } from '@/lib/conjugation-grid'
 
 type Example = { es: string; fr: string }
 type WordResult = {
@@ -29,7 +31,7 @@ type Phase =
   | { tag: 'idle' }
   | { tag: 'loading' }
   | { tag: 'spellcheck_candidates'; word: string; candidates: string[] }
-  | { tag: 'lemma_suggestion'; result: WordResult; lemma: string; lemma_status: 'available' | 'already_in_deck'; lemma_word_id?: string; lemma_audio_urls?: { es_ES: string } | null }
+  | { tag: 'lemma_suggestion'; result: WordResult; lemma: string; lemma_status: 'available' | 'already_in_deck'; lemma_word_id?: string; lemma_audio_urls?: { es_ES: string } | null; lemma_reps?: number; lemma_due_days?: number }
   | { tag: 'ready'; result: WordResult; status: DeckStatus }
   | { tag: 'error'; word: string }
   | { tag: 'revealed'; result: WordResult; status: DeckStatus }
@@ -65,6 +67,8 @@ type EnrichResponse = WordResult & {
   lemma_word_id?: string
   form_annotation?: string | null
   lemma_audio_urls?: { es_ES: string } | null
+  lemma_reps?: number
+  lemma_due?: string
 }
 
 function highlightWord(sentence: string, word: string): React.ReactNode {
@@ -169,7 +173,12 @@ export default function AddPage() {
       // Lemma suggestion: inflected form submitted and lemma differs.
       if (data.lemma && data.lemma.toLowerCase() !== data.word.toLowerCase()) {
         const lStatus = data.lemma_status ?? 'available'
-        setPhase({ tag: 'lemma_suggestion', result, lemma: data.lemma, lemma_status: lStatus, lemma_word_id: data.lemma_word_id, lemma_audio_urls: data.lemma_audio_urls ?? null })
+        // Calendar-delta computed here (event handler), not in render — Date.now() in render is impure.
+        const lemmaDueDays =
+          data.lemma_due !== undefined
+            ? Math.ceil((new Date(data.lemma_due).getTime() - Date.now()) / 86_400_000)
+            : undefined
+        setPhase({ tag: 'lemma_suggestion', result, lemma: data.lemma, lemma_status: lStatus, lemma_word_id: data.lemma_word_id, lemma_audio_urls: data.lemma_audio_urls ?? null, lemma_reps: data.lemma_reps, lemma_due_days: lemmaDueDays })
         setRevealedFr(new Array(data.examples.length).fill(false))
         setRevealedDefFr(false)
         logLemmaEvent(
@@ -426,7 +435,12 @@ export default function AddPage() {
 
   // ── LEMMA SUGGESTION ──────────────────────────────────────────────────────────
   if (phase.tag === 'lemma_suggestion') {
-    const { result, lemma, lemma_status, lemma_word_id, lemma_audio_urls } = phase
+    const { result, lemma, lemma_status, lemma_word_id, lemma_audio_urls, lemma_reps, lemma_due_days } = phase
+    // Frame-5 grid: renders ONLY for verbs the display guard trusts (canDisplayParadigm) and whose
+    // typed form resolves to a finite six-person tense it contains. Null → today's gridless screen.
+    const grid = buildConjugationGrid(lemma, result.word, result.form_annotation)
+    // Review-status line — pure review_cards data, shown ONLY when the lemma is already in the deck.
+    const dueDays = lemma_due_days ?? null
     return (
       <div className="flex flex-col p-5 gap-5 pb-16">
         <button
@@ -450,12 +464,25 @@ export default function AddPage() {
           </p>
         )}
 
+        {grid && <ConjugationGrid grid={grid} />}
+
         {lemma_status === 'already_in_deck' && (
-          <div className="bg-tint border border-line rounded-card px-4 py-3">
-            <p className="text-xs text-muted font-serif">
-              <span className="font-bold">{lemma}</span> est déjà dans ta collection.
-            </p>
-          </div>
+          <p className="flex items-center gap-2 font-serif text-sm italic text-muted leading-relaxed">
+            <span className="w-1 h-1 rounded-full bg-accent shrink-0" aria-hidden />
+            <span>
+              {lemma_reps !== undefined && lemma_reps > 0 && (
+                <>Tu as revu <span className="font-bold not-italic text-ink">{lemma}</span> {lemma_reps} fois</>
+              )}
+              {lemma_reps !== undefined && lemma_reps > 0 && dueDays !== null && ' · '}
+              {dueDays !== null &&
+                (dueDays <= 0
+                  ? 'prochaine révision aujourd’hui'
+                  : `prochaine révision dans ${dueDays} jour${dueDays > 1 ? 's' : ''}`)}
+              {(lemma_reps === undefined || lemma_reps === 0) && dueDays === null && (
+                <><span className="font-bold not-italic text-ink">{lemma}</span> est déjà dans ta collection</>
+              )}
+            </span>
+          </p>
         )}
 
         <div className="flex flex-col gap-3">

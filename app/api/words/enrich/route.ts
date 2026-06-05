@@ -115,13 +115,17 @@ export async function POST(request: Request) {
   let lemma_status: 'available' | 'already_in_deck' | undefined
   let lemma_word_id: string | undefined
   let lemma_audio_urls: { es_ES: string } | null = null
+  // Pure review_cards data for the in-deck interstitial status line ("revu N fois · prochaine
+  // révision dans X jours"). Optional — only set when the lemma is already in the deck.
+  let lemma_reps: number | undefined
+  let lemma_due: string | undefined
 
   if (wordData.lemma.toLowerCase() !== corrected.toLowerCase()) {
     lemma = wordData.lemma
     const [lemmaRowResult, lemmaAudio] = await Promise.all([
       supabase
         .from('words')
-        .select('id')
+        .select('id, review_cards(reps, due)')
         .ilike('word', wordData.lemma)
         .or('origin.eq.manual,discovery_status.eq.promoted')
         .limit(1)
@@ -129,7 +133,17 @@ export async function POST(request: Request) {
       getAudioForWord(wordData.lemma),
     ])
     lemma_status = lemmaRowResult.data ? 'already_in_deck' : 'available'
-    if (lemmaRowResult.data) lemma_word_id = lemmaRowResult.data.id
+    if (lemmaRowResult.data) {
+      lemma_word_id = lemmaRowResult.data.id
+      // UNIQUE(review_cards.word_id) → to-one embed; oneEmbed tolerates both shapes (M5.1 lesson).
+      const lemmaCard = oneEmbed(
+        (lemmaRowResult.data as { review_cards: { reps: number; due: string } | Array<{ reps: number; due: string }> | null }).review_cards,
+      )
+      if (lemmaCard) {
+        lemma_reps = lemmaCard.reps
+        lemma_due = lemmaCard.due
+      }
+    }
     lemma_audio_urls = lemmaAudio
   }
 
@@ -146,6 +160,8 @@ export async function POST(request: Request) {
       lemma_status,
       lemma_audio_urls,
       ...(lemma_word_id !== undefined && { lemma_word_id }),
+      ...(lemma_reps !== undefined && { lemma_reps }),
+      ...(lemma_due !== undefined && { lemma_due }),
     }),
   })
 }
