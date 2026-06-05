@@ -18,6 +18,7 @@
 - Per-word failure UX: when partial-success happens (2 of 3 succeed), show which specific word failed.
 
 ## Review experience
+- **French translation hide/show toggle + synonym / expansion-example work** (parked from v0.6.5 — next slice). Rework how/when the French gloss reveals in review, and add synonym / expanded-example surfacing. Separate from the v0.6.5 hygiene patch.
 - Skip rating for trusted suggestions: if user accepts the auto-rating 5+ times in a row, offer a "trust suggestions" toggle.
 - Keyboard shortcuts: 1/2/3/4 for ratings, H for hint, Enter to confirm.
 - Auto-suggest while typing on /add: dropdown of matching Spanish words after 2-3 chars.
@@ -32,8 +33,18 @@
 - Mobile review polish (deferred from earlier milestones — revisit after extended mobile use).
 - Rating button scan-speed check: amber single-hue gradation was introduced in v0.3.3 (replacing Anki-convention RGB). Worth a deliberate check after a few weeks of daily use — if review pace slows because the buttons are harder to distinguish at a glance, consider reverting to RGB or adding secondary visual cues (icons, position).
 
-## Data hygiene
+## Headword integrity (future slice — separate milestone)
+
+> Grouped from v0.6.5. The v0.6.5 patch fixed the one *deterministic, verb-agnostic* headword bug
+> (reflexive proclitic). The remaining headword-integrity work is a dictionary/validation slice,
+> not a patch — keep it out of small bug-fix commits.
+
+- **Structured `person` field on the enrichment response** — retire the `form_annotation` regex parse in `lib/reflexive.ts` (`parseReflexiveClitic`). Anthropic returns free-text annotations (`"Acostarse — 2ª pers. sing., reflexiva"`); a structured `{person: '1s'|'2s'|…, reflexive: bool}` field would make the clitic correction (and any future morphology consumer) robust to annotation drift. The v0.6.5 helper already degrades to the lemma on parse failure, so this is hardening, not a live bug.
+- **Dictionary-based headword validation** — a general guard that the stored `word` is a well-formed Spanish surface (beyond per-token spellcheck), to catch grammatical malformations the lexical gate can't.
+- **`bebep`-style discovery hallucination** — discovery generation can emit a non-word; validate generated headwords before persisting `pending` rows.
 - **Corrupted "beber" row — Cyrillic homoglyphs in the stored `word`.** Surfaced by the M5.3a diagnostic: one `beber` row stores the word as `bebер` (Latin `beb` + Cyrillic `е`/`р`), so the non-verb `maskSentence` exact/stem match silently failed and the card fell to MC. Harmless in M5.3a (the verb path masks on the clean `lemma`), but the stored `word` is wrong. Fix: re-save/re-enrich that row (or a one-off homoglyph sweep `[а-яёА-ЯЁ]` over `words.word`). Low urgency, single instance.
+
+## Data hygiene
 - Clean up the duplicate "regañar" entries (specific instance — separate from generic M3 duplicate handling).
 - Backfill weak-example words from before M2.5 (soler, amanecer, others) — re-enrich to get richer definitions and examples.
 - Manual-add of a word currently `pending` in a discovery batch creates a duplicate entry — the filtered duplicate-check can't see pending rows. Folds under the generic duplicate-word handling.
@@ -76,6 +87,7 @@
 - **`creer` preterite hiatus accents** = `"creiste"/"creimos"/"creisteis"` (should be `"creíste"/"creímos"/"creísteis"`). The `-eer`/`-aer` vowel-stem verbs need the hiatus accent on the 2nd-person/1st-plural preterite, which the engine omits (it only adds the i→y on 3rd person). Affects the deck verb `creer`.
 - **`haber`** — auxiliary; no meaningful learner imperative (`"ha"`/`"habed"`). Excluded by design.
 - **`llover`** — impersonal/weather verb; full personal paradigm is grammatical but pedagogically odd. Excluded; revisit if a weather-verb display is ever wanted.
+- **`acordar` (me acuerdo) o→ue** stem-changer not in the v0.6.4 set → `paradigm('acordarse')` lacks `"acuerdo"`/`"acuerdas"`, so an `"me acuerdo"`-type card degrades to definition-MCQ until added. Adding it requires the v0.6.4 golden-fixture admission process (full-paradigm reference verification + `TRUSTED_LEMMAS` entry), NOT an ad-hoc `PRES_STEM` line. (Surfaced v0.6.5.)
 - **Comprehensive A2/B1 regular + stem-changer seeding** of `TRUSTED_LEMMAS` is M5.3b-prep — v0.6.4 seeded the deck regulars + the audited stem-changers/irregulars only. Trusted-set coverage = how often M5.3b's table actually appears, so expand it there with a vetted fixture.
 
 ## Known bugs (shipped, deferred)

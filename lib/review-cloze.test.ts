@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { pickClozeExample, isVerbPos, chooseQcmCue, type ClozeExample } from './review-cloze'
+import { pickClozeExample, resultHintExample, isVerbPos, chooseQcmCue, type ClozeExample } from './review-cloze'
 import { BLANK } from './mask'
 
 // seed = parseInt('00000000', 16) = 0 → start at examples[0].
@@ -184,6 +184,48 @@ describe('pickClozeExample — reps rotation (#3)', () => {
     for (const reps of [0, 1, 5, 99]) {
       expect(pickClozeExample({ examples: one, word: 'atardecer', id: id0, lemma: null, pos: 'n.m.', reps })!.example.fr).toBe('x')
     }
+  })
+})
+
+describe('resultHintExample — exercise/result example must not diverge (v0.6.5 Item 1)', () => {
+  // The repro: the exercise masked a rotated/coherent example while the result "Exemple" block
+  // read card.examples[0], showing a DIFFERENT sentence. The result must render picked.example.
+  const exs = [
+    { es: 'Vimos el atardecer en la playa.', fr: 'a' },
+    { es: 'No hay nada que ver aquí.', fr: 'b' }, // not maskable
+    { es: 'Otro atardecer naranja sobre el mar.', fr: 'c' },
+  ]
+  const card = { examples: exs }
+
+  it('picked non-null → returns picked.example (the masked sentence), NOT card.examples[0]', () => {
+    // reps=1 rotates the exercise onto example "c" (index 2). The old inline card.examples[0] ("a")
+    // would diverge; the helper returns the same example the exercise masked.
+    const picked = pickClozeExample({ examples: exs, word: 'atardecer', id: id0, lemma: null, pos: 'n.m.', reps: 1 })
+    expect(picked!.example.fr).toBe('c')
+    const hint = resultHintExample(picked, card)
+    expect(hint).toBe(picked!.example)
+    expect(hint!.fr).toBe('c')
+    expect(hint).not.toBe(card.examples[0]) // the bug would have shown "a"
+  })
+
+  it('picked null (definition-fallback écriture) → falls back to the first example', () => {
+    expect(resultHintExample(null, card)).toBe(exs[0])
+  })
+
+  it('picked null AND no examples → null (the hint block guards on truthiness)', () => {
+    expect(resultHintExample(null, { examples: [] })).toBeNull()
+  })
+
+  it('coherent-pick divergence (the literal repro shape): result follows the coherent example', () => {
+    // examples[0] is a non-coherent form; the exercise prefers the coherent one (index 1).
+    const exs2 = [
+      { es: 'Después de tres intentos lo logró al final.', fr: 'first' }, // examples[0], masks "logró"
+      { es: 'Nunca logré entender por qué se fue.', fr: 'second' }, // coherent for "logré"
+    ]
+    const picked = pickClozeExample({ examples: exs2, word: 'logré', id: id0, lemma: 'lograr', pos: 'v.', reps: 0 })
+    expect(picked!.target?.surface).toBe('logré')
+    expect(picked!.example.fr).toBe('second')
+    expect(resultHintExample(picked, { examples: exs2 })!.fr).toBe('second')
   })
 })
 

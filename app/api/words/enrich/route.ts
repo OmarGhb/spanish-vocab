@@ -3,6 +3,7 @@ import { getWordData } from '@/lib/anthropic'
 import { checkSpelling } from '@/lib/wordlist'
 import { getAudioForWord } from '@/lib/tts'
 import { oneEmbed } from '@/lib/word-status'
+import { correctProcliticReflexive } from '@/lib/reflexive'
 
 export async function POST(request: Request) {
   let body: unknown
@@ -98,6 +99,16 @@ export async function POST(request: Request) {
     )
   }
 
+  // Reflexive-clitic hygiene (v0.6.5): "ti acuestas" passes the per-token spellcheck ("ti" is a
+  // real word) but is a malformed proclitic. When enrichment flags a reflexive form, correct the
+  // leading clitic against the person so the offered/stored headword is "te acuestas", not the typo.
+  // Deterministic + verb-agnostic (no conjugator). If the input-word audio was generated for the
+  // typo, regenerate it for the corrected surface (rare path — common adds skip this).
+  const corrected = correctProcliticReflexive(word, wordData.lemma, wordData.form_annotation)
+  if (corrected !== word) {
+    wordAudio = await getAudioForWord(corrected)
+  }
+
   // If Anthropic identified a different lemma, check whether it is already in
   // the deck and generate lemma audio — both in parallel.
   let lemma: string | undefined
@@ -105,7 +116,7 @@ export async function POST(request: Request) {
   let lemma_word_id: string | undefined
   let lemma_audio_urls: { es_ES: string } | null = null
 
-  if (wordData.lemma.toLowerCase() !== word.toLowerCase()) {
+  if (wordData.lemma.toLowerCase() !== corrected.toLowerCase()) {
     lemma = wordData.lemma
     const [lemmaRowResult, lemmaAudio] = await Promise.all([
       supabase
@@ -123,7 +134,7 @@ export async function POST(request: Request) {
   }
 
   return Response.json({
-    word,
+    word: corrected,
     definition: wordData.definition,
     examples: wordData.examples,
     distractors: wordData.distractors,

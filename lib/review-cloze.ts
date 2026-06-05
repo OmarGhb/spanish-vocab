@@ -79,6 +79,23 @@ export function pickClozeExample({ examples, word, id, lemma, pos, reps = 0 }: C
   return pool[reps % pool.length]
 }
 
+/**
+ * The example the RESULT screen's "Exemple" hint must render. Single source of truth shared with
+ * the exercise: when the card masked an example (`picked` non-null), it is the SAME example the
+ * exercise blanked (`picked.example`, un-blanked) — never a re-pick. Lifted out of an inline
+ * `card.examples[0]` in FillInBlank (which diverged the moment reps-rotation / prefer-coherent
+ * selection chose a non-first example) and unit-tested, per the chooseQcmCue lesson: an inline
+ * decision silently regresses. Picked-null cards (definition-fallback écriture) masked no example,
+ * so they keep the first example as a supplementary hint (contradicts nothing shown).
+ */
+export function resultHintExample(
+  picked: ClozeExample | null,
+  card: { examples: Array<{ es: string; fr: string }> },
+): { es: string; fr: string } | null {
+  if (picked) return picked.example
+  return card.examples[0] ?? null
+}
+
 export type QcmCue = 'cloze' | 'definition'
 
 /**

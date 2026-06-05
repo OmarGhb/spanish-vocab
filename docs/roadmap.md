@@ -109,6 +109,11 @@ Audit-first (live deck 51 verbs + the tabled set), then the fix. Suite 181 → 2
 - **Stem-change expansion:** sentar + despertar/encender/mentir (e→ie), acostar/mostrar/recordar/costar/soñar/almorzar/mover/doler (o→ue), vestir/seguir/conseguir (e→i, incl. `-guir` gu→g ortho).
 - **Self-verifying harness:** golden fixture (`lib/conjugator.expected.ts`, reference-authored) + clean-room `regularReference()` for deck regulars; data-driven test asserts every cell == `conjugate()` and `TRUSTED_LEMMAS` is exactly the verified union. Excluded + logged: haber, poder, creer, llover. (Detail in `PROJECT_STATE.md` → From v0.6.4.)
 
+### v0.6.5 — two review/add hygiene bugs ✅ (from v0.6.4 smoke-testing)
+Small patch, single commit. Suite 298 → 316.
+- **Result-screen example threading** — the écriture result "Exemple" re-read `card.examples[0]` while the exercise masked the reps-rotated / prefer-coherent `picked.example`; they diverged. Lifted into a tested pure helper `resultHintExample(picked, card)` (not inlined — the `chooseQcmCue` lesson). `MultipleChoice` checked: no divergence.
+- **Reflexive-clitic correction** — `"ti acuestas"` passed the per-token spellcheck (grammatical, not lexical, malformation) and was stored as the headword. `correctProcliticReflexive` (`lib/reflexive.ts`, deterministic, conjugator-free) corrects the proclitic against the person→clitic map; detection (valid set `{me,te,se,nos,os}`) split from correction (person parse), degrading to the lemma — never the typo — on annotation drift. Wired in `enrich/route.ts` (response `word` + TTS regen). (Detail in `PROJECT_STATE.md` → From v0.6.5.)
+
 ### M5.3b — Astuce de Paco + conjugation table (NOT YET BUILT)
 - ④ "Astuce de Paco" post-answer morphology hint; **frame-5** lemma-interstitial conjugation table (the `comieron`→`comer` screen). **Frame 6 rejected** (reintroduces M3.3 duplicate-fiche confusion).
 - **HARD REQUIREMENT (carried from M5.3a):** once the conjugator's output is DISPLAYED, it must **refuse to show a paradigm for an untabled/uncertain verb** rather than show a guessed one (the M5.3a "regular-rule fallback is OK because nothing is shown" property no longer holds once forms are displayed). Add an irregular-coverage guard / known-verb gate here.

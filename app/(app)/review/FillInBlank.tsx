@@ -10,7 +10,7 @@ import {
   type BlankReason,
   type RatingResult,
 } from '@/lib/rating'
-import { pickClozeExample } from '@/lib/review-cloze'
+import { pickClozeExample, resultHintExample } from '@/lib/review-cloze'
 import { isInParadigm, unambiguousPerson } from '@/lib/conjugator'
 import { wordDiff, type DiffOp } from '@/lib/worddiff'
 import type { ReviewCard } from './page'
@@ -244,7 +244,10 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
   // Letter-diff is meaningful for close (near-miss) and a genuine wrong word; for wrongForm the
   // answer is a different valid form, so a letter-diff would be noise — shown plain instead.
   const diffOps = verdict === 'correct' || quality === 'wrongForm' ? [] : wordDiff(answer.trim(), correctWord)
-  const example = card.examples[0]
+  // The result-screen "Exemple" must show the SAME sentence the exercise masked (picked.example),
+  // un-blanked — not a re-picked examples[0], which diverges once reps-rotation / prefer-coherent
+  // selection lands on a non-first example. Pure helper so the decision is tested, not inline.
+  const example = resultHintExample(picked, card)
 
   return (
     <div className="flex flex-col gap-4">
