@@ -4,9 +4,9 @@
 > Committed work lives in `docs/roadmap.md`. When a backlog item is promoted to a milestone, it moves out of this file.
 
 ## Word list improvements
-- Pagination: show 10 newest by default, "Voir plus" button or infinite scroll. Important at 50+ words — now pressing at 51.
+- ~~Pagination: show 10 newest by default, "Voir plus" button or infinite scroll.~~ **SHIPPED as M5.4a (v0.7.0)** — load-on-scroll progressive append (IntersectionObserver, initial 40 / +30).
 - Swipe-to-delete/archive: requires a swipeable-list approach + an `archived` flag in schema.
-- Search/filter on word list. Matters at 200+ words.
+- ~~Search/filter on word list.~~ **SHIPPED as M5.4a (v0.7.0)** — client-side forgiving free-text search (`lib/word-search.ts`) over the word + both glosses.
 - Smarter truncation of definition preview: truncate at sentence boundary or first clause, not arbitrary character count.
 
 ## Status indicators (bundles with M3 follow-up work)

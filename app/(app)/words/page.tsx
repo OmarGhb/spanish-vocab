@@ -6,6 +6,8 @@ export type WordListItem = {
   id: string
   word: string
   defEs: string
+  // French gloss — used by the search predicate only, never rendered (Spanish-first).
+  defFr: string
   createdAt: string
   card: WordCard | null
   reps: number
@@ -31,6 +33,7 @@ export default async function WordsPage() {
       word: w.word as string,
       // Null-safe: legacy rows may carry a malformed definition shape.
       defEs: typeof def?.es === 'string' ? def.es : '',
+      defFr: typeof def?.fr === 'string' ? def.fr : '',
       createdAt: w.created_at as string,
       card,
       reps: card?.reps ?? 0,

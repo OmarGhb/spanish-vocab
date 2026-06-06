@@ -12,7 +12,7 @@ The next committed milestones. Items in `docs/backlog.md` are deferred until pro
 
 The committed order from here (detail for each lives in its section below or in `backlog.md`):
 
-- **NOW:** M5.3c verb drill ✅ (shipped) · **List management** — pagination, free-text search, **swipe** delete/archive (unblocked by the M5.1 swipe primitive), **"Relearn"/reset-a-word reusing `/api/words/reset-schedule`**.
+- **NOW:** M5.3c verb drill ✅ (shipped) · **List management** — M5.4a free-text search + load-on-scroll ✅ (shipped), **swipe** delete/archive (unblocked by the M5.1 swipe primitive), **"Relearn"/reset-a-word reusing `/api/words/reset-schedule`**.
 - **PRE-BETA:** Full **design pass** (incl. the parked Astuce/tip redesign + request more Paco moods/placements from Claude Design) · **Language balance / immersion toggle** (FR/ES chrome; **English DEFERRED** — the co-students are Francophone) · **M6 login + onboarding** (built on the i18n layer) · **Signup hardening** (**re-enable Supabase email verification** + empty states) · **A2/B1 coverage seeding** (expand `TRUSTED_LEMMAS` — coverage = how often the table/drill can appear) · **Learning-curve review + blank reviews** (analysis-first) · **M5.3d compound (perfect) tenses** for the drill + grid (*he comido* / *había comido* — **IMPORTANT, A2** core; needs `haber` verified).
 - **STRATEGIC:** **Crossword** (scoping → build; shares the (iii) generation + cache layer with the drill) · **Native apps** Android + iOS (**approach decision FIRST — Capacitor / PWA / rewrite** — then build).
 - **LATER:** **English UI** · **M7 companion** (data-gated on ~100+ words).
@@ -144,6 +144,14 @@ Small patch, single commit. Suite 298 → 316.
 - **Scope:** compose `conjugate(haber, <matching simple tense>, person)` + the participle (`conjugate(verb, 'participio')`). **PREREQUISITE:** verify `haber`'s auxiliary forms — `haber` is excluded from the v0.6.4 golden fixture (`canDisplayParadigm('haber')` is false), so its paradigm must be reference-verified + admitted before it can drive displayed/drilled compound forms.
 - **Drill + grid ONLY** — these introduce **two-word cells** (grid) and **multi-word grading** (drill answer = `he comido`). Leave the `/review` masker untouched (single-token blanks). New `DrillTense`-adjacent keys would need the two-word answer/grid handling; keep them out of `buildDrillPrompts`' single-token finite set until that lands.
 - Pairs with the PRE-BETA **A2/B1 coverage seeding** gate. Not built now.
+
+## M5.4 — List management
+
+### M5.4a — /words list scale: free-text search + load-on-scroll ✅ (v0.7.0)
+- **Forgiving free-text search** over the FULL already-fetched deck — a search input above the filter pills (`text-base` 16px, the iOS zoom-lock rule). Matches the Spanish word AND both glosses (`definition.es` + `definition.fr`); `normalizeSearch` = lowercase + NFD diacritic-strip so "bebi"→"bebí", "nino"→"niño" (the plain strip folds ñ→n — wanted here, the opposite of `lib/dictionary.ts`'s Ñ-preserving bucketing guard). Pure tested predicate `lib/word-search.ts` (not inlined — the `chooseQcmCue` lesson). Composition: **filter pill → search → sort → render** (search narrows the active pill, doesn't reset it). Empty results → "Aucun résultat".
+- **Load-on-scroll (progressive append, NOT virtualization).** Initial 40 rows, +30 when a bottom sentinel hits the viewport via IntersectionObserver (not scroll events). `list.slice(0, shown)`; no new fetch, no react-window dep. Cap resets to the initial chunk on any visible-set change (filter / search / sort); default date-desc → initial chunk = newest N.
+- **All client-side over the already-fetched list** — NO schema, NO new API route, NO server pagination. `page.tsx` threads `defFr` onto `WordListItem` for the predicate (never rendered — Spanish-first). (Detail in `PROJECT_STATE.md` → From M5.4a.)
+- **Out of scope (later M5.4 slices):** swipe delete/archive, Relearn/reset-a-word, bulk/multi-select, `archived` schema column, server pagination.
 
 ## M6 - App onboarding & login screen upgrade
 - App's first opening should trigger an onboarding with interactive steps showing how the app works.
