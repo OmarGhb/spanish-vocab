@@ -32,7 +32,8 @@ export type ConjugationGrid = {
 }
 
 // Display label per grammatical person (matches the mockup: yo / tú / él/ella / nosotros / …).
-const PERSON_LABELS: Record<Person, string> = {
+// Exported so the drill (lib/drill.ts) reuses the exact labels instead of duplicating them.
+export const PERSON_LABELS: Record<Person, string> = {
   yo: 'yo',
   tú: 'tú',
   él: 'él/ella',
@@ -141,6 +142,36 @@ export function buildConjugationGrid(
     personLabel: PERSON_LABELS[person],
     surface: forms[i],
     highlighted: matched[i],
+  }))
+
+  return { tense, labelEs, glossFr, cells }
+}
+
+// Drill variant (M5.3c): the drill already knows the tense + person (it generated the prompt), so
+// it skips the form_annotation parse. Builds the same 2×3 grid for `lemma` at `tense`, highlighting
+// the ASKED person's cell. Returns null on the same display-guard contract — never a guessed
+// paradigm — though the drill pool is pre-filtered to trusted verbs, so the guard never trips here.
+export function buildConjugationGridForTense(
+  lemma: string,
+  tense: Tense,
+  person: Person,
+): ConjugationGrid | null {
+  if (!canDisplayParadigm(lemma)) return null
+  if (!isGridTense(tense)) return null
+
+  const forms: string[] = []
+  for (const p of PERSONS) {
+    const v = conjugate(lemma, tense, p)
+    if (!v) return null
+    forms.push(v)
+  }
+
+  const { labelEs, glossFr } = GRID_TENSE_LABELS[tense]
+  const cells: GridCell[] = PERSONS.map((p, i) => ({
+    person: p,
+    personLabel: PERSON_LABELS[p],
+    surface: forms[i],
+    highlighted: p === person,
   }))
 
   return { tense, labelEs, glossFr, cells }

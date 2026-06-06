@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { resolveGridTense, buildConjugationGrid } from './conjugation-grid'
+import { resolveGridTense, buildConjugationGrid, buildConjugationGridForTense } from './conjugation-grid'
 
 describe('resolveGridTense', () => {
   it('maps the standard pedagogical Spanish tense names', () => {
@@ -94,5 +94,22 @@ describe('buildConjugationGrid', () => {
     expect(buildConjugationGrid('estudiar', 'estudiar', null)).toBeNull()
     expect(buildConjugationGrid('estudiar', 'estudiando', 'Estudiar — gerundio')).toBeNull()
     expect(buildConjugationGrid('estudiar', 'estudia', 'Estudiar — imperativo afirmativo')).toBeNull()
+  })
+})
+
+describe('buildConjugationGridForTense (drill — tense + person known)', () => {
+  it('builds the 2×3 grid and highlights only the asked person', () => {
+    const grid = buildConjugationGridForTense('ir', 'preterito', 'nosotros')
+    expect(grid).not.toBeNull()
+    expect(grid!.labelEs).toBe('Pretérito perfecto simple')
+    const hot = grid!.cells.filter((c) => c.highlighted)
+    expect(hot).toHaveLength(1)
+    expect(hot[0].person).toBe('nosotros')
+    expect(hot[0].surface).toBe('fuimos')
+  })
+
+  it('returns null for an untabled verb (never a guessed paradigm) or a non-grid tense', () => {
+    expect(buildConjugationGridForTense('conocer', 'presente', 'yo')).toBeNull()
+    expect(buildConjugationGridForTense('hablar', 'imperativoAfirmativo', 'tú')).toBeNull()
   })
 })

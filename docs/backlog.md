@@ -27,6 +27,7 @@
 - First-time user flow: empty state on home + guidance to add their first word.
 - Empty state for /review when no cards exist.
 - Email verification on signup (currently disabled in Supabase).
+- **Real display name (M6 onboarding) — replaces the placeholder.** v0.6.7 added `displayNameFromEmail` (`lib/display-name.ts`, pure + tested): a temporary name derived from the email local-part (title-cased first token — "camille.r@…" → "Camille"), used in the drill recap ("¡Muy bien, {name}!"). M6 onboarding should collect a real name and store it on `profiles`; then swap **only this helper's source** (read the stored name, fall back to the email derivation) — every name surface already reads through it, so no call sites to hunt down.
 
 ## Mobile UX polish
 - `select-none` on transient toast text to prevent accidental text-selection.
@@ -58,7 +59,7 @@
 - Achievements section — needs an anti-ceremony philosophy decision before it's a milestone. (M5.2b shipped a single self-contained dictionary unlock; a broader achievements system would need to reconcile with the ceremony-fatigue / no-streaks standing decisions first.)
 - Session streak / XP counters.
 - Game mode selection in Settings (becomes meaningful only after multiple game modes exist).
-- Verb conjugation exercise mode — drill specific conjugations (tense + person) of a verb the user knows. (Now the verb-conjugation drill under M5.3 in roadmap.)
+- ~~Verb conjugation exercise mode — drill specific conjugations (tense + person) of a verb the user knows.~~ **SHIPPED as M5.3c (v0.6.7)** — the `/drill` flow. (Game-mode *selector* in Settings stays deferred — meaningful only after a 2nd mode.)
 
 ## i18n / future direction
 - Support languages other than Spanish (the architecture is mostly language-agnostic but the Anthropic prompt is Spanish-specific).
@@ -89,6 +90,28 @@
 - **`llover`** — impersonal/weather verb; full personal paradigm is grammatical but pedagogically odd. Excluded; revisit if a weather-verb display is ever wanted.
 - **`acordar` (me acuerdo) o→ue** stem-changer not in the v0.6.4 set → `paradigm('acordarse')` lacks `"acuerdo"`/`"acuerdas"`, so an `"me acuerdo"`-type card degrades to definition-MCQ until added. Adding it requires the v0.6.4 golden-fixture admission process (full-paradigm reference verification + `TRUSTED_LEMMAS` entry), NOT an ad-hoc `PRES_STEM` line. (Surfaced v0.6.5.)
 - **Comprehensive A2/B1 regular + stem-changer seeding** of `TRUSTED_LEMMAS` — **⛔ REQUIRED PRE-BETA-HANDOVER GATE** (broader coverage is needed before beta testers — a tester's verb that falls outside the trusted set silently gets no conjugation grid / no drill, which reads as a hole). v0.6.4 seeded the deck regulars + the audited stem-changers/irregulars only; M5.3b confirmed the live hit rate is **42/48 verb-pos words (87.5%)** today. Trusted-set coverage = how often the conjugation table (M5.3b) and the drill (M5.3c) can appear, so this must be expanded — with the v0.6.4 vetted-fixture admission process (full-paradigm reference verification, NOT ad-hoc `PRES_STEM` lines) — before opening to testers. **Concrete near-term candidates surfaced by the M5.3b coverage check** (deck verbs currently falling to the no-grid path, each a `-zco`/irregular the rule engine can't safely guess): **`conocer`**, **`crecer`** (both `-zco` yo), **`andar`** (irregular `anduve` preterite). (`creer`/`haber`/`acordar` stay excluded-and-logged below — single-cell defects, separate fixes.)
+
+## M5.3c drill — deferred dependencies (logged at v0.6.7)
+
+> Each is a content/coverage upgrade to the shipped drill, gated on other work — NOT drill-loop bugs.
+> The drill's logic seams (`triggerFrame`, the pool source) are built so these slot in without
+> touching the loop.
+
+- **(a) Drill "new verbs" (outside the deck)** — ⇐ **A2/B1 coverage seeding**. Today the pool is the
+  user's own trusted deck verbs only. A "practice a verb you don't have yet" source unlocks once the
+  `TRUSTED_LEMMAS` set is broadly seeded (the same pre-beta gate under Conjugator audit above) — a
+  drill prompt on an unseeded verb would silently get no conjugation + no grid.
+- **(b) (iii) full generated sentences + FR glosses** — = the **shared generation / cache layer**
+  (the crossword needs the same one). Replaces ONLY `triggerFrame(tense)` in `lib/drill.ts` (the
+  verb-agnostic lead-in) with a generated, verb-specific contextual sentence; the rest of the drill
+  loop is untouched. Build the generation/cache layer once, both modes consume it.
+- **(c) Richer ¡Casi! morphology teaching** ("racine devient pud-") — parked **tip content** = the
+  **Astuce tip redesign** (M5.3b Astuce half). The drill's ¡Uy! teaching line is deterministic
+  tense/person today; the morphological "why" explanation is the same content the Astuce hint needs,
+  so they share the redesign.
+- **The tip / Astuce redesign needs a dedicated design pass** — it is NOT a quick content tweak; it's
+  scheduled as part of the PRE-BETA full design pass (`roadmap.md`), and both the drill's morphology
+  "why" line (c) and the parked /review Astuce hint (M5.3b) depend on its output.
 
 ## Known bugs (shipped, deferred)
 

@@ -4,9 +4,11 @@ import { BookA, Lock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { oneEmbed, type WordCard } from '@/lib/word-status'
 import { DICTIONARY_UNLOCK_THRESHOLD, getDictionaryState } from '@/lib/dictionary'
+import { buildDrillPool } from '@/lib/drill'
 import WordRow from './WordRow'
 import EstimateInfo from './EstimateInfo'
 import UnlockSync from './UnlockSync'
+import DrillCard from './DrillCard'
 
 const COLD_START_MS = 12_000 // flat per-card estimate before we have enough data
 const MIN_USABLE_LOGS = 20
@@ -23,7 +25,7 @@ export default async function HomePage() {
   const supabase = await createClient()
   const nowIso = new Date().toISOString()
 
-  const [{ count: wordCount }, { count: dueCount }, { data: recent }, { data: logs }] =
+  const [{ count: wordCount }, { count: dueCount }, { data: recent }, { data: logs }, { data: deckVerbs }] =
     await Promise.all([
       // Only real collection words count: manual, or discovery rows fully promoted.
       supabase
@@ -43,10 +45,23 @@ export default async function HomePage() {
         .gt('time_ms', 0)
         .order('reviewed_at', { ascending: false })
         .limit(RECENT_LOGS_WINDOW),
+      // Full deck verb scan for the drill unlock count (fetch-and-filter in JS — M4.1 precedent).
+      supabase
+        .from('words')
+        .select('word, lemma, definition')
+        .or('origin.eq.manual,discovery_status.eq.promoted'),
     ])
 
   const totalWords = wordCount ?? 0
   const due = dueCount ?? 0
+
+  // Trusted (drillable) deck verbs gate the Conjugaison card (active at ≥5).
+  const trustedVerbCount = buildDrillPool(
+    (deckVerbs ?? []).map((w) => {
+      const def = w.definition as { pos?: string } | null
+      return { pos: def?.pos, word: w.word as string, lemma: w.lemma as string | null }
+    }),
+  ).length
 
   // Dictionary card state (memorized count is a JS-side filter, not a head count).
   const { unlocked: dictUnlocked, memorizedCount } = await getDictionaryState(supabase)
@@ -105,6 +120,9 @@ export default async function HomePage() {
             </p>
           </div>
         )}
+
+        {/* Conjugaison drill — the first game mode. Active at ≥5 trusted verbs, else soft-locked. */}
+        <DrillCard count={trustedVerbCount} />
 
         {/* Dictionary card — secondary, below the Review CTA so it never competes with it */}
         {dictUnlocked ? (
