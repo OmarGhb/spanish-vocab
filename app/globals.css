@@ -7,12 +7,17 @@
   /* Paco palette */
   --color-page:        #F5EDDA;
   --color-card:        #FFFBF3;
-  --color-surface-alt: #EDE0C4;
+  --color-surface-alt: #EFE2C6; /* "crème+" — tinted action/active card (board §01, value-aligned in M5.5a) */
   --color-ink:         #3D2B1A;
-  --color-muted:       #7A5A3A;
-  --color-line:        #D9C9A8;
+  --color-muted:       #7A5A3A; /* "sépia" — SECONDARY text only (board §01) */
+  --color-faint:       #A88F6B; /* "faint" — tertiary/captions/disabled text. Board §01 token set (T object/README); new to repo this slice, not rendered as a §01 swatch. */
+  --color-line:        #D9C9A8; /* "bordure" — hairlines, separators, card borders (board §01) */
+  --color-border-soft: #E7D8B8; /* "border-soft" — inner dividers/disabled borders. Board §01 token set (T object/README); new to repo this slice, not rendered as a §01 swatch. */
   --color-hair:        #E7DBC2; /* softer inner divider (rows / stat columns) — lighter than line */
-  --color-accent:      #C27A2C;
+  --color-accent:      #C27A2C; /* "ambre" — the ONE interactive/brand hue (board §01) */
+  --color-amber-deep:  #9A5A1C; /* pressed / hover (board §01) */
+  --color-amber-light: #F2DCB8; /* tinted fill / disabled-primary bg (board §01) */
+  --color-ivory:       #FFFBF3; /* text on amber — distinct role from --color-card surface (board §01) */
   --color-tint:        #F5E0C0;
   --color-ok:          #4A7C6F;
   --color-ok-bg:       #D4EDE9;
@@ -30,6 +35,10 @@
   --radius-card: 14px;
   --shadow-card: 0 1px 4px rgba(61,43,26,0.10),
                  0 4px 18px rgba(61,43,26,0.07);
+
+  /* Amber action/selection shadows (board §03–§04) */
+  --shadow-amber:    0 2px 5px rgba(154,90,28,0.28), 0 6px 16px rgba(154,90,28,0.18); /* primary button */
+  --shadow-amber-sm: 0 2px 6px rgba(154,90,28,0.25);                                  /* active pill / momentary selection */
 }
 
 body {

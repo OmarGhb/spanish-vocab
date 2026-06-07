@@ -162,6 +162,23 @@ Small patch, single commit. Suite 298 → 316.
 - **Detail-page Delete + Relearn** — Delete → primitive → back to `/words` (toast carries over); Relearn → `reset-schedule` (= reschedule-only → **no confirm modal**, consequence copy; New-card graceful no-op).
 - **Out of scope (was → M5.4c, now DROPPED):** bulk / multi-select / select-all + a batch delete endpoint — decided not to build; **archive/soft-delete schema** stays deferred (`backlog.md`); swipe on the detail page (it uses buttons). The deferred-delete primitive stays set-shaped, so a future bulk need can reuse it.
 
+## M5.5 — Design pass (PRE-BETA umbrella)
+
+> Implements the **v2 system board** (`Paco — Système visuel v2`, canonical for all hexes/rules). Sequenced as **foundation first** (the cross-cutting substrate), then per-screen **cluster** slices that consume it, ending in the signup/login/onboarding rework (M6 build follows). The board's later "vibe A/B" mockups show an earlier nav with a "+" — ignore; §05 is canonical (nav IA restructure is its own separate later pass).
+
+### M5.5a — Design-system foundation ✅ (v0.8.0)
+- **Substrate ONLY — NOT a screen redesign.** New-family minor bump.
+- **Color tokens (additive, §01):** `--color-amber-deep #9A5A1C`, `--color-amber-light #F2DCB8`, `--color-ivory #FFFBF3`, `--shadow-amber`/`--shadow-amber-sm`; `--color-surface-alt` value-aligned to canonical crème+ `#EFE2C6`. Confirmed `--color-line`=bordure / `--color-muted`=sépia already board-exact. Out-of-scope tokens (tint, ok-bg, err-bg, rating ramp) untouched.
+- **Fraunces (§02):** loaded italic-700 as an `<html>` var only (NOT in `@theme` → no `font-fraunces` utility); the sole apply path is `Display.tsx` with a closed `kind` union ('listo'|'casi'|'count') = the structurally-enforced allowlist. No usages ship (land with clusters).
+- **Canonical `Button` (§03):** 4 variants × 3 states, 14px-block / 999-pill radius rule, primary always amber. **Now:** the two brown-`bg-ink` primaries unified to amber (`DrillResult` "Suivant →", `LoadingIdiom` "Voir la fiche" — retires the v0.5.1 ink-CTA pilot). **Deferred to clusters:** all other already-compliant CTAs. Rating buttons untouched.
+- **Selection (§04):** `selection.ts` (`SELECTION_ACTIVE` / `SELECTION_PERSISTENT`); the one global instance wired = nav active tab. Filter pills / swipe choices / word rows defer to clusters.
+- **Nav paint (§05):** visual coherence only, IA/behavior unchanged; active pill routed through `SELECTION_ACTIVE` (gains `shadow-amber-sm`, ivory text). One-line avatar swap-point comment for the asset-gated 32px Animando crop. (Detail in `PROJECT_STATE.md` → From M5.5a.)
+- **Out of scope (later cluster slices):** ¡Casi! neutral screen (review/drill); StatusPill §06 recolor + En cours/En apprentissage merge + 3-dot gauge (Words — **the 6-band `lib/word-status.ts` taxonomy does NOT change**); per-screen button/selection migration; nav IA restructure; per-screen Paco placements.
+- **Deferred-and-logged from M5.5a** (`backlog.md` → Design pass — deferred from M5.5a): (a) the inactive nav-pill **accent-tinted border** (M5.2) vs board §05's neutral border → revisit in the nav-IA pass; (b) **semantic-tint drift** (`--color-ok-bg` `#D4EDE9` vs board `#DCEAE5`, plus err-bg/tint) → reconcile with the §06 status/Words cluster, not the additive foundation; (c) the 32px Animando nav-avatar crop asset.
+
+### M5.5b+ — per-screen cluster reworks (not yet scoped)
+- Review/drill cluster (incl. the ¡Casi! neutral result screen + the parked Astuce tip redesign), Words cluster (StatusPill §06 + filter/row selection migration), Home, Add, Discover. Each consumes the M5.5a substrate. **Final step:** signup/login/onboarding (Claude Design first) → M6 build.
+
 ## M6 - App onboarding & login screen upgrade
 
 > PRE-BETA sequencing: the login/onboarding **design** is the design pass's FINAL step (Claude Design first); this section is the **build** that follows it, riding the FR/ES language layer. Backend hardening (re-enable Supabase email verification + empty states) follows the designed screens. (No longer a standalone PRE-BETA slate row — folded into the design pass + build-after.)
@@ -182,3 +199,4 @@ Small patch, single commit. Suite 298 → 316.
 - Terminology unified on **"Mémorisé"** everywhere (filter = "Mémorisés", count = "N mémorisés"). "Maîtrisé" not used.
 - Ceremony-fatigue rule: informative-over-celebratory on the per-use path; big editorial moments reserved for genuinely low-frequency events.
 - The frame-5 "revu N fois · prochaine révision dans Xj" line is a **free, decoupled** near-term slice (pure `review_cards` data) — can land in the existing interstitial anytime, independent of the conjugator.
+- **v2 system locked (from M5.5a):** amber is the ONE interactive/brand hue (sage = success/acquisition only; terracotta = destructive/error only, rare); a full-amber card is a SURFACE not a control (amber fill is reserved for the button — its card takes crème+); `¡Casi!` is chromatically NEUTRAL (ink headline + crème+ tint, never amber/sage/terra); Fraunces is allowlist-only (¡Listo!/¡Casi!/big counts); no dark-brown primary. These bind every cluster slice.

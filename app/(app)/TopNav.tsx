@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useRef } from 'react'
 import { House, Library, Plus, Book, Compass, UserRound, BookA, Lock } from 'lucide-react'
 import { useFocusMode } from './FocusMode'
+import { SELECTION_ACTIVE } from './selection'
 
 // Five always-on pills + a flag-gated Dictionnaire pill (rendered after the map below).
 // Accueil also exists as the top-left home circle (both link to /); Compte (the avatar)
@@ -49,6 +50,9 @@ export default function TopNav({ dictionaryUnlocked }: { dictionaryUnlocked: boo
           <House size={20} strokeWidth={1.8} />
         </Link>
         <Link href="/" className="flex-1 flex items-center justify-center gap-2 min-w-0">
+          {/* Nav avatar (Animando). SWAP POINT (M5.5a): replace with the 32px head-shoulders
+              Animando crop (@1×/2×/3×) once that asset lands — paco.png is already Animando, so
+              this is asset-gated only; do not block on it. */}
           <Image src="/paco.png" alt="" width={40} height={40} className="object-contain shrink-0" />
           <span className="flex flex-col leading-none">
             <span className="font-serif text-2xl font-bold text-ink leading-none tracking-[-0.03em]">Paco</span>
@@ -79,7 +83,7 @@ export default function TopNav({ dictionaryUnlocked }: { dictionaryUnlocked: boo
               ref={active ? activeRef : undefined}
               aria-current={active ? 'page' : undefined}
               className={`flex items-center gap-1.5 rounded-full px-5 py-1.5 text-sm font-serif font-bold whitespace-nowrap shrink-0 border ${
-                active ? 'bg-accent text-white border-transparent' : 'bg-card text-ink border-accent/60'
+                active ? `border-transparent ${SELECTION_ACTIVE}` : 'bg-card text-ink border-accent/60'
               }`}
             >
               <Icon size={16} strokeWidth={active ? 2.2 : 1.8} className={active ? undefined : 'text-accent/60'} />
@@ -96,7 +100,7 @@ export default function TopNav({ dictionaryUnlocked }: { dictionaryUnlocked: boo
             ref={dictActive ? activeRef : undefined}
             aria-current={dictActive ? 'page' : undefined}
             className={`flex items-center gap-1.5 rounded-full px-5 py-1.5 text-sm font-serif font-bold whitespace-nowrap shrink-0 border ${
-              dictActive ? 'bg-accent text-white border-transparent' : 'bg-card text-ink border-accent/60'
+              dictActive ? `border-transparent ${SELECTION_ACTIVE}` : 'bg-card text-ink border-accent/60'
             }`}
           >
             <BookA size={16} strokeWidth={dictActive ? 2.2 : 1.8} className={dictActive ? undefined : 'text-accent/60'} />

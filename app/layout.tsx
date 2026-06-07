@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next"
-import { Inter, Lora } from "next/font/google"
+import { Inter, Lora, Fraunces } from "next/font/google"
 import "./globals.css"
 
 const inter = Inter({
@@ -11,6 +11,17 @@ const lora = Lora({
   variable: "--font-lora",
   subsets: ["latin"],
   weight: ['400', '700'],
+})
+
+// Fraunces — the "expression layer", italic 700 only. Deliberately exposed ONLY as a
+// raw CSS variable on <html> and NOT registered in globals.css @theme, so no `font-fraunces`
+// Tailwind utility is ever generated. The single allowed path to apply it is <Display> in
+// app/(app)/Display.tsx (the literal allowlist: ¡Listo! / ¡Casi! / big review counts).
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin"],
+  weight: ['700'],
+  style: ['italic'],
 })
 
 export const metadata: Metadata = {
@@ -38,7 +49,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${lora.variable} h-full antialiased`}
+      className={`${inter.variable} ${lora.variable} ${fraunces.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>{children}</body>

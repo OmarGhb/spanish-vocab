@@ -29,6 +29,14 @@
 - Email verification on signup (currently disabled in Supabase).
 - **Real display name (M6 onboarding) — replaces the placeholder.** v0.6.7 added `displayNameFromEmail` (`lib/display-name.ts`, pure + tested): a temporary name derived from the email local-part (title-cased first token — "camille.r@…" → "Camille"), used in the drill recap ("¡Muy bien, {name}!"). M6 onboarding should collect a real name and store it on `profiles`; then swap **only this helper's source** (read the stored name, fall back to the email derivation) — every name surface already reads through it, so no call sites to hunt down.
 
+## Design pass — deferred from M5.5a (foundation slice)
+- **Inactive nav-pill border — §01-consistency reconciliation.** M5.2 ships the inactive pill with an **accent-tinted** border + accent-tinted icon; board §05 `FinalNav` uses a **neutral** border (`--border`). Left unchanged in M5.5a (it wasn't one of §05's three named "paint" changes, and reconciling it is a redesign beyond visual coherence). **Revisit in the nav-IA restructure pass** (the separate later §05 pass) — decide neutral-per-board vs keep the M5.2 tint deliberately.
+- **Semantic-tint drift vs board §01 — reconcile with the §06 status/Words cluster.** A few live tint tokens differ slightly from the board: `--color-ok-bg #D4EDE9` vs board sage-tint `#DCEAE5`; `--color-err-bg #F5E0D8` vs terra-tint `#F4E1D8`; `--color-tint #F5E0C0` vs board tint `#F6E7CC` / amber-tint `#F7E8D0`. Deliberately NOT touched in the additive foundation (changing them re-tints existing screens). These surfaces (status pills, result cards) belong to the **§06 StatusPill / review clusters** — reconcile the exact hexes there, when those screens are reworked. (The canonical `Button`'s pressed-bg inlines `#F7E8D0`/`#F4E1D8` until then.)
+
+## Design pass — asset dependencies (from M5.5a)
+- **32px nav-avatar crop of Animando** (`paco.png`) — a *tighter crop of the existing asset* (not new art): head + collar, subject ≈ 80% of height, centered, transparent bg, minimal margins. Deliver @1×/2×/3× (32 / 64 / 96px). The raw asset has lots of negative space so the face is tiny at 32px. **Swap point already wired:** a one-line comment at the `TopNav.tsx` lockup `<Image src="/paco.png">` marks where it drops in — no code change beyond the src/size. Asset-gated, non-blocking; the nav uses the current `paco.png` until then.
+- **Later / optional (do NOT commission now):** a dedicated full-body "celebration" Paco for milestones — only if Animando/Feliz prove insufficient in use. Conservative: don't design any screen around it.
+
 ## Mobile UX polish
 - ~~`select-none` on transient toast text to prevent accidental text-selection.~~ **DONE in M5.4b (v0.7.1)** — applied to the deferred-delete undo toast. (The add-page toasts can adopt it too if it ever bites there.)
 - Mobile review polish (deferred from earlier milestones — revisit after extended mobile use).

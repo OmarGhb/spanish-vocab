@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
+import Button from '../Button'
 import IdiomCard from './IdiomCard'
 import { getRandomIdiom } from '@/lib/idioms'
 
@@ -127,13 +128,11 @@ export default function LoadingIdiom({ status, word, result, onReveal, onRetry }
             )}
 
             <div className="flex-1 min-h-6" />
-            <button
-              type="button"
-              onClick={onReveal}
-              className="w-full bg-ink text-page rounded-card py-4 font-serif text-sm"
-            >
+            {/* Unified to the canonical amber primary (board §03 — retires the v0.5.1 dark "ink CTA"
+                pilot; the system has no dark-brown primary). */}
+            <Button variant="primary" full type="button" onClick={onReveal}>
               Voir la fiche →
-            </button>
+            </Button>
           </>
         )}
 

@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import { buildConjugationGridForTense } from '@/lib/conjugation-grid'
 import { drillTeachingLine, drillTenseLabel, type DrillPromptItem, type DrillVerdict } from '@/lib/drill'
+import Button from '../Button'
 import ConjugationGrid from '../ConjugationGrid'
 import DrillHeader from './DrillHeader'
 
@@ -97,16 +98,14 @@ export default function DrillResult({
 
       {/* Manual advance */}
       <div className="px-5 pt-3.5 shrink-0 pb-[max(1.75rem,env(safe-area-inset-bottom))]">
-        <button
-          type="button"
-          onClick={onNext}
-          className="flex w-full items-center justify-center gap-2 rounded-card bg-ink py-4 font-serif text-base font-semibold text-page"
-        >
+        {/* Unified to the canonical amber primary (board §03 — the brown-ink "Suivant →" exits
+            the button role; no dark-brown primary). */}
+        <Button variant="primary" full type="button" onClick={onNext}>
           {isLast ? 'Voir le bilan' : 'Suivant'}
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.1} strokeLinecap="round" strokeLinejoin="round">
             <path d="M5 12h14M13 6l6 6-6 6" />
           </svg>
-        </button>
+        </Button>
       </div>
     </div>
   )
