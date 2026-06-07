@@ -5,7 +5,7 @@
 
 ## Word list improvements
 - ~~Pagination: show 10 newest by default, "Voir plus" button or infinite scroll.~~ **SHIPPED as M5.4a (v0.7.0)** — load-on-scroll progressive append (IntersectionObserver, initial 40 / +30).
-- ~~Swipe-to-delete: requires a swipeable-list approach.~~ **Delete SHIPPED in M5.4b (v0.7.1)** — swipe-to-reveal on `/words` + a detail-page button, via the deferred-delete/undo primitive. **Bulk / multi-select / select-all** (+ a batch delete endpoint) is the next slice **M5.4c** (roadmap). **Archive** (soft-delete + `archived` flag in schema) stays deferred — separate from delete.
+- ~~Swipe-to-delete: requires a swipeable-list approach.~~ **Delete SHIPPED in M5.4b (v0.7.1)** — swipe-to-reveal on `/words` + a detail-page button, via the deferred-delete/undo primitive. **Bulk / multi-select / select-all** (+ a batch delete endpoint) was scoped as **M5.4c** but **DROPPED** (decided not to build; the deferred-delete primitive stays set-shaped if the need returns). **Archive** (soft-delete + `archived` flag in schema) stays deferred — separate from delete.
 - ~~Search/filter on word list.~~ **SHIPPED as M5.4a (v0.7.0)** — client-side forgiving free-text search (`lib/word-search.ts`) over the word + both glosses.
 - Smarter truncation of definition preview: truncate at sentence boundary or first clause, not arbitrary character count.
 
@@ -135,7 +135,7 @@
   on demand, not a regression. Future fix: prefetch the next topic's batch (warm on grid
   idle / on press-in) and/or a short-lived server-side per-topic cache of generated
   batches, so the deck opens instantly on the common path. Keep the cache-before-API
-  resume path; this is purely about cold-generation perceived speed.
+  resume path; this is purely about cold-generation perceived speed. **Cross-ref:** the PRE-BETA **content gate**'s discovery pre-seeding (≥100 words/theme, `roadmap.md`) would address this directly by serving pre-generated words instead of a live call — **not retired here (not shipped).**
 
   _(The desktop / wide-viewport + content↔nav edge-alignment item was **resolved by M5.2** —
   the top nav lives inside the `max-w-[430px]` column so nav and content share edges by
