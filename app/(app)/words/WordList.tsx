@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { getFamiliarity, isDue, isMemorized } from '@/lib/word-status'
 import { matchesWordSearch } from '@/lib/word-search'
-import WordRow from '../WordRow'
+import { useDeferredDelete } from '../DeferredDelete'
+import SwipeRow from './SwipeRow'
 import type { WordListItem } from './page'
 
 type Filter = 'tous' | 'arevoir' | 'memorises'
@@ -31,12 +32,19 @@ export default function WordList({ items }: { items: WordListItem[] }) {
   const [sort, setSort] = useState<Sort>('date')
   const [search, setSearch] = useState('')
   const [shown, setShown] = useState(INITIAL_CHUNK)
+  // Single-open-row coordination for swipe-to-reveal.
+  const [openRowId, setOpenRowId] = useState<string | null>(null)
 
-  // Pipeline order: filter pill → search → sort. Search narrows the ACTIVE pill's
-  // full set (it does not reset the pill) and runs over the FULL deck, not the
-  // currently-rendered rows.
+  const { hiddenIds, scheduleDelete } = useDeferredDelete()
+
+  // Pipeline order: (deferred-delete hide) → filter pill → search → sort.
+  // `hiddenIds` is the optimistic-removal set owned by the layout-level provider;
+  // rendering from `items` minus it means undo just un-hides and the deterministic
+  // sort re-places the row for free. Search narrows the ACTIVE pill's full set (it
+  // does not reset the pill) and runs over the FULL deck, not the rendered rows.
   const visible = useMemo(() => {
     const filtered = items.filter((it) => {
+      if (hiddenIds.has(it.id)) return false
       if (filter === 'arevoir') return isDue(it.card)
       if (filter === 'memorises') return isMemorized(it.card)
       return true
@@ -59,10 +67,11 @@ export default function WordList({ items }: { items: WordListItem[] }) {
       sorted.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     }
     return sorted
-  }, [items, filter, sort, search])
+  }, [items, hiddenIds, filter, sort, search])
 
   // The reveal cap resets to the initial chunk whenever the visible set changes
-  // (filter / search / sort). Adjusting state during render (the React-blessed
+  // (filter / search / sort) — NOT on hiddenIds changes, so an optimistic delete
+  // never resets the scroll cap. Adjusting state during render (the React-blessed
   // pattern) rather than an effect — no extra paint. Default date-desc → the
   // initial chunk is the newest N.
   const viewSig = `${filter}|${sort}|${search}`
@@ -93,6 +102,25 @@ export default function WordList({ items }: { items: WordListItem[] }) {
     observer.observe(node)
     return () => observer.disconnect()
   }, [hasMore, visible.length])
+
+  // An open swipe row closes on scroll or on any pointer-down outside it (which
+  // covers tapping another row / blank space). The open row marks itself with
+  // data-swipe-open so its own drawer button + drag don't self-close.
+  useEffect(() => {
+    if (openRowId === null) return
+    const close = () => setOpenRowId(null)
+    const onDown = (e: PointerEvent) => {
+      const target = e.target as HTMLElement | null
+      if (target?.closest('[data-swipe-open="true"]')) return
+      setOpenRowId(null)
+    }
+    window.addEventListener('scroll', close, { passive: true })
+    document.addEventListener('pointerdown', onDown)
+    return () => {
+      window.removeEventListener('scroll', close)
+      document.removeEventListener('pointerdown', onDown)
+    }
+  }, [openRowId])
 
   const searching = search.trim() !== ''
 
@@ -173,7 +201,21 @@ export default function WordList({ items }: { items: WordListItem[] }) {
           <>
             <ul className="flex flex-col gap-2">
               {rendered.map((it) => (
-                <WordRow key={it.id} id={it.id} word={it.word} defEs={it.defEs} card={it.card} reps={it.reps} />
+                <SwipeRow
+                  key={it.id}
+                  id={it.id}
+                  word={it.word}
+                  defEs={it.defEs}
+                  card={it.card}
+                  reps={it.reps}
+                  isOpen={openRowId === it.id}
+                  onOpen={() => setOpenRowId(it.id)}
+                  onClose={() => setOpenRowId((cur) => (cur === it.id ? null : cur))}
+                  onDelete={() => {
+                    setOpenRowId(null)
+                    scheduleDelete({ ids: [it.id], labels: [it.word] })
+                  }}
+                />
               ))}
             </ul>
             {hasMore && <div ref={sentinelRef} aria-hidden className="h-1" />}

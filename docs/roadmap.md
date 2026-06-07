@@ -12,7 +12,7 @@ The next committed milestones. Items in `docs/backlog.md` are deferred until pro
 
 The committed order from here (detail for each lives in its section below or in `backlog.md`):
 
-- **NOW:** M5.3c verb drill ✅ (shipped) · **List management** — M5.4a free-text search + load-on-scroll ✅ (shipped), **swipe** delete/archive (unblocked by the M5.1 swipe primitive), **"Relearn"/reset-a-word reusing `/api/words/reset-schedule`**.
+- **NOW:** M5.3c verb drill ✅ (shipped) · **List management** — M5.4a free-text search + load-on-scroll ✅ (shipped), M5.4b per-word delete + undo + Relearn ✅ (shipped), **M5.4c bulk / multi-select** (next), **archive** (soft-delete + `archived` column, deferred).
 - **PRE-BETA:** Full **design pass** (incl. the parked Astuce/tip redesign + request more Paco moods/placements from Claude Design) · **Language balance / immersion toggle** (FR/ES chrome; **English DEFERRED** — the co-students are Francophone) · **M6 login + onboarding** (built on the i18n layer) · **Signup hardening** (**re-enable Supabase email verification** + empty states) · **A2/B1 coverage seeding** (expand `TRUSTED_LEMMAS` — coverage = how often the table/drill can appear) · **Learning-curve review + blank reviews** (analysis-first) · **M5.3d compound (perfect) tenses** for the drill + grid (*he comido* / *había comido* — **IMPORTANT, A2** core; needs `haber` verified).
 - **STRATEGIC:** **Crossword** (scoping → build; shares the (iii) generation + cache layer with the drill) · **Native apps** Android + iOS (**approach decision FIRST — Capacitor / PWA / rewrite** — then build).
 - **LATER:** **English UI** · **M7 companion** (data-gated on ~100+ words).
@@ -152,6 +152,13 @@ Small patch, single commit. Suite 298 → 316.
 - **Load-on-scroll (progressive append, NOT virtualization).** Initial 40 rows, +30 when a bottom sentinel hits the viewport via IntersectionObserver (not scroll events). `list.slice(0, shown)`; no new fetch, no react-window dep. Cap resets to the initial chunk on any visible-set change (filter / search / sort); default date-desc → initial chunk = newest N.
 - **All client-side over the already-fetched list** — NO schema, NO new API route, NO server pagination. `page.tsx` threads `defFr` onto `WordListItem` for the predicate (never rendered — Spanish-first). (Detail in `PROJECT_STATE.md` → From M5.4a.)
 - **Out of scope (later M5.4 slices):** swipe delete/archive, Relearn/reset-a-word, bulk/multi-select, `archived` schema column, server pagination.
+
+### M5.4b — /words per-word actions: delete + undo + Relearn ✅ (v0.7.1)
+- **Single-word `DELETE /api/words/[id]`** — RLS + explicit `user_id` scope; FK cascade verified against the live schema (`review_cards.word_id → words`, `review_logs.card_id → review_cards` both CASCADE), so no manual child cleanup / no migration. Error `console.error`d (M3.3 convention).
+- **Deferred-delete + undo-toast primitive** (`app/(app)/DeferredDelete.tsx`) — a layout-level provider (sibling of `FocusModeProvider`) so the toast/timer survive a detail→list navigation. **Set-shaped** (`scheduleDelete({ ids, labels })`, 1 here / N in M5.4c) but NO batch route or bulk UI built. Optimistic-remove via a provider-owned `hiddenIds` Set (`/words` renders `items` minus it → undo + deterministic re-sort fall out for free); ~5s timer; commit fires the DELETE(s) + `router.refresh()`; unmount clears the timer WITHOUT committing (word survives). Folded in the backlog `select-none` toast item.
+- **Swipe-to-reveal delete** (`SwipeRow.tsx`) — reveal-and-tap (NOT the discovery `SwipeCard` fling-commit; a fresh component, pure snap math in tested `lib/swipe-row.ts`), wraps the unchanged `WordRow` (new `asListItem` prop avoids nested `<li>`). Single-open-row, closes on scroll / outside tap; composes with 4a (optimistic removal doesn't reset the scroll cap).
+- **Detail-page Delete + Relearn** — Delete → primitive → back to `/words` (toast carries over); Relearn → `reset-schedule` (= reschedule-only → **no confirm modal**, consequence copy; New-card graceful no-op).
+- **Out of scope → M5.4c:** bulk / multi-select / select-all + a batch delete endpoint; archive/soft-delete schema; swipe on the detail page.
 
 ## M6 - App onboarding & login screen upgrade
 - App's first opening should trigger an onboarding with interactive steps showing how the app works.

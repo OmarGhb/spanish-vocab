@@ -5,7 +5,7 @@
 
 ## Word list improvements
 - ~~Pagination: show 10 newest by default, "Voir plus" button or infinite scroll.~~ **SHIPPED as M5.4a (v0.7.0)** — load-on-scroll progressive append (IntersectionObserver, initial 40 / +30).
-- Swipe-to-delete/archive: requires a swipeable-list approach + an `archived` flag in schema.
+- ~~Swipe-to-delete: requires a swipeable-list approach.~~ **Delete SHIPPED in M5.4b (v0.7.1)** — swipe-to-reveal on `/words` + a detail-page button, via the deferred-delete/undo primitive. **Bulk / multi-select / select-all** (+ a batch delete endpoint) is the next slice **M5.4c** (roadmap). **Archive** (soft-delete + `archived` flag in schema) stays deferred — separate from delete.
 - ~~Search/filter on word list.~~ **SHIPPED as M5.4a (v0.7.0)** — client-side forgiving free-text search (`lib/word-search.ts`) over the word + both glosses.
 - Smarter truncation of definition preview: truncate at sentence boundary or first clause, not arbitrary character count.
 
@@ -30,7 +30,7 @@
 - **Real display name (M6 onboarding) — replaces the placeholder.** v0.6.7 added `displayNameFromEmail` (`lib/display-name.ts`, pure + tested): a temporary name derived from the email local-part (title-cased first token — "camille.r@…" → "Camille"), used in the drill recap ("¡Muy bien, {name}!"). M6 onboarding should collect a real name and store it on `profiles`; then swap **only this helper's source** (read the stored name, fall back to the email derivation) — every name surface already reads through it, so no call sites to hunt down.
 
 ## Mobile UX polish
-- `select-none` on transient toast text to prevent accidental text-selection.
+- ~~`select-none` on transient toast text to prevent accidental text-selection.~~ **DONE in M5.4b (v0.7.1)** — applied to the deferred-delete undo toast. (The add-page toasts can adopt it too if it ever bites there.)
 - Mobile review polish (deferred from earlier milestones — revisit after extended mobile use).
 - Rating button scan-speed check: amber single-hue gradation was introduced in v0.3.3 (replacing Anki-convention RGB). Worth a deliberate check after a few weeks of daily use — if review pace slows because the buttons are harder to distinguish at a glance, consider reverting to RGB or adding secondary visual cues (icons, position).
 

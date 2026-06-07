@@ -5,6 +5,7 @@ import { oneEmbed } from '@/lib/word-status'
 import AudioButton from '../../AudioButton'
 import StatusPill from '../../StatusPill'
 import WordDetailContent from './WordDetailContent'
+import WordDetailActions from './WordDetailActions'
 
 function statsLine(reps: number, lastReview: string | null): string {
   if (reps === 0 || !lastReview) return 'Pas encore révisé'
@@ -52,7 +53,7 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="p-5 flex flex-col gap-5">
+      <div className="p-5 pb-28 flex flex-col gap-5">
         <Link href="/" className="text-muted text-sm self-start">←</Link>
 
         {/* Status pill */}
@@ -77,6 +78,9 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
 
         {/* Stats line */}
         <p className="text-xs text-muted">{stats}</p>
+
+        {/* Delete + Relearn */}
+        <WordDetailActions wordId={data.id as string} word={data.word as string} />
       </div>
     </div>
   )

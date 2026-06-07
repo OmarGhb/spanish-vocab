@@ -11,37 +11,40 @@ export default function WordRow({
   defEs,
   card,
   reps,
+  asListItem = true,
 }: {
   id: string
   word: string
   defEs: string
   card: WordCard | null
   reps: number
+  // When false, render just the row <Link> without its own <li> wrapper, so a
+  // caller (e.g. SwipeRow) can supply the list item and avoid nested <li>.
+  asListItem?: boolean
 }) {
   const action = isDue(card)
   const status = getWordStatus(card)
-  return (
-    <li>
-      <Link
-        href={`/words/${id}`}
-        className={`flex items-center gap-3 rounded-card border px-3.5 py-3 ${
-          action ? 'bg-tint border-accent' : 'bg-card border-line'
-        }`}
-      >
-        <FamiliarityMeter card={card} />
-        <div className="flex-1 min-w-0">
-          <p className="font-serif text-lg font-bold text-ink leading-none tracking-[-0.02em]">{word}</p>
-          {defEs && <p className="text-xs text-muted italic mt-[3px] line-clamp-1">{defEs}</p>}
-        </div>
-        <div className="flex flex-col items-end gap-1 shrink-0">
-          <span className={`text-[10px] font-bold uppercase tracking-[0.08em] whitespace-nowrap ${status.text}`}>
-            {status.label}
-          </span>
-          <p className="text-[10px] text-muted whitespace-nowrap">
-            {reps} révision{reps >= 2 ? 's' : ''}
-          </p>
-        </div>
-      </Link>
-    </li>
+  const row = (
+    <Link
+      href={`/words/${id}`}
+      className={`flex items-center gap-3 rounded-card border px-3.5 py-3 ${
+        action ? 'bg-tint border-accent' : 'bg-card border-line'
+      }`}
+    >
+      <FamiliarityMeter card={card} />
+      <div className="flex-1 min-w-0">
+        <p className="font-serif text-lg font-bold text-ink leading-none tracking-[-0.02em]">{word}</p>
+        {defEs && <p className="text-xs text-muted italic mt-[3px] line-clamp-1">{defEs}</p>}
+      </div>
+      <div className="flex flex-col items-end gap-1 shrink-0">
+        <span className={`text-[10px] font-bold uppercase tracking-[0.08em] whitespace-nowrap ${status.text}`}>
+          {status.label}
+        </span>
+        <p className="text-[10px] text-muted whitespace-nowrap">
+          {reps} révision{reps >= 2 ? 's' : ''}
+        </p>
+      </div>
+    </Link>
   )
+  return asListItem ? <li>{row}</li> : row
 }

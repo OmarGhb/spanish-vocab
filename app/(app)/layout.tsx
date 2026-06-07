@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import TopNav from './TopNav'
 import { FocusModeProvider } from './FocusMode'
+import { DeferredDeleteProvider } from './DeferredDelete'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -21,10 +22,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <FocusModeProvider>
-      <div className="w-full max-w-[430px] mx-auto min-h-screen flex flex-col">
-        <TopNav dictionaryUnlocked={profile?.dictionary_unlocked === true} />
-        {children}
-      </div>
+      <DeferredDeleteProvider>
+        <div className="w-full max-w-[430px] mx-auto min-h-screen flex flex-col">
+          <TopNav dictionaryUnlocked={profile?.dictionary_unlocked === true} />
+          {children}
+        </div>
+      </DeferredDeleteProvider>
     </FocusModeProvider>
   )
 }
