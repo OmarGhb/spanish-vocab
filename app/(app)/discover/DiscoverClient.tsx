@@ -3,12 +3,24 @@
 import Image from 'next/image'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
-import { X } from 'lucide-react'
+import { X, ArrowRight, Compass, Share2, BarChart3, Sparkles, type LucideIcon } from 'lucide-react'
 import { DISCOVERY_TOPICS, type DiscoveryTopic } from '@/lib/discovery-topics'
-import { posEyebrow, deckArticle, type DeckCard } from '@/lib/discovery'
+import { posAbbrev, deckArticle, type DeckCard } from '@/lib/discovery'
 import SwipeCard from '../SwipeCard'
+import LoadingChecklist from '../LoadingChecklist'
+import Button from '../Button'
 
 type Phase = 'grid' | 'generating' | 'deck' | 'bilan' | 'exhausted'
+type Featured = 'adjacency' | 'level'
+
+// Discovery generation phase labels (board ②) — the loading choreography is the shared
+// /add one (LoadingChecklist), only the labels + a longer dwell differ.
+const GEN_PHASES = [
+  'Sélection des mots du thème',
+  'Définitions & exemples',
+  'Mots à ne pas confondre',
+  'Phonétique',
+] as const
 
 // Background enrichment of kept words. Fired on grid mount (catch-up for any stranded
 // 'kept' rows) and again when the bilan shows. The endpoint is concurrency-safe.
@@ -16,60 +28,124 @@ function triggerEnrich() {
   void fetch('/api/discovery/enrich', { method: 'POST' }).catch(() => {})
 }
 
-// Full-bleed focused backdrop with content constrained to the standard mobile column,
-// so the progress bar / card / CTAs never span a wide viewport. `center` stacks content
-// in the middle for the loading / exhausted / bilan screens.
-function FocusedOverlay({ center, children }: { center?: boolean; children: ReactNode }) {
+// Full-bleed focused backdrop, content constrained to the standard mobile column.
+function FocusedOverlay({ children }: { children: ReactNode }) {
   return (
     <div className="fixed inset-0 z-[60] bg-page">
-      <div
-        className={`relative w-full max-w-[430px] mx-auto h-full flex flex-col${
-          center ? ' items-center justify-center p-6 text-center' : ''
-        }`}
-      >
-        {children}
-      </div>
+      <div className="relative w-full max-w-[430px] mx-auto h-full flex flex-col">{children}</div>
     </div>
   )
 }
 
-// Focused-mode close (×), pinned to the top-left within the safe area.
-function CloseButton({ onClose }: { onClose: () => void }) {
+// 38px outline circle close (board chrome) — in-flow at the top-left of each modal.
+function CircleClose({ onClose }: { onClose: () => void }) {
   return (
     <button
       type="button"
       onClick={onClose}
       aria-label="Fermer"
-      className="absolute left-4 z-10 text-muted p-2 -m-2"
-      style={{ top: 'max(1rem, env(safe-area-inset-top))' }}
+      className="w-[38px] h-[38px] rounded-full border border-line bg-card grid place-items-center text-muted shrink-0"
     >
-      <X size={24} strokeWidth={1.8} />
+      <X size={19} strokeWidth={2} />
     </button>
   )
 }
+
+function SectionLabel({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex items-center gap-2.5 px-1 pt-1 pb-0.5">
+      <span className="text-[10.5px] font-bold uppercase tracking-[0.12em] text-muted whitespace-nowrap">{children}</span>
+      <span className="flex-1 h-px bg-border-soft" />
+    </div>
+  )
+}
+
+// Bold the headword where it appears in the example (board: target word bold amber).
+function boldTarget(sentence: string, word: string): ReactNode {
+  const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const re = new RegExp(`(${escaped})`, 'i')
+  return sentence.split(re).map((part, i) =>
+    re.test(part) ? <b key={i} className="text-accent font-bold">{part}</b> : part,
+  )
+}
+
+// "Pour toi" featured card — a curated collection, NON-FUNCTIONAL placeholder this slice.
+// Distinct from topic tiles: horizontal, amber-FILLED icon tile (featured accent without
+// painting the card), and a neutral "Bientôt" chip (NOT the live amber → arrow) so it
+// doesn't read as a tap-dead-end. Tapping shows a warm Paco-voice "pas encore disponible".
+function FeaturedCard({
+  Icon, kicker, title, sub, meta, onTap,
+}: { Icon: LucideIcon; kicker: string; title: string; sub: string; meta: string; onTap: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onTap}
+      className="text-left w-full bg-card border border-line rounded-[16px] shadow-card p-[15px] flex items-center gap-3.5"
+    >
+      <span className="w-[52px] h-[52px] rounded-[14px] bg-accent text-ivory grid place-items-center shrink-0 shadow-amber-sm">
+        <Icon size={26} strokeWidth={1.8} />
+      </span>
+      <div className="flex-1 min-w-0">
+        <div className="text-[9.5px] font-bold uppercase tracking-[0.12em] text-accent">{kicker}</div>
+        <div className="font-serif text-lg font-bold tracking-[-0.01em] text-ink leading-[1.18] mt-[3px]">{title}</div>
+        <div className="text-[12.5px] text-muted leading-snug mt-1">{sub}</div>
+        <div className="text-[11px] font-semibold text-faint mt-1.5">{meta}</div>
+      </div>
+      <span className="shrink-0 text-[9.5px] font-bold uppercase tracking-[0.1em] text-faint border border-border-soft rounded-full px-2 py-1">
+        Bientôt
+      </span>
+    </button>
+  )
+}
+
+// Shown in the dark bottom toast (same treatment as the delete "« … » supprimé" toast).
+// Warm Paco-voice, concise to fit a single toast line; never an error.
+const COMING_SOON_COPY: Record<Featured, string> = {
+  adjacency: 'Des mots tout près de ce que tu apprends — Paco prépare ça, bientôt !',
+  level: '« L’essentiel A2–B1 » arrive bientôt — Paco la prépare avec soin.',
+}
+const COMING_SOON_MS = 4000
 
 export default function DiscoverClient() {
   const router = useRouter()
   const [phase, setPhase] = useState<Phase>('grid')
   const [topic, setTopic] = useState<DiscoveryTopic | null>(null)
+  const [selectedKey, setSelectedKey] = useState<string | null>(null)
+  const [comingSoon, setComingSoon] = useState<Featured | null>(null)
   const [cards, setCards] = useState<DeckCard[]>([])
   const [index, setIndex] = useState(0)
   const [kept, setKept] = useState(0)
   const [known, setKnown] = useState(0)
+  const [genReady, setGenReady] = useState(false)
   const [genError, setGenError] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
+  const genResultRef = useRef<DeckCard[] | null>(null)
 
   useEffect(() => {
     triggerEnrich()
     return () => abortRef.current?.abort()
   }, [])
 
+  // Auto-dismiss the "Pour toi" coming-soon toast (keyed re-tap restarts it).
+  useEffect(() => {
+    if (!comingSoon) return
+    const t = setTimeout(() => setComingSoon(null), COMING_SOON_MS)
+    return () => clearTimeout(t)
+  }, [comingSoon])
+
   async function startTopic(t: DiscoveryTopic) {
     abortRef.current?.abort()
     const controller = new AbortController()
     abortRef.current = controller
     setTopic(t)
+    setSelectedKey(t.key)
+    setComingSoon(null)
     setGenError(false)
+    setGenReady(false)
+    genResultRef.current = null
+    setIndex(0)
+    setKept(0)
+    setKnown(0)
     setPhase('generating')
     try {
       const res = await fetch('/api/discovery/generate', {
@@ -83,29 +159,33 @@ export default function DiscoverClient() {
         return
       }
       const data = (await res.json()) as { cards: DeckCard[] }
-      if (!data.cards || data.cards.length === 0) {
-        setPhase('exhausted')
-        return
-      }
-      setCards(data.cards)
-      setIndex(0)
-      setKept(0)
-      setKnown(0)
-      setPhase('deck')
+      const list = data.cards ?? []
+      genResultRef.current = list
+      setCards(list)
+      // The choreography (LoadingChecklist) holds the screen until max(dataReady, floor);
+      // onReveal then routes to deck or exhausted.
+      setGenReady(true)
     } catch (e) {
       if (e instanceof DOMException && e.name === 'AbortError') return
       setGenError(true)
     }
   }
 
+  // Called by LoadingChecklist after the min-floor + settle beat.
+  function onGenReveal() {
+    const list = genResultRef.current ?? []
+    setPhase(list.length > 0 ? 'deck' : 'exhausted')
+  }
+
   function cancelGenerating() {
     abortRef.current?.abort()
-    setPhase('grid')
+    backToGrid()
   }
 
   function backToGrid() {
     setPhase('grid')
     setTopic(null)
+    setSelectedKey(null)
     setCards([])
   }
 
@@ -133,236 +213,282 @@ export default function DiscoverClient() {
   if (phase === 'grid') {
     return (
       <div className="flex flex-col flex-1">
-        {/* Header — deliberate tighter gutter (px-3) so the card grid sits fuller; kept equal to the grid below */}
-        <div className="pt-[14px] px-3 pb-3 flex items-center gap-3">
-          <Image src="/paco.png" alt="Paco" width={56} height={56} className="object-contain shrink-0" />
+        <div className="px-5 pt-1.5 pb-3 flex items-center gap-3.5">
+          <Image src="/paco.png" alt="Paco" width={50} height={50} className="object-contain shrink-0" />
           <div>
-            <h1 className="font-serif text-3xl font-bold text-ink leading-none">Découvrir</h1>
-            <p className="text-sm text-muted mt-1.5">Explore de nouveaux mots par thème</p>
+            <h1 className="font-serif text-[30px] font-bold tracking-[-0.02em] text-ink leading-none">Découvrir</h1>
+            <p className="text-[13px] text-muted mt-1.5">Des sélections pour toi, ou explore par thème</p>
           </div>
         </div>
-        {/* Grid — 2 equal columns, deliberate tighter px-3 gutter (matches header) so tiles sit fuller/wider */}
-        <div className="px-3 grid grid-cols-2 gap-[13px]">
-          {DISCOVERY_TOPICS.map((t) => (
-            <button
-              key={t.key}
-              type="button"
-              onClick={() => void startTopic(t)}
-              // Content-sized card: simple top-down stack, single 10px gap, no auto-margins.
-              className="bg-card border border-line rounded-card shadow-card px-4 pt-4 pb-3.5 flex flex-col gap-2.5 text-left active:bg-tint transition-colors"
-            >
-              <span className="w-12 h-12 rounded-[13px] bg-tint text-accent flex items-center justify-center shrink-0">
-                <t.Icon size={22} strokeWidth={1.8} />
-              </span>
-              <div>
-                <span className="block font-serif text-lg font-bold text-ink leading-tight">{t.es}</span>
-                <span className="block text-sm text-muted leading-tight mt-[3px]">{t.fr}</span>
-              </div>
-              <span className="text-[11px] uppercase tracking-[0.14em] text-muted">{t.count} MOTS</span>
-            </button>
-          ))}
+
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 flex flex-col gap-3">
+          {/* POUR TOI — non-functional placeholders (adjacency = M5.1b, A2–B1 = content gate) */}
+          <SectionLabel>Pour toi</SectionLabel>
+          <FeaturedCard
+            Icon={Share2}
+            kicker="À côté de tes mots"
+            title="Dans le prolongement de tes mots"
+            sub="Des mots choisis tout près de ce que tu apprends en ce moment."
+            meta="Bientôt · proche de ta collection"
+            onTap={() => setComingSoon('adjacency')}
+          />
+          <FeaturedCard
+            Icon={BarChart3}
+            kicker="Collection de référence"
+            title="L'essentiel A2–B1"
+            sub="Le socle de vocabulaire pour passer le cap intermédiaire."
+            meta="Bientôt · par paliers"
+            onTap={() => setComingSoon('level')}
+          />
+          <div className="mt-1">
+            <SectionLabel>Par thème</SectionLabel>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {DISCOVERY_TOPICS.map((t) => {
+              const sel = selectedKey === t.key
+              return (
+                <button
+                  key={t.key}
+                  type="button"
+                  onClick={() => void startTopic(t)}
+                  className={`text-left rounded-[16px] border p-[15px] pb-3.5 flex flex-col gap-3 min-h-[152px] transition-colors ${
+                    sel ? 'bg-surface-alt border-[1.5px] border-accent' : 'bg-card border-line shadow-card active:bg-tint'
+                  }`}
+                >
+                  <span
+                    className={`w-12 h-12 rounded-[13px] grid place-items-center shrink-0 ${
+                      sel ? 'bg-accent text-ivory' : 'bg-amber-light text-amber-deep'
+                    }`}
+                  >
+                    <t.Icon size={22} strokeWidth={1.8} />
+                  </span>
+                  <div className="mt-auto">
+                    <span className="block font-serif text-xl font-bold tracking-[-0.01em] text-ink leading-[1.1]">{t.es}</span>
+                    <span className="block font-serif italic text-[13px] text-muted mt-[3px]">{t.fr}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10.5px] font-bold uppercase tracking-[0.08em] text-faint">{t.count} mots</span>
+                    {sel && <ArrowRight size={16} className="text-accent" />}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
         </div>
+
+        {/* Coming-soon toast — same dark treatment as the delete "« … » supprimé" toast. */}
+        {comingSoon && (
+          <div className="fixed bottom-24 inset-x-0 z-40 px-4 pointer-events-none">
+            <div
+              key={comingSoon}
+              className="max-w-[430px] mx-auto rounded-card px-4 py-3.5 shadow-menu pointer-events-auto flex items-center gap-3.5 bg-ink select-none"
+            >
+              <Sparkles size={16} className="text-amber-light shrink-0" />
+              <p className="text-[14.5px] font-serif text-ivory flex-1">{COMING_SOON_COPY[comingSoon]}</p>
+              <button
+                type="button"
+                onClick={() => setComingSoon(null)}
+                aria-label="Fermer"
+                className="text-ivory/70 shrink-0 -mr-1 p-1"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     )
   }
 
-  // ── FOCUSED OVERLAY (z-60, covers the top nav) ──────────────────────────────
+  // ── GENERATION (focused overlay, reuses the /add choreography) ───────────────
   if (phase === 'generating') {
     return (
-      <FocusedOverlay center>
-        <CloseButton onClose={cancelGenerating} />
+      <FocusedOverlay>
+        <div className="shrink-0 px-[18px]" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
+          <CircleClose onClose={cancelGenerating} />
+        </div>
         {genError ? (
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex-1 min-h-0 flex flex-col items-center justify-center text-center px-8 pb-10 gap-4">
             <Image src="/paco-sad.png" alt="Paco" width={72} height={72} className="object-contain" />
             <p className="text-sm text-err font-serif">Une erreur s&apos;est produite.</p>
-            <button
-              type="button"
-              onClick={() => topic && void startTopic(topic)}
-              className="bg-accent text-white rounded-card px-6 py-3 font-serif font-semibold text-sm"
-            >
+            <Button variant="primary" type="button" onClick={() => topic && void startTopic(topic)}>
               Réessayer
-            </button>
+            </Button>
           </div>
         ) : (
-          <>
-            <Image
-              src="/paco-pensando.png"
-              alt="Paco"
-              width={88}
-              height={88}
-              className="object-contain motion-safe:animate-pulse"
+          <div className="flex-1 min-h-0 overflow-y-auto pt-1">
+            <LoadingChecklist
+              title={<>Paco choisit des mots de <span className="text-accent">«&nbsp;{topic?.es}&nbsp;»</span></>}
+              phases={GEN_PHASES}
+              ready={genReady}
+              onReveal={onGenReveal}
+              phaseDwellMs={950}
+              minFloorMs={3800}
+              shellDelayMs={0}
             />
-            <p className="font-serif text-xl font-bold text-ink mt-5 leading-snug">
-              Paco choisit des mots de «&nbsp;{topic?.es}&nbsp;»…
-            </p>
-            <p className="text-sm text-muted mt-1.5">Ça prend juste un instant.</p>
-            <ul className="w-full max-w-[280px] mt-8 flex flex-col gap-3">
-              {[0, 1, 2, 3].map((i) => (
-                <li
-                  key={i}
-                  className="h-12 rounded-card bg-surface-alt/60 motion-safe:animate-pulse"
-                  style={{ animationDelay: `${i * 150}ms` }}
-                />
-              ))}
-            </ul>
-          </>
+          </div>
         )}
       </FocusedOverlay>
     )
   }
 
-  if (phase === 'exhausted') {
-    return (
-      <FocusedOverlay center>
-        <CloseButton onClose={backToGrid} />
-        <Image src="/paco-pensando.png" alt="Paco" width={88} height={88} className="object-contain" />
-        <p className="font-serif text-xl font-bold text-ink mt-5 leading-snug">
-          {topic?.es}
-        </p>
-        <p className="text-sm text-muted mt-2 max-w-[280px]">
-          Tu as déjà vu tous les mots de ce thème pour l&apos;instant.
-        </p>
-        <button
-          type="button"
-          onClick={backToGrid}
-          className="bg-accent text-white rounded-card px-6 py-3 font-serif font-semibold text-sm mt-6"
-        >
-          Choisir un autre thème →
-        </button>
-      </FocusedOverlay>
-    )
-  }
-
+  // ── BILAN — Thème terminé (Feliz) ───────────────────────────────────────────
   if (phase === 'bilan') {
     return (
-      <FocusedOverlay center>
-        <Image src="/paco-feliz.png" alt="Paco" width={96} height={96} className="object-contain" />
-        <h1 className="font-serif text-3xl font-bold text-ink mt-5">Thème terminé</h1>
-        <p className="text-base text-ink mt-3">
-          Tu as ajouté {kept} mot{kept !== 1 ? 's' : ''} à ta collection.
-        </p>
-        <p className="text-sm text-muted mt-1">
-          {known} mot{known !== 1 ? 's' : ''} déjà connu{known !== 1 ? 's' : ''}.
-        </p>
-        {kept > 0 && (
-          <p className="text-xs text-muted mt-3 max-w-[300px] leading-relaxed">
-            Tes nouveaux mots arrivent dans «&nbsp;Mes mots&nbsp;» — ça peut prendre jusqu&apos;à 30&nbsp;s.
+      <FocusedOverlay>
+        <div className="shrink-0 px-[18px]" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
+          <CircleClose onClose={backToGrid} />
+        </div>
+        <div className="flex-1 min-h-0 flex flex-col items-center justify-center text-center px-9 pb-6">
+          <Image src="/paco-feliz.png" alt="Paco" width={104} height={104} className="object-contain mb-2.5" />
+          <h1 className="font-serif text-[28px] font-bold tracking-[-0.02em] text-ink">Thème terminé</h1>
+          <p className="text-base text-ink leading-relaxed mt-3.5 max-w-[280px]">
+            Tu as ajouté <span className="font-bold text-amber-deep">{kept}&nbsp;mot{kept !== 1 ? 's' : ''}</span> à ta collection.
           </p>
-        )}
-        <div
-          className="w-full max-w-[320px] flex flex-col items-center gap-3 mt-8"
-          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-        >
-          <button
-            type="button"
-            onClick={() => router.push('/review')}
-            className="w-full bg-accent text-white rounded-card py-3.5 font-serif font-semibold text-sm"
+          {known > 0 && (
+            <p className="text-[13.5px] text-faint mt-1.5">
+              {known}&nbsp;mot{known !== 1 ? 's' : ''} déjà connu{known !== 1 ? 's' : ''}.
+            </p>
+          )}
+          {kept > 0 && (
+            <p className="text-[12.5px] text-muted leading-relaxed mt-3.5 max-w-[280px]">
+              Tes nouveaux mots arrivent dans «&nbsp;Mes mots&nbsp;» — ça peut prendre jusqu&apos;à 30&nbsp;s.
+            </p>
+          )}
+          <div
+            className="w-full max-w-[300px] flex flex-col items-center gap-3 mt-7"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
           >
-            Réviser maintenant
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push('/')}
-            className="w-full bg-card border border-line text-ink rounded-card py-3.5 font-serif font-semibold text-sm"
-          >
-            Retour à l&apos;accueil
-          </button>
-          <button
-            type="button"
-            onClick={backToGrid}
-            className="text-sm text-accent underline underline-offset-2 mt-1"
-          >
-            Découvrir un autre thème →
-          </button>
+            <Button variant="primary" full type="button" onClick={() => router.push('/review')}>
+              Réviser maintenant →
+            </Button>
+            <Button variant="secondary" full type="button" onClick={() => router.push('/')}>
+              Retour à l&apos;accueil
+            </Button>
+            <Button variant="text" type="button" onClick={backToGrid}>
+              Découvrir un autre thème →
+            </Button>
+          </div>
         </div>
       </FocusedOverlay>
     )
   }
 
-  // ── DECK ────────────────────────────────────────────────────────────────────
+  // ── EXHAUSTED — plus de mots (Durmiendo) ────────────────────────────────────
+  if (phase === 'exhausted') {
+    return (
+      <FocusedOverlay>
+        <div className="shrink-0 px-[18px]" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
+          <CircleClose onClose={backToGrid} />
+        </div>
+        <div className="flex-1 min-h-0 flex flex-col items-center justify-center text-center px-10 pb-12">
+          <Image src="/paco-durmiendo.png" alt="Paco" width={196} height={196} className="object-contain mb-0.5" />
+          <h1 className="font-serif text-[23px] font-bold tracking-[-0.01em] text-ink leading-snug">
+            Tu as fait le tour de «&nbsp;{topic?.es}&nbsp;»
+          </h1>
+          <p className="text-[14.5px] text-muted leading-relaxed mt-2.5 max-w-[264px]">
+            Plus de nouveaux mots pour ce thème. Paco se repose — explore un autre thème.
+          </p>
+          <div className="mt-6">
+            <Button variant="secondary" type="button" onClick={backToGrid}>
+              <Compass size={17} strokeWidth={1.9} /> Choisir un autre thème
+            </Button>
+          </div>
+        </div>
+      </FocusedOverlay>
+    )
+  }
+
+  // ── DECK (fling-commit) ─────────────────────────────────────────────────────
   const card = cards[index]
-  const progress = cards.length > 0 ? (index / cards.length) * 100 : 0
+  const progress = cards.length > 0 ? ((index + 1) / cards.length) * 100 : 0
   const article = card ? deckArticle(card.gender) : null
 
   return (
     <FocusedOverlay>
-      {/* Top bar: × + progress */}
-      <div className="px-5" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
-        <CloseButton onClose={backToGrid} />
-        <div className="pt-1 flex flex-col items-center gap-2">
-          <p className="text-sm font-semibold text-muted tabular-nums">
-            {index + 1} / {cards.length}
-          </p>
-          <div className="w-full max-w-[280px] h-1.5 rounded-full bg-surface-alt overflow-hidden">
-            <div
-              className="h-full bg-accent rounded-full transition-[width] duration-300"
-              style={{ width: `${progress}%` }}
-            />
+      {/* Header: ✕ + theme eyebrow + counter + progress */}
+      <div className="shrink-0 px-[18px]" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
+        <div className="flex items-center justify-between gap-2">
+          <CircleClose onClose={backToGrid} />
+          <div className="flex-1 min-w-0 flex flex-col items-center gap-1 leading-none">
+            <span className="text-[9.5px] font-bold uppercase tracking-[0.12em] text-faint whitespace-nowrap">{topic?.es}</span>
+            <span className="text-[13px] font-bold tabular-nums text-muted">{index + 1} / {cards.length}</span>
           </div>
+          <span className="w-[38px] shrink-0" />
+        </div>
+        <div className="h-1 bg-line rounded-full mt-2.5 overflow-hidden">
+          <div className="h-full bg-accent rounded-full transition-[width] duration-300" style={{ width: `${progress}%` }} />
         </div>
       </div>
 
-      {/* Card — fills the space between header and CTAs, full mobile-column width */}
-      <div className="flex-1 min-h-0 flex px-5 py-3">
+      {/* Card stack: two ghost cards behind + the swipeable top card */}
+      <div className="flex-1 min-h-0 relative mx-[22px] mt-4 mb-1.5">
+        <div className="absolute inset-0 rounded-[20px] bg-card border border-line shadow-card" style={{ transform: 'scale(0.9) translateY(20px)' }} aria-hidden />
+        <div className="absolute inset-0 rounded-[20px] bg-card border border-line shadow-card" style={{ transform: 'scale(0.95) translateY(10px)' }} aria-hidden />
         {card && (
-          <SwipeCard
-            key={card.id}
-            className="w-full h-full"
-            onSwipeRight={() => decide('kept')}
-            onSwipeLeft={() => decide('known')}
-            rightStamp={
-              <span className="border-[3px] border-ok text-ok rounded-lg px-3 py-1 text-xl font-bold uppercase tracking-wider">
-                À apprendre
-              </span>
-            }
-            leftStamp={
-              <span className="border-[3px] border-err text-err rounded-lg px-3 py-1 text-xl font-bold uppercase tracking-wider">
-                Je connais
-              </span>
-            }
-          >
-            <div className="w-full h-full bg-card border border-line rounded-card shadow-card p-6 flex flex-col overflow-hidden">
-              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted">
-                {posEyebrow(card.pos, card.gender)}
-              </p>
-              {/* Word + gloss vertically centered in the card */}
-              <div className="flex-1 flex flex-col justify-center">
-                <p className="font-serif text-[2.75rem] font-bold text-ink leading-none">
-                  {article ? <span className="text-muted">{article} </span> : null}
-                  {card.word}
-                </p>
-                <p className="text-base text-muted mt-2">{card.fr}</p>
+          <div className="absolute inset-0">
+            <SwipeCard
+              key={card.id}
+              className="w-full h-full"
+              lift
+              onSwipeRight={() => decide('kept')}
+              onSwipeLeft={() => decide('known')}
+              rightWash="rgba(194,122,44,0.15)"
+              leftWash="rgba(74,124,111,0.15)"
+              rightStamp={
+                <span className="font-sans text-[21px] font-extrabold uppercase tracking-[0.04em] text-amber-deep border-[3px] border-amber-deep rounded-[11px] px-3.5 py-1.5 bg-[rgba(255,251,243,0.72)]">
+                  À apprendre
+                </span>
+              }
+              leftStamp={
+                <span className="font-sans text-[21px] font-extrabold uppercase tracking-[0.04em] text-sage-ink border-[3px] border-ok rounded-[11px] px-3.5 py-1.5 bg-[rgba(255,251,243,0.72)]">
+                  Je connais
+                </span>
+              }
+            >
+              {/* MINIMAL triage face (board ④ / brief): word + inline posAbbrev + gloss + one example.
+                  No speaker (brief enumerates these four; audio lives on the kept word's /words/[id]). */}
+              <div className="w-full h-full bg-card border border-line rounded-[20px] shadow-card px-[22px] pt-6 pb-[22px] flex flex-col overflow-hidden">
+                <div className="flex-1 flex flex-col items-center justify-center text-center">
+                  <p className="font-serif text-[42px] font-bold tracking-[-0.02em] leading-[1.05] text-ink whitespace-nowrap">
+                    {article ? `${article} ` : ''}{card.word}
+                  </p>
+                  <div className="mt-[11px] inline-flex items-baseline gap-2">
+                    <span className="text-[15px] font-medium text-muted">{posAbbrev(card.pos)}</span>
+                    <span className="text-faint">·</span>
+                    <span className="font-serif italic text-[17px] text-muted">{card.fr}</span>
+                  </div>
+                </div>
+                <div className="pt-4 border-t border-border-soft">
+                  <p className="font-serif text-base text-ink leading-relaxed">{boldTarget(card.example.es, card.word)}</p>
+                  <p className="font-serif italic text-[13.5px] text-muted mt-1.5 leading-relaxed">{card.example.fr}</p>
+                </div>
               </div>
-              {/* Example pinned to the card bottom */}
-              <div className="pt-5 border-t border-line">
-                <p className="font-serif text-base text-ink leading-relaxed">{card.example.es}</p>
-                <p className="font-serif italic text-sm text-muted mt-2">{card.example.fr}</p>
-              </div>
-            </div>
-          </SwipeCard>
+            </SwipeCard>
+          </div>
         )}
       </div>
 
-      {/* Buttons — same outcome as swipes (accessibility + non-swipe fallback) */}
+      {/* Action bar — Je connais (sage) / À apprendre (amber). Mirrors the swipes. */}
       <div
-        className="px-5 pt-2 flex gap-3"
-        style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}
+        className="shrink-0 px-[18px] pt-1.5 flex gap-[11px]"
+        style={{ paddingBottom: 'max(1.375rem, env(safe-area-inset-bottom))' }}
       >
         <button
           type="button"
           onClick={() => decide('known')}
-          className="flex-1 border border-err rounded-card py-3 flex flex-col items-center bg-card"
+          className="flex-1 py-[13px] rounded-[14px] bg-card border-[1.5px] border-sage-border text-sage-ink flex flex-col items-center gap-[3px] font-sans font-bold text-[15px]"
         >
-          <span className="font-serif font-semibold text-sm text-err">Je connais</span>
-          <span className="text-[11px] text-muted mt-0.5">← glisse à gauche</span>
+          Je connais
+          <span className="text-[10.5px] font-medium opacity-80 whitespace-nowrap">← glisse à gauche</span>
         </button>
         <button
           type="button"
           onClick={() => decide('kept')}
-          className="flex-1 bg-accent rounded-card py-3 flex flex-col items-center"
+          className="flex-1 py-[13px] rounded-[14px] bg-accent border-[1.5px] border-accent text-ivory shadow-amber-sm flex flex-col items-center gap-[3px] font-sans font-bold text-[15px]"
         >
-          <span className="font-serif font-semibold text-sm text-white">À apprendre</span>
-          <span className="text-[11px] text-white/70 mt-0.5">glisse à droite →</span>
+          À apprendre
+          <span className="text-[10.5px] font-medium opacity-90 whitespace-nowrap">glisse à droite →</span>
         </button>
       </div>
     </FocusedOverlay>

@@ -160,6 +160,16 @@
 
 ## Discovery follow-ups (M5.1)
 
+- **"Pour toi" featured collections — wired placeholder shell shipped (M5.5d), features deferred.**
+  The Découvrir grid now shows two non-functional featured cards (a neutral "Bientôt" chip → a
+  warm Paco "pas encore disponible" note). Activating each is its own milestone, NOT discovery
+  re-skin work: **(a) adjacency** = **M5.1b** ("plus de mots comme les tiens" — reuse the swipe
+  primitive + generation, seeded from a sample of the user's library; see the M5.1 follow-ons in
+  `roadmap.md`); **(b) "L'essentiel A2–B1"** = the **PRE-BETA content-gate seeding** (`roadmap.md`)
+  — a curated reference collection. **Open question from the board** (resolve at that milestone):
+  120 words is large — selecting it may need a sub-pick by *palier* rather than batching one deck.
+  When each lands, wire its `FeaturedCard` to start its flow (replace the coming-soon gate) — the
+  shell + the §04 featured-card treatment are already in `DiscoverClient.tsx`.
 - **Generation latency on the Génération screen** (multi-second wait). The delay is
   the live Anthropic call in `/api/discovery/generate` — inherent to generating a batch
   on demand, not a regression. Future fix: prefetch the next topic's batch (warm on grid

@@ -9,6 +9,11 @@ type Props = {
   rightStamp?: ReactNode
   /** Overlay shown while dragging left; opacity tracks distance. */
   leftStamp?: ReactNode
+  /** Full-card color wash (CSS color) painted while dragging right/left; opacity tracks distance. */
+  rightWash?: string
+  leftWash?: string
+  /** Raise the card with --shadow-lift while it's being dragged (the §3a "lifted" treatment). */
+  lift?: boolean
   /** Disable interaction (e.g. while the card flings off, or for a behind-stack card). */
   disabled?: boolean
   /** Extra classes on the draggable root (e.g. sizing the card to fill its area). */
@@ -27,6 +32,9 @@ export default function SwipeCard({
   onSwipeRight,
   rightStamp,
   leftStamp,
+  rightWash,
+  leftWash,
+  lift = false,
   disabled = false,
   className,
   children,
@@ -87,11 +95,31 @@ export default function SwipeCard({
         transition,
         touchAction: 'pan-y',
       }}
-      className={`relative select-none touch-none ${className ?? ''}`}
+      className={`relative select-none touch-none ${
+        lift && isDragging ? 'shadow-lift rounded-[20px]' : ''
+      } ${className ?? ''}`}
     >
+      {children}
+      {/* Full-card color washes (above the card, below the stamps) — §3a swipe-choice treatment.
+          rounded-[20px] matches the discovery card (this primitive's only consumer). */}
+      {rightWash !== undefined && (
+        <div
+          className="pointer-events-none absolute inset-0 rounded-[20px]"
+          style={{ background: rightWash, opacity: rightOpacity }}
+          aria-hidden
+        />
+      )}
+      {leftWash !== undefined && (
+        <div
+          className="pointer-events-none absolute inset-0 rounded-[20px]"
+          style={{ background: leftWash, opacity: leftOpacity }}
+          aria-hidden
+        />
+      )}
+      {/* Stamps — board placement: right-swipe stamp top-right (−11°), left-swipe top-left (+11°). */}
       {rightStamp !== undefined && (
         <div
-          className="pointer-events-none absolute left-5 top-5 z-10 -rotate-12"
+          className="pointer-events-none absolute right-5 top-6 z-10 rotate-[-11deg]"
           style={{ opacity: rightOpacity }}
         >
           {rightStamp}
@@ -99,13 +127,12 @@ export default function SwipeCard({
       )}
       {leftStamp !== undefined && (
         <div
-          className="pointer-events-none absolute right-5 top-5 z-10 rotate-12"
+          className="pointer-events-none absolute left-5 top-6 z-10 rotate-[11deg]"
           style={{ opacity: leftOpacity }}
         >
           {leftStamp}
         </div>
       )}
-      {children}
     </div>
   )
 }

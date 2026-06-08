@@ -194,8 +194,15 @@ Small patch, single commit. Suite 298 → 316.
 - **Two screens built whose behaviors already shipped** (confirmed with Omar): **④ compact "déjà dans ton deck" duplicate** — replaces the full-fiche-for-duplicate; **reset-schedule moves to the detail ⋮** (capability preserved, `/api/words/reset-schedule` route kept). **⑥ save success — single** (awaited → confirmed "« mot » est dans ton deck") **+ multi** (similaires bulk-add stays fire-and-forget background; screen framed honestly as in-progress "N mots en route … jusqu'à 20 s, continue à naviguer" — don't claim an incomplete success).
 - `WordRow` extended to **optional-link** (reuse, not a fork) for ⑥-multi's not-yet-created words. Additive plumbing (no schema): `save` returns `id`; `enrich` deck-check returns card `state`/`stability` for ④'s row. No taxonomy/FSRS/conjugator change; suite 402; tests + lint + build green. **Tag after the device animation smoke-test.**
 
-### M5.5d+ — remaining per-screen cluster reworks (not yet scoped)
-- Review/drill cluster (incl. the ¡Casi! neutral result screen + the parked Astuce tip redesign), Home, Discover. Each consumes the M5.5a substrate. **Final step:** signup/login/onboarding (Claude Design first) → M6 build.
+### M5.5d — Discovery cluster ✅ (v0.8.3)
+- `/discover` re-skinned onto the v2 board (Discovery boards). **Re-skin of shipped M5.1 behavior** (topic generation + fling-commit swipe) + two real fixes. No FSRS/generation/decide change.
+- ① theme grid re-skin + §04 selected tint (crème+ + amber border + amber-fill icon tile + `→`; never amber-fill the card). **"Pour toi" non-functional placeholder shell:** two featured cards (adjacency + A2–B1) with a neutral "Bientôt" chip → tap shows a warm Paco "pas encore disponible" (no terracotta). The features stay deferred — see the M5.1b + content-gate rows below; this is just the wired shell.
+- ② generation **reuses the /add loading choreography** (brief: don't build a different loader) via the new shared `app/(app)/LoadingChecklist.tsx` (extracted from `LoadingIdiom`; `IdiomCard` moved to shared `app/(app)/`); theme phase labels + longer dwell (950/3800); reveal gated on max(dataReady, floor) → deck/exhausted. ③④ deck re-skin (ghost stack, amber progress) with the unified inline **`posAbbrev`** (spelled-out eyebrow dropped; speaker omitted per the brief's card enumeration — audio lives on `/words/[id]`).
+- ⑤ **swipe-color role fix** (real correction): "Je connais" = sage (acquisition), "À apprendre" = amber (action) — M5.1 had them inverted (terracotta on Je connais). Directions + gesture unchanged. `SwipeCard` gained board stamp placement + optional wash + `lift` (`--shadow-lift`). ⑥ end states → Feliz bilan (honest tally, no streak) + Durmiendo exhausted. Suite 402; green. **Tag after the device smoke-test.**
+- **Deferred features the "Pour toi" shell will activate** (logged, NOT built this slice): **adjacency = M5.1b** ("plus de mots comme les tiens" — same swipe primitive + generation, seeded from the user's library; see the M5.1 follow-ons row); **A2–B1 essentials = the PRE-BETA content-gate seeding** (the curated reference collection; open Q from the board — 120 words may need a sub-pick by palier vs one deck).
+
+### M5.5e+ — remaining per-screen cluster reworks (not yet scoped)
+- Review/drill cluster (incl. the ¡Casi! neutral result screen + the parked Astuce tip redesign), Home. Each consumes the M5.5a substrate. **Final step:** signup/login/onboarding (Claude Design first) → M6 build.
 
 ## M6 - App onboarding & login screen upgrade
 
