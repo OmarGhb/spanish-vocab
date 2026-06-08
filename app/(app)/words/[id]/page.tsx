@@ -1,9 +1,12 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { ChevronLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { oneEmbed } from '@/lib/word-status'
+import { posAbbrev } from '@/lib/discovery'
 import AudioButton from '../../AudioButton'
 import StatusPill from '../../StatusPill'
+import MasteryGauge from '../../MasteryGauge'
 import WordDetailContent from './WordDetailContent'
 import WordDetailActions from './WordDetailActions'
 
@@ -44,6 +47,8 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
   const defEs = typeof def?.es === 'string' ? def.es : ''
   const defFr = typeof def?.fr === 'string' ? def.fr : null
   const defPos = typeof def?.pos === 'string' ? def.pos : undefined
+  // Inline abbreviated POS (board §3) — gender rides in the n.m./n.f. abbreviation.
+  const pos = defPos ? posAbbrev(defPos) : null
   const formAnnotation = typeof data.form_annotation === 'string' ? data.form_annotation : null
   const audioUrls = data.audio_urls as { es_ES: string } | null
   const examples = Array.isArray(data.examples)
@@ -53,15 +58,33 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="p-5 pb-28 flex flex-col gap-5">
-        <Link href="/" className="text-muted text-sm self-start">←</Link>
+      <div className="p-5 pb-10 flex flex-col gap-4">
+        {/* Top bar: labeled back + ⋮ overflow menu (Relearn / Supprimer). */}
+        <div className="flex items-center justify-between">
+          <Link
+            href="/words"
+            className="inline-flex items-center gap-1 -ml-1 text-sm font-semibold text-muted"
+          >
+            <ChevronLeft size={18} />
+            Mes mots
+          </Link>
+          <WordDetailActions wordId={data.id as string} word={data.word as string} />
+        </div>
 
-        {/* Status pill */}
-        <StatusPill card={card ?? null} className="self-start" />
+        {/* Status pill + 4-dot mastery gauge (same components as the rows). */}
+        <div className="flex items-center gap-3">
+          <StatusPill card={card ?? null} />
+          <MasteryGauge card={card ?? null} />
+        </div>
 
-        {/* Word heading + audio */}
-        <div className="flex items-center gap-2">
-          <h1 className="font-serif text-3xl font-bold text-ink leading-none">{data.word}</h1>
+        {/* Word heading + inline abbreviated POS (baseline) + audio. */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-baseline gap-2.5 min-w-0">
+            <h1 className="font-serif text-[32px] font-bold text-ink leading-none tracking-[-0.02em]">
+              {data.word}
+            </h1>
+            {pos && <span className="text-[14.5px] font-medium text-muted">{pos}</span>}
+          </div>
           <AudioButton word={data.word} audioUrl={audioUrls?.es_ES} />
         </div>
 
@@ -77,10 +100,7 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
         />
 
         {/* Stats line */}
-        <p className="text-xs text-muted">{stats}</p>
-
-        {/* Delete + Relearn */}
-        <WordDetailActions wordId={data.id as string} word={data.word as string} />
+        <p className="text-xs text-faint">{stats}</p>
       </div>
     </div>
   )

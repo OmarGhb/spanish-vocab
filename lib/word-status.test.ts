@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { State } from 'ts-fsrs'
-import { getWordStatus, isMemorized, getFamiliarity, isDue, oneEmbed, MEMORIZED_STABILITY_DAYS, LEARNING_STABILITY_DAYS } from './word-status'
+import { getWordStatus, isMemorized, getFamiliarity, getMasteryGauge, isDue, oneEmbed, MEMORIZED_STABILITY_DAYS, LEARNING_STABILITY_DAYS, GAUGE_MID_STABILITY_DAYS } from './word-status'
 
 const PAST = new Date(Date.now() - 86_400_000).toISOString()   // yesterday
 const FUTURE = new Date(Date.now() + 86_400_000).toISOString() // tomorrow
@@ -144,6 +144,54 @@ describe('getFamiliarity', () => {
 
   it('State.Relearning falls through to stability bands (stability 2 → 1)', () => {
     expect(getFamiliarity(card(State.Relearning, FUTURE, 2))).toBe(1)
+  })
+})
+
+describe('getMasteryGauge (board §06 4-dot, presentation-only — pure of stability)', () => {
+  it('null / New → 0', () => {
+    expect(getMasteryGauge(null)).toBe(0)
+    expect(getMasteryGauge(card(State.New, FUTURE, 100))).toBe(0)
+  })
+
+  it('0 < stability < 7 → 1', () => {
+    expect(getMasteryGauge(card(State.Review, FUTURE, 0.5))).toBe(1)
+    expect(getMasteryGauge(card(State.Review, FUTURE, 6.99))).toBe(1)
+  })
+
+  it('7 ≤ stability < 15 → 2', () => {
+    expect(getMasteryGauge(card(State.Review, FUTURE, LEARNING_STABILITY_DAYS))).toBe(2)
+    expect(getMasteryGauge(card(State.Review, FUTURE, 14.99))).toBe(2)
+  })
+
+  it('15 ≤ stability < 30 → 3 (the now-reachable 3rd dot)', () => {
+    expect(getMasteryGauge(card(State.Review, FUTURE, GAUGE_MID_STABILITY_DAYS))).toBe(3)
+    expect(getMasteryGauge(card(State.Review, FUTURE, 29.99))).toBe(3)
+  })
+
+  it('stability ≥ 30 → 4 (Mémorisé)', () => {
+    expect(getMasteryGauge(card(State.Review, FUTURE, MEMORIZED_STABILITY_DAYS))).toBe(4)
+    expect(getMasteryGauge(card(State.Review, FUTURE, 200))).toBe(4)
+  })
+
+  it('fills all five steps {0,1,2,3,4} across the stability range — no gap', () => {
+    const vals = new Set<number>(
+      [0, 3, 7, 12, 15, 22, 29.99, 30, 100].map((s) => getMasteryGauge(card(State.Review, FUTURE, s))),
+    )
+    // New → 0 separately; the Review samples above cover 1..4 with no skipped dot.
+    expect([...vals].sort((a, b) => a - b)).toEqual([1, 2, 3, 4])
+  })
+
+  it('gauge is stability-only: due-ness does not change it (the EN COURS divergence)', () => {
+    // biblioteca-like (En apprentissage, due) vs me-acuerdo-like (En cours): same merged
+    // pill "En cours", different gauge — the gauge carries the difference.
+    expect(getMasteryGauge(card(State.Review, PAST, 3))).toBe(1)
+    expect(getMasteryGauge(card(State.Review, PAST, 12))).toBe(2)
+  })
+
+  it('a due, mastered card reads gauge 4 AND getWordStatus À réviser at once', () => {
+    const c = card(State.Review, PAST, MEMORIZED_STABILITY_DAYS)
+    expect(getMasteryGauge(c)).toBe(4)
+    expect(getWordStatus(c).label).toBe('À réviser')
   })
 })
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 
 type Example = { es: string; fr: string }
 
@@ -14,6 +15,39 @@ type Props = {
   distractors: string[]
 }
 
+// Board §06 reveal toggle: amber underlined text link with a chevron, toggles BOTH
+// ways (closed → "Voir en français" / "Traduction" + down chevron; open → "Masquer …"
+// + up chevron). The FR text (Lora italic sépia) sits above the toggle when open.
+function TextLink({
+  open,
+  onClick,
+  children,
+}: {
+  open: boolean
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-accent underline underline-offset-[3px]"
+    >
+      {open ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+      {children}
+    </button>
+  )
+}
+
+function Card({ eyebrow, children }: { eyebrow: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-card border border-line rounded-[16px] shadow-card p-[18px]">
+      <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-muted mb-3">{eyebrow}</p>
+      {children}
+    </div>
+  )
+}
+
 export default function WordDetailContent({ defEs, defFr, formAnnotation, examples, distractors }: Props) {
   const [revealedDefFr, setRevealedDefFr] = useState(false)
   const [revealedFr, setRevealedFr] = useState<boolean[]>(() => new Array(examples.length).fill(false))
@@ -23,78 +57,72 @@ export default function WordDetailContent({ defEs, defFr, formAnnotation, exampl
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3.5">
       {/* FORME */}
       {formAnnotation && (
-        <div className="bg-card rounded-card shadow-card p-5">
-          <p className="text-xs uppercase tracking-widest text-muted mb-3">Forme</p>
-          <p className="font-serif text-sm text-ink leading-relaxed">{formAnnotation}</p>
-        </div>
+        <Card eyebrow="Forme">
+          <p className="font-serif text-base text-ink leading-relaxed">{formAnnotation}</p>
+        </Card>
       )}
 
       {/* DÉFINITION */}
       {(defEs || defFr) && (
-        <div className="bg-card rounded-card shadow-card p-5">
-          <p className="text-xs uppercase tracking-widest text-muted mb-3">Définition</p>
-          <p className="font-serif text-sm text-ink leading-relaxed">{defEs}</p>
+        <Card eyebrow="Définition">
+          <p className="font-serif text-[17px] text-ink leading-relaxed">{defEs}</p>
           {defFr && (
-            revealedDefFr ? (
-              <div className="mt-2">
-                <p className="font-serif italic text-sm text-muted">{defFr}</p>
-                <button type="button" onClick={() => setRevealedDefFr(false)} className="text-xs text-accent mt-1">
-                  ↑ Masquer
-                </button>
+            <>
+              {revealedDefFr && (
+                <p className="font-serif italic text-[15px] text-muted leading-relaxed mt-3 pt-3 border-t border-border-soft">
+                  {defFr}
+                </p>
+              )}
+              <div className="mt-3">
+                <TextLink open={revealedDefFr} onClick={() => setRevealedDefFr((v) => !v)}>
+                  {revealedDefFr ? 'Masquer le français' : 'Voir en français'}
+                </TextLink>
               </div>
-            ) : (
-              <button type="button" onClick={() => setRevealedDefFr(true)} className="text-xs text-accent mt-2">
-                ↓ Voir en français
-              </button>
-            )
+            </>
           )}
-        </div>
+        </Card>
       )}
 
       {/* EXEMPLES */}
       {examples.length > 0 && (
-        <div className="bg-card rounded-card shadow-card p-5">
-          <p className="text-xs uppercase tracking-widest text-muted mb-4">Exemples</p>
-          <ul className="flex flex-col divide-y divide-line">
+        <Card eyebrow="Exemples">
+          <ul className="flex flex-col">
             {examples.map((ex, i) => (
-              <li key={i} className={i > 0 ? 'pt-4 mt-0' : ''}>
-                <p className="font-serif text-sm text-ink leading-relaxed">{ex.es}</p>
-                {revealedFr[i] ? (
-                  <div className="mt-1">
-                    <p className="font-serif italic text-sm text-muted">{ex.fr}</p>
-                    <button type="button" onClick={() => toggleFr(i)} className="text-xs text-accent mt-1">
-                      ↑ Masquer
-                    </button>
-                  </div>
-                ) : (
-                  <button type="button" onClick={() => toggleFr(i)} className="text-xs text-accent mt-2">
-                    ↓ Traduction
-                  </button>
+              <li key={i} className={i > 0 ? 'pt-3.5 mt-3.5 border-t border-border-soft' : ''}>
+                <p className="font-serif text-base text-ink leading-relaxed">{ex.es}</p>
+                {revealedFr[i] && (
+                  <p className="font-serif italic text-[14.5px] text-muted leading-relaxed mt-2">{ex.fr}</p>
                 )}
+                <div className="mt-2.5">
+                  <TextLink open={revealedFr[i]} onClick={() => toggleFr(i)}>
+                    {revealedFr[i] ? 'Masquer la traduction' : 'Traduction'}
+                  </TextLink>
+                </div>
               </li>
             ))}
           </ul>
-        </div>
+        </Card>
       )}
 
-      {/* MOTS SIMILAIRES */}
+      {/* MOTS SIMILAIRES — these are MCQ confusables (the `distractors` field), NOT
+          true family words, so the honest label stays "Mots similaires" (the board's
+          "Mots de la même famille" would mislabel the data). */}
       {distractors.length > 0 && (
-        <div className="bg-card rounded-card shadow-card p-5">
-          <p className="text-xs uppercase tracking-widest text-muted mb-3">Mots similaires</p>
+        <Card eyebrow="Mots similaires">
           <div className="flex flex-wrap gap-2">
             {distractors.map((d) => (
               <span
                 key={d}
-                className="text-[10px] uppercase tracking-widest px-3 py-1.5 rounded-full border border-line text-muted bg-surface-alt"
+                className="inline-flex whitespace-nowrap text-[11px] font-bold uppercase tracking-[0.06em] px-3.5 py-[7px] rounded-full border border-tinted-border bg-surface-alt text-muted"
               >
                 {d}
               </span>
             ))}
           </div>
-        </div>
+        </Card>
       )}
     </div>
   )

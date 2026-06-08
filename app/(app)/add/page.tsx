@@ -10,6 +10,7 @@ import LoadingIdiom from './LoadingIdiom'
 import WordInput from './WordInput'
 import ConjugationGrid from '../ConjugationGrid'
 import { buildConjugationGrid } from '@/lib/conjugation-grid'
+import { posAbbrev } from '@/lib/discovery'
 
 type Example = { es: string; fr: string }
 type WordResult = {
@@ -563,12 +564,15 @@ export default function AddPage() {
         >
           ← Nouveau mot
         </button>
-        <div className="flex items-center gap-2 mt-2">
-          <h1 className="font-serif text-3xl font-bold text-ink leading-none">{result.word}</h1>
+        <div className="flex items-center gap-2.5 mt-2">
+          {/* Headword + inline abbreviated POS (baseline) + audio — unified with /words detail (board §3). */}
+          <div className="flex items-baseline gap-2.5 min-w-0">
+            <h1 className="font-serif text-3xl font-bold text-ink leading-none">{result.word}</h1>
+            {result.definition.pos && (
+              <span className="text-[14.5px] font-medium text-muted">{posAbbrev(result.definition.pos)}</span>
+            )}
+          </div>
           <AudioButton word={result.word} audioUrl={result.audio_urls?.es_ES} />
-          {result.definition.pos && (
-            <span className="text-sm text-muted">{result.definition.pos}</span>
-          )}
         </div>
       </div>
 

@@ -3,7 +3,7 @@
 import { useRef, useState, type PointerEvent as ReactPointerEvent, type MouseEvent } from 'react'
 import { Trash2 } from 'lucide-react'
 import { clampOffset, resolveSnap, exceedsTapSlop, DRAWER_WIDTH } from '@/lib/swipe-row'
-import type { WordCard } from '@/lib/word-status'
+import { isDue, type WordCard } from '@/lib/word-status'
 import WordRow from '../WordRow'
 
 type Props = {
@@ -11,23 +11,24 @@ type Props = {
   word: string
   defEs: string
   card: WordCard | null
-  reps: number
   isOpen: boolean
   onOpen: () => void
   onClose: () => void
   onDelete: () => void
 }
 
-// Reveal-and-tap swipe row: drag left to reveal a red "Supprimer" drawer, snap
-// open/closed past a threshold, tap the drawer to commit. WRAPS the existing
-// WordRow (content unchanged) — WordRow renders without its own <li> so this one
-// supplies it. Pure snap math lives in lib/swipe-row.ts.
+// Reveal-and-tap swipe row (board §06). The row + the Supprimer panel form ONE
+// continuous clipped rounded rectangle (overflow-hidden): an inner flex track holds
+// the borderless WordRow (full width) + the flush terracotta panel, and the track
+// translates left to reveal the panel — same top/bottom edges, full row height, a
+// straight word→Supprimer junction, no gap/inset/corner mismatch. Snap math lives in
+// lib/swipe-row.ts. The clipped container supplies the single border (tinted on À
+// réviser rows, matching SELECTION_PERSISTENT).
 export default function SwipeRow({
   id,
   word,
   defEs,
   card,
-  reps,
   isOpen,
   onOpen,
   onClose,
@@ -46,6 +47,7 @@ export default function SwipeRow({
   const capturedRef = useRef(false)
 
   const offset = dragging ? clampOffset(dragBase + dx) : isOpen ? -DRAWER_WIDTH : 0
+  const action = isDue(card)
 
   function handleDown(e: ReactPointerEvent) {
     draggingRef.current = true
@@ -99,22 +101,12 @@ export default function SwipeRow({
 
   return (
     <li
-      className="relative overflow-hidden rounded-card"
+      className={`relative overflow-hidden rounded-card border ${
+        action ? 'border-tinted-border' : 'border-line'
+      }`}
       data-swipe-open={isOpen ? 'true' : undefined}
     >
-      {/* Drawer behind the row */}
-      <div className="absolute inset-y-0 right-0 flex" style={{ width: DRAWER_WIDTH }}>
-        <button
-          type="button"
-          onClick={onDelete}
-          aria-label={`Supprimer ${word}`}
-          className="flex-1 flex flex-col items-center justify-center gap-0.5 bg-err text-white text-[11px] font-semibold"
-        >
-          <Trash2 size={18} />
-          Supprimer
-        </button>
-      </div>
-      {/* Foreground row */}
+      {/* One continuous track: borderless row (full width) + flush Supprimer panel. */}
       <div
         onPointerDown={handleDown}
         onPointerMove={handleMove}
@@ -126,9 +118,22 @@ export default function SwipeRow({
           transition: dragging ? 'none' : 'transform 0.22s ease-out',
           touchAction: 'pan-y',
         }}
-        className="relative"
+        className="flex"
       >
-        <WordRow id={id} word={word} defEs={defEs} card={card} reps={reps} asListItem={false} />
+        <div className="w-full shrink-0">
+          <WordRow id={id} word={word} defEs={defEs} card={card} asListItem={false} flush />
+        </div>
+        {/* Destructive panel — flush, full height, terracotta variant (rare). */}
+        <button
+          type="button"
+          onClick={onDelete}
+          aria-label={`Supprimer ${word}`}
+          style={{ width: DRAWER_WIDTH }}
+          className="shrink-0 flex flex-col items-center justify-center gap-1 border-l-[1.5px] border-err bg-err-bg text-terra-ink text-[13px] font-semibold"
+        >
+          <Trash2 size={19} />
+          Supprimer
+        </button>
       </div>
     </li>
   )

@@ -17,12 +17,22 @@
   --color-accent:      #C27A2C; /* "ambre" — the ONE interactive/brand hue (board §01) */
   --color-amber-deep:  #9A5A1C; /* pressed / hover (board §01) */
   --color-amber-light: #F2DCB8; /* tinted fill / disabled-primary bg (board §01) */
+  --color-amber-mid:   #D6924A; /* "Annuler" link on the dark undo toast (board T-object amberMid) */
+  --color-amber-tint:  #F7E8D0; /* active ⋮ button bg / secondary pressed (board T-object amberTint) */
   --color-ivory:       #FFFBF3; /* text on amber — distinct role from --color-card surface (board §01) */
-  --color-tint:        #F5E0C0;
-  --color-ok:          #4A7C6F;
-  --color-ok-bg:       #D4EDE9;
-  --color-err:         #B84C2A;
-  --color-err-bg:      #F5E0D8;
+  /* Reconciled to the board T-object value this slice (was #F5E0C0) — the §06 Words cluster
+     consumes it; logged backlog item (b) "semantic-tint drift", deferred from M5.5a. */
+  --color-tint:        #F6E7CC;
+  --color-tinted-border: #E3CFA6; /* border of a tinted (À réviser) row / family chip (board T-object tintedBorder) */
+  --color-ok:          #4A7C6F; /* "sauge" — success/acquisition only */
+  /* Reconciled #D4EDE9 → board sage-tint; this is the MÉMORISÉ pill bg. */
+  --color-ok-bg:       #DCEAE5;
+  --color-sage-ink:    #2F5A4F; /* MÉMORISÉ pill text — darker than --color-ok (board T-object sageInk) */
+  --color-sage-border: #BBD6CF; /* MÉMORISÉ pill border (board T-object sageBorder) */
+  --color-err:         #B84C2A; /* "terracotta" — destructive/error only, rare */
+  /* Reconciled #F5E0D8 → board terra-tint; the swipe Supprimer panel bg. */
+  --color-err-bg:      #F4E1D8;
+  --color-terra-ink:   #8E3A1F; /* destructive text/icon on terra-tint (board T-object terraInk; matches Button's §03 pressed constant) */
   --color-warm:        #E8A24A; /* "close / ¡Casi!" accent — between accent and easy */
 
   /* Rating buttons — amber gradation (darkest = worst, lightest = best) */
@@ -39,6 +49,7 @@
   /* Amber action/selection shadows (board §03–§04) */
   --shadow-amber:    0 2px 5px rgba(154,90,28,0.28), 0 6px 16px rgba(154,90,28,0.18); /* primary button */
   --shadow-amber-sm: 0 2px 6px rgba(154,90,28,0.25);                                  /* active pill / momentary selection */
+  --shadow-menu:     0 12px 34px rgba(61,43,26,0.22);                                 /* overflow menu / dark undo toast (board T-object shadowMenu) */
 }
 
 body {
@@ -55,6 +66,24 @@ body {
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none; /* WebKit/Blink */
+}
+
+/* Undo-toast countdown bar (DeferredDelete.tsx): a 3px amber rule that shrinks
+   left over the ~5s undo window. Base style = full width so reduced-motion / print
+   show a static (non-animated) full bar rather than nothing. */
+@keyframes toast-countdown {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+.toast-countdown {
+  transform-origin: left;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .toast-countdown {
+    animation-name: toast-countdown;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+  }
 }
 
 /* Dependency-free confetti for the dictionary unlock interstitial (Confetti.tsx).

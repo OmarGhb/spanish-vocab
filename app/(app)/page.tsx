@@ -169,7 +169,7 @@ export default async function HomePage() {
         {previews.length > 0 ? (
           <ul className="flex flex-col gap-2">
             {previews.map((p) => (
-              <WordRow key={p.id} id={p.id} word={p.word} defEs={p.defEs} card={p.card} reps={p.reps} />
+              <WordRow key={p.id} id={p.id} word={p.word} defEs={p.defEs} card={p.card} />
             ))}
           </ul>
         ) : (

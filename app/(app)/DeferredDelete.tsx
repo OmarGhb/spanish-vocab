@@ -125,16 +125,27 @@ export function DeferredDeleteProvider({ children }: { children: ReactNode }) {
       {children}
       {pending && (
         <div className="fixed bottom-24 inset-x-0 z-40 px-4 pointer-events-none">
-          <div className="max-w-[430px] mx-auto rounded-card px-4 py-3 shadow-card pointer-events-auto flex items-center gap-3 bg-card border border-line select-none">
-            <Trash2 size={15} className="text-muted shrink-0" />
-            <p className="text-sm font-serif text-ink flex-1">{deleteToastMessage(pending.labels)}</p>
+          {/* Dark undo toast (board §06): ink surface, amber-light trash, ivory copy,
+              amber-mid "Annuler", + a 3px amber countdown rule shrinking over the window.
+              Keyed on the labels so a replacement toast restarts the countdown. */}
+          <div
+            key={pending.labels.join('|')}
+            className="relative max-w-[430px] mx-auto overflow-hidden rounded-card px-4 py-3.5 shadow-menu pointer-events-auto flex items-center gap-3.5 bg-ink select-none"
+          >
+            <Trash2 size={16} className="text-amber-light shrink-0" />
+            <p className="text-[14.5px] font-serif text-ivory flex-1">{deleteToastMessage(pending.labels)}</p>
             <button
               type="button"
               onClick={undo}
-              className="text-xs font-semibold text-accent underline underline-offset-2 shrink-0"
+              className="text-[13.5px] font-bold text-amber-mid underline underline-offset-[3px] shrink-0"
             >
               Annuler
             </button>
+            <span
+              aria-hidden
+              className="toast-countdown absolute left-0 bottom-0 h-[3px] w-full bg-accent"
+              style={{ animationDuration: `${UNDO_WINDOW_MS}ms` }}
+            />
           </div>
         </div>
       )}

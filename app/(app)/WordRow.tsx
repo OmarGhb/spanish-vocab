@@ -1,48 +1,55 @@
 import Link from 'next/link'
-import { getWordStatus, isDue, type WordCard } from '@/lib/word-status'
-import FamiliarityMeter from './FamiliarityMeter'
+import { isDue, type WordCard } from '@/lib/word-status'
+import { SELECTION_PERSISTENT } from './selection'
+import StatusPill from './StatusPill'
+import MasteryGauge from './MasteryGauge'
 
-// Shared list row, used by /words and the Home preview:
-// [familiarity meter] · [word + italic meaning] · [status pill + review count].
-// Due rows get a tinted background + accent border to give the list a rhythm.
+// Shared list row (board §06), used by /words and the Home preview. Anatomy, every row:
+//   [7px leading dot] · [word + italic gloss] · [status pill ▸ 4-dot gauge].
+// Two scannable axes: the pill = action, the gauge = mastery. The right cluster stacks
+// vertically and is right-aligned in the row, but within it the gauge is centered UNDER
+// the pill (align-items center — the pill is wider than the dots). The crème+ tint (via
+// SELECTION_PERSISTENT) + amber leading dot appear ONLY on À réviser rows. No reps line —
+// the revision count lives on the detail only (it's detail-grain, and the gauge already
+// carries "how worked-in").
 export default function WordRow({
   id,
   word,
   defEs,
   card,
-  reps,
   asListItem = true,
+  flush = false,
 }: {
   id: string
   word: string
   defEs: string
   card: WordCard | null
-  reps: number
   // When false, render just the row <Link> without its own <li> wrapper, so a
   // caller (e.g. SwipeRow) can supply the list item and avoid nested <li>.
   asListItem?: boolean
+  // When true, drop the row's own border + radius (just the fill) so a wrapping
+  // swipe container can supply ONE clipped rounded rectangle flush with the
+  // Supprimer panel. The container's border (tinted-border / line) + this fill
+  // together reconstruct the SELECTION_PERSISTENT treatment.
+  flush?: boolean
 }) {
   const action = isDue(card)
-  const status = getWordStatus(card)
+  const wrapperCls = flush
+    ? `${action ? 'bg-surface-alt' : 'bg-card'}`
+    : `rounded-card border ${action ? SELECTION_PERSISTENT : 'bg-card border-line'}`
   const row = (
-    <Link
-      href={`/words/${id}`}
-      className={`flex items-center gap-3 rounded-card border px-3.5 py-3 ${
-        action ? 'bg-tint border-accent' : 'bg-card border-line'
-      }`}
-    >
-      <FamiliarityMeter card={card} />
+    <Link href={`/words/${id}`} className={`flex items-center gap-3 px-3.5 py-3 ${wrapperCls}`}>
+      <span
+        className={`w-[7px] h-[7px] rounded-full shrink-0 ${action ? 'bg-accent' : 'bg-border-soft'}`}
+        aria-hidden
+      />
       <div className="flex-1 min-w-0">
-        <p className="font-serif text-lg font-bold text-ink leading-none tracking-[-0.02em]">{word}</p>
-        {defEs && <p className="text-xs text-muted italic mt-[3px] line-clamp-1">{defEs}</p>}
+        <p className="font-serif text-lg font-bold text-ink leading-none tracking-[-0.01em]">{word}</p>
+        {defEs && <p className="font-serif text-[13px] text-muted italic mt-[3px] line-clamp-1">{defEs}</p>}
       </div>
-      <div className="flex flex-col items-end gap-1 shrink-0">
-        <span className={`text-[10px] font-bold uppercase tracking-[0.08em] whitespace-nowrap ${status.text}`}>
-          {status.label}
-        </span>
-        <p className="text-[10px] text-muted whitespace-nowrap">
-          {reps} révision{reps >= 2 ? 's' : ''}
-        </p>
+      <div className="flex flex-col items-center gap-2 shrink-0">
+        <StatusPill card={card} />
+        <MasteryGauge card={card} />
       </div>
     </Link>
   )

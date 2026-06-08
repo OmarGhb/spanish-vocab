@@ -2,6 +2,10 @@ import { State } from 'ts-fsrs'
 
 export const MEMORIZED_STABILITY_DAYS = 30
 export const LEARNING_STABILITY_DAYS = 7
+// Mid-point of the 7–30 "En cours" band — the gauge's 2/4↔3/4 line, so all four
+// dots fill smoothly between New and Mémorisé. Gauge-presentation only (see
+// getMasteryGauge); it does NOT subdivide the status bands or the partition.
+export const GAUGE_MID_STABILITY_DAYS = 15
 
 export type WordCard = {
   state: number
@@ -63,4 +67,22 @@ export function getFamiliarity(card: WordCard | null): 0 | 1 | 2 | 3 {
 export function isDue(card: WordCard | null): boolean {
   if (!card) return false
   return new Date(card.due) <= new Date()
+}
+
+// PRESENTATION-ONLY projection (board §06 "Mots" cluster): the 4-dot mastery gauge.
+// A pure function of stability, rendered as fifths 0→4 so all four dots fill smoothly
+// as a word matures. Like getFamiliarity, due-ness and Relearning don't affect it
+// (stability-only). Does NOT touch the partition or the status bands — it only adds a
+// finer 15-day display split inside the existing 7–30 "En cours" band.
+//   New / no card               → 0
+//   0 < stability < 7           → 1
+//   7 ≤ stability < 15          → 2
+//   15 ≤ stability < 30         → 3
+//   stability ≥ 30              → 4   (Mémorisé)
+export function getMasteryGauge(card: WordCard | null): 0 | 1 | 2 | 3 | 4 {
+  if (!card || card.state === State.New) return 0
+  if (card.stability >= MEMORIZED_STABILITY_DAYS) return 4
+  if (card.stability >= GAUGE_MID_STABILITY_DAYS) return 3
+  if (card.stability >= LEARNING_STABILITY_DAYS) return 2
+  return 1
 }

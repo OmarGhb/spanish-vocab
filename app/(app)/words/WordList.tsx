@@ -1,14 +1,23 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Search, Plus, ChevronUp, ChevronDown } from 'lucide-react'
 import { getFamiliarity, isDue, isMemorized } from '@/lib/word-status'
 import { matchesWordSearch } from '@/lib/word-search'
 import { useDeferredDelete } from '../DeferredDelete'
+import { SELECTION_ACTIVE } from '../selection'
+import Button from '../Button'
 import SwipeRow from './SwipeRow'
 import type { WordListItem } from './page'
 
 type Filter = 'tous' | 'arevoir' | 'memorises'
 type Sort = 'alpha' | 'date' | 'familiarite'
+type Dir = 'asc' | 'desc'
+
+// Each sort opens at a sensible default direction; re-clicking the active sort flips it.
+// "asc" is the natural ascending order of the comparator; the default may be desc (Date
+// opens newest-first; the base comparator is oldest-first, so its default is desc).
+const SORT_DEFAULT_DIR: Record<Sort, Dir> = { alpha: 'asc', date: 'desc', familiarite: 'asc' }
 
 const FILTERS: { key: Filter; label: string }[] = [
   { key: 'tous', label: 'Tous' },
@@ -30,7 +39,18 @@ const CHUNK_INCREMENT = 30
 export default function WordList({ items }: { items: WordListItem[] }) {
   const [filter, setFilter] = useState<Filter>('tous')
   const [sort, setSort] = useState<Sort>('date')
+  const [dir, setDir] = useState<Dir>(SORT_DEFAULT_DIR.date)
   const [search, setSearch] = useState('')
+
+  // Re-clicking the active sort flips its direction; clicking another switches to it at
+  // its default direction.
+  function handleSort(key: Sort) {
+    if (key === sort) setDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+    else {
+      setSort(key)
+      setDir(SORT_DEFAULT_DIR[key])
+    }
+  }
   const [shown, setShown] = useState(INITIAL_CHUNK)
   // Single-open-row coordination for swipe-to-reveal.
   const [openRowId, setOpenRowId] = useState<string | null>(null)
@@ -52,29 +72,32 @@ export default function WordList({ items }: { items: WordListItem[] }) {
 
     const searched = filtered.filter((it) => matchesWordSearch(it, search))
 
-    const sorted = [...searched]
-    if (sort === 'alpha') {
-      sorted.sort((a, b) => a.word.localeCompare(b.word, 'es'))
-    } else if (sort === 'familiarite') {
-      // Least familiar first: by familiarity level asc, then stability asc within a level.
-      sorted.sort((a, b) => {
-        const diff = getFamiliarity(a.card) - getFamiliarity(b.card)
-        if (diff !== 0) return diff
-        return (a.card?.stability ?? 0) - (b.card?.stability ?? 0)
-      })
-    } else {
-      // Date: most recent first. ISO timestamps sort lexicographically.
-      sorted.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    }
+    // ASCENDING base comparator per sort; `dir` reverses it (negation flips every key,
+    // so familiarité's stability tiebreak reverses too). Base ascending = A→Z /
+    // oldest-first / least-familiar-first; the default direction (SORT_DEFAULT_DIR)
+    // decides which way each opens.
+    const base =
+      sort === 'alpha'
+        ? (a: WordListItem, b: WordListItem) => a.word.localeCompare(b.word, 'es')
+        : sort === 'familiarite'
+          ? (a: WordListItem, b: WordListItem) => {
+              const diff = getFamiliarity(a.card) - getFamiliarity(b.card)
+              if (diff !== 0) return diff
+              return (a.card?.stability ?? 0) - (b.card?.stability ?? 0)
+            }
+          : // Date: ISO timestamps sort lexicographically; ascending = oldest first.
+            (a: WordListItem, b: WordListItem) => a.createdAt.localeCompare(b.createdAt)
+
+    const sorted = [...searched].sort(dir === 'asc' ? base : (a, b) => -base(a, b))
     return sorted
-  }, [items, hiddenIds, filter, sort, search])
+  }, [items, hiddenIds, filter, sort, dir, search])
 
   // The reveal cap resets to the initial chunk whenever the visible set changes
   // (filter / search / sort) — NOT on hiddenIds changes, so an optimistic delete
   // never resets the scroll cap. Adjusting state during render (the React-blessed
   // pattern) rather than an effect — no extra paint. Default date-desc → the
   // initial chunk is the newest N.
-  const viewSig = `${filter}|${sort}|${search}`
+  const viewSig = `${filter}|${sort}|${dir}|${search}`
   const [prevViewSig, setPrevViewSig] = useState(viewSig)
   if (viewSig !== prevViewSig) {
     setPrevViewSig(viewSig)
@@ -123,6 +146,34 @@ export default function WordList({ items }: { items: WordListItem[] }) {
   }, [openRowId])
 
   const searching = search.trim() !== ''
+  const query = search.trim()
+
+  // Empty deck (first word) — board "Animando" active empty state. Distinct from a
+  // filter/search that simply matched nothing (passive / no-results below). Shown
+  // without the search/filter/sort chrome (there's nothing to operate on yet).
+  if (items.length === 0) {
+    return (
+      <div className="flex flex-col flex-1">
+        <div className="px-5 pt-1 pb-2.5">
+          <h1 className="font-serif text-3xl font-bold text-ink leading-none">Mes mots</h1>
+          <p className="text-sm text-muted mt-1.5">0 mot</p>
+        </div>
+        <div className="flex-1 min-h-0 flex flex-col items-center justify-center text-center px-9 pb-16">
+          <img src="/paco.png" alt="" className="w-[116px] mb-2.5" />
+          <p className="font-serif text-[25px] font-bold text-ink tracking-[-0.01em] leading-tight">
+            Ton premier mot t&apos;attend
+          </p>
+          <p className="text-[14.5px] text-muted leading-relaxed mt-2.5 max-w-[268px]">
+            Ajoute un mot et Paco s&apos;en souviendra avec toi — il te le ramènera au bon moment.
+          </p>
+          <Button href="/add" full className="mt-6 max-w-[300px]">
+            <Plus size={18} />
+            Ajouter un mot
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col flex-1">
@@ -136,7 +187,8 @@ export default function WordList({ items }: { items: WordListItem[] }) {
         </div>
 
         {/* Search — input font ≥16px to avoid the iOS zoom-lock. */}
-        <div className="relative">
+        <div className="relative flex items-center gap-2.5 rounded-card border-[1.5px] border-line bg-card px-3.5 focus-within:border-accent focus-within:shadow-amber-sm">
+          <Search size={18} className="text-faint shrink-0" aria-hidden />
           <input
             type="text"
             inputMode="search"
@@ -144,21 +196,21 @@ export default function WordList({ items }: { items: WordListItem[] }) {
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher…"
             aria-label="Rechercher un mot"
-            className="w-full text-base rounded-card border border-line bg-card px-3.5 py-2.5 pr-9 text-ink placeholder:text-muted focus:outline-none focus:border-accent"
+            className="flex-1 min-w-0 text-base bg-transparent py-3 text-ink placeholder:text-faint placeholder:italic focus:outline-none"
           />
           {searching && (
             <button
               type="button"
               onClick={() => setSearch('')}
               aria-label="Effacer la recherche"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted text-lg leading-none px-1"
+              className="shrink-0 grid place-items-center w-[22px] h-[22px] rounded-full text-accent text-lg leading-none"
             >
               ×
             </button>
           )}
         </div>
 
-        {/* Filter pills */}
+        {/* Filter pills — active = SELECTION_ACTIVE (amber fill, ivory, short shadow). */}
         <div className="flex gap-2">
           {FILTERS.map(({ key, label }) => {
             const active = filter === key
@@ -167,8 +219,10 @@ export default function WordList({ items }: { items: WordListItem[] }) {
                 key={key}
                 type="button"
                 onClick={() => setFilter(key)}
-                className={`text-xs font-semibold px-3.5 py-1.5 rounded-full ${
-                  active ? 'bg-accent text-white' : 'bg-card text-muted border border-line'
+                className={`text-[13.5px] px-[17px] py-[9px] rounded-full ${
+                  active
+                    ? `font-semibold ${SELECTION_ACTIVE}`
+                    : 'font-medium bg-card text-ink border-[1.5px] border-line'
                 }`}
               >
                 {label}
@@ -177,26 +231,41 @@ export default function WordList({ items }: { items: WordListItem[] }) {
           })}
         </div>
 
-        {/* Sort control */}
-        <div className="flex items-center gap-1.5 text-xs">
-          <span className="text-muted">Trier</span>
-          {SORTS.map(({ key, label }) => (
-            <span key={key} className="flex items-center gap-1.5">
-              <span className="text-line" aria-hidden>
-                ·
+        {/* Sort control — active = ink/bold + 2px amber underline + direction caret;
+            inactive = faint. Re-clicking the active sort flips its direction. */}
+        <div className="flex items-center gap-1.5 text-[13px]">
+          <span className="text-faint">Trier</span>
+          {SORTS.map(({ key, label }) => {
+            const active = sort === key
+            return (
+              <span key={key} className="flex items-center gap-1.5">
+                <span className="text-line" aria-hidden>
+                  ·
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleSort(key)}
+                  aria-pressed={active}
+                  className={
+                    active
+                      ? 'flex items-center gap-0.5 text-ink font-bold border-b-2 border-accent pb-px'
+                      : 'text-faint border-b-2 border-transparent pb-px'
+                  }
+                >
+                  {label}
+                  {active &&
+                    (dir === 'asc' ? (
+                      <ChevronUp size={13} className="text-accent" aria-hidden />
+                    ) : (
+                      <ChevronDown size={13} className="text-accent" aria-hidden />
+                    ))}
+                </button>
               </span>
-              <button
-                type="button"
-                onClick={() => setSort(key)}
-                className={sort === key ? 'text-accent font-semibold' : 'text-muted'}
-              >
-                {label}
-              </button>
-            </span>
-          ))}
+            )
+          })}
         </div>
 
-        {/* List */}
+        {/* List · no-results (Pensando) · passive filter-empty (Durmiendo) */}
         {visible.length > 0 ? (
           <>
             <ul className="flex flex-col gap-2">
@@ -207,7 +276,6 @@ export default function WordList({ items }: { items: WordListItem[] }) {
                   word={it.word}
                   defEs={it.defEs}
                   card={it.card}
-                  reps={it.reps}
                   isOpen={openRowId === it.id}
                   onOpen={() => setOpenRowId(it.id)}
                   onClose={() => setOpenRowId((cur) => (cur === it.id ? null : cur))}
@@ -220,10 +288,32 @@ export default function WordList({ items }: { items: WordListItem[] }) {
             </ul>
             {hasMore && <div ref={sentinelRef} aria-hidden className="h-1" />}
           </>
+        ) : searching ? (
+          // No-results — Paco Pensando (intentional divergence from the board mock,
+          // which drew Durmiendo here: a puzzled dog fits a search-miss better).
+          <div className="flex flex-col items-center justify-center text-center px-9 pt-12 pb-10">
+            <img src="/paco-pensando.png" alt="" className="w-[110px] mb-2" />
+            <p className="font-serif text-[22px] font-bold text-ink whitespace-nowrap">Aucun résultat</p>
+            <p className="text-sm text-muted leading-relaxed mt-2 max-w-[250px]">
+              Aucun mot ne correspond à «&nbsp;{query}&nbsp;».
+            </p>
+            <Button href="/add" variant="secondary" className="mt-5">
+              <Plus size={16} />
+              Ajouter «&nbsp;{query}&nbsp;»
+            </Button>
+          </div>
         ) : (
-          <div className="py-16 text-center">
-            <p className="text-sm text-muted">
-              {searching ? 'Aucun résultat' : 'Aucun mot dans cette vue.'}
+          // Passive filter-empty — Paco Durmiendo. Never punitive. Copy adapts to the
+          // active filter (Mémorisés-empty mustn't read "Rien à réviser").
+          <div className="flex flex-col items-center justify-center text-center px-9 pt-12 pb-10">
+            <img src="/paco-durmiendo.png" alt="" className="w-[200px]" />
+            <p className="font-serif text-[23px] font-bold text-ink whitespace-nowrap">
+              {filter === 'memorises' ? 'Aucun mot mémorisé' : 'Rien à réviser'}
+            </p>
+            <p className="text-[14.5px] text-muted leading-relaxed mt-2 max-w-[256px]">
+              {filter === 'memorises'
+                ? 'Continue tes révisions — tes mots arriveront ici une fois bien ancrés.'
+                : 'Tu es à jour. Paco se repose — reviens un peu plus tard.'}
             </p>
           </div>
         )}
