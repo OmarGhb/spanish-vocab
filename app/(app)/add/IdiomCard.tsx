@@ -39,7 +39,7 @@ function OriginTag({ origin }: { origin: IdiomOrigin[] }) {
   }
 
   return (
-    <span className="bg-tint/40 px-2 py-0.5 rounded-md text-xs uppercase tracking-widest text-muted">
+    <span className="bg-tint/40 px-2 py-0.5 rounded-md text-[10.5px] uppercase tracking-[0.08em] text-faint">
       {badge}
     </span>
   )
@@ -47,14 +47,17 @@ function OriginTag({ origin }: { origin: IdiomOrigin[] }) {
 
 type Props = { idiom: Idiom }
 
+// Re-skinned to the v2 system (board ②): radius 16, warm shadow, faint eyebrow, Lora 20/700
+// phrase, faint italic literal, Lora meaning, sépia explanation. Content unchanged — the real
+// idiom image stays (the board's striped placeholder is only because the canvas ships no images).
 export default function IdiomCard({ idiom }: Props) {
   const [imgError, setImgError] = useState(false)
 
   return (
-    <div className="bg-card rounded-card shadow-card overflow-hidden">
+    <div className="bg-card border border-line rounded-2xl shadow-card overflow-hidden">
       {/* Image block — falls back to colored placeholder if file is missing */}
       {!imgError ? (
-        <div className="relative w-full aspect-video">
+        <div className="relative w-full aspect-video border-b border-border-soft">
           <Image
             src={`/idioms/${idiom.id}.jpg`}
             alt=""
@@ -65,29 +68,29 @@ export default function IdiomCard({ idiom }: Props) {
           />
         </div>
       ) : (
-        <div className="w-full aspect-video bg-tint flex items-center justify-center">
+        <div className="w-full aspect-video bg-tint border-b border-border-soft flex items-center justify-center">
           <span className="text-accent/30 text-4xl select-none">¿</span>
         </div>
       )}
 
-      <div className="p-5 flex flex-col gap-3">
+      <div className="px-[18px] pt-4 pb-[18px] flex flex-col">
         {/* Header row: label left, origin badge right */}
         <div className="flex justify-between items-center">
-          <p className="text-xs uppercase tracking-widest text-muted">Le saviez-vous ?</p>
+          <p className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-faint">Le saviez-vous ?</p>
           <OriginTag origin={idiom.origin} />
         </div>
 
         {/* Phrase */}
-        <p className="font-serif text-xl font-bold text-ink leading-snug">{idiom.phrase}</p>
+        <p className="font-serif text-xl font-bold text-ink leading-snug tracking-[-0.01em] mt-[9px]">{idiom.phrase}</p>
 
         {/* Literal translation */}
-        <p className="font-serif italic text-sm text-muted">Lit. : {idiom.literal}</p>
+        <p className="font-serif italic text-[13.5px] text-faint mt-1.5">Lit. : {idiom.literal}</p>
 
         {/* Meaning */}
-        <p className="font-serif text-base text-ink">{idiom.meaning}</p>
+        <p className="font-serif text-[15.5px] text-ink leading-relaxed mt-3">{idiom.meaning}</p>
 
         {/* Explanation */}
-        <p className="text-sm text-muted leading-relaxed">{idiom.explanation}</p>
+        <p className="text-[12.5px] text-muted leading-relaxed mt-3">{idiom.explanation}</p>
       </div>
     </div>
   )

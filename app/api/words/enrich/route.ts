@@ -35,7 +35,7 @@ export async function POST(request: Request) {
   // RLS scopes query to the authenticated user automatically.
   const { data: existing } = await supabase
     .from('words')
-    .select('id, word, definition, examples, distractors, audio_urls, review_cards(id, due)')
+    .select('id, word, definition, examples, distractors, audio_urls, review_cards(id, due, state, stability)')
     .ilike('word', word)
     // Don't match partial discovery rows (pending/kept/known) — they have no review card
     // and would compute a bogus deck status. Only real collection words are duplicates.
@@ -51,7 +51,10 @@ export async function POST(request: Request) {
     distractors: string[]
     audio_urls: { es_ES: string } | null
     // to-one embed (UNIQUE word_id) → object; tolerate both shapes via oneEmbed.
-    review_cards: { id: string; due: string } | Array<{ id: string; due: string }> | null
+    review_cards:
+      | { id: string; due: string; state: number; stability: number }
+      | Array<{ id: string; due: string; state: number; stability: number }>
+      | null
   }
 
   const row = existing as ExistingRow | null
@@ -70,6 +73,8 @@ export async function POST(request: Request) {
       status,
       wordId: row.id,
       dueDate,
+      // FSRS card fields so the ④ duplicate-screen WordRow renders the real pill + gauge.
+      ...(card ? { cardState: card.state, cardStability: card.stability } : {}),
     })
   }
 

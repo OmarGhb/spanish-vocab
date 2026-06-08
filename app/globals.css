@@ -136,6 +136,77 @@ body {
   }
 }
 
+/* Add-flow loading choreography (LoadingIdiom). Keyframes + values are VERBATIM from the
+   canonical MOTION-loading.md (§2) / the #paco-add-css block — do not re-derive. The full
+   set: ring-halo pulse + synced center dot, three rising thinking dots, off-tempo Paco
+   breathing, the pending→active→DONE transition (ring pop + check stroke-draw, one gesture),
+   and the divider/idiom mount-once entrance.
+   Discipline: every `.paco-*` ANIMATION is declared ONLY inside the no-preference block, so
+   base styles are the static visible end-state and reduced motion gets an honest still read
+   (active = solid amber ring + full-opacity core + 3 dots @ .6; done = sage ring + ✓ instant;
+   pending = empty ring; entrance content in place). Only opacity/transform/box-shadow/
+   stroke-dashoffset animate → no reflow jank behind the idiom card. */
+@keyframes pacoRing {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(194, 122, 44, 0.34); }
+  50%      { box-shadow: 0 0 0 7px rgba(194, 122, 44, 0); }
+}
+@keyframes pacoCore {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+@keyframes pacoDot {
+  0%, 72%, 100% { opacity: 0.25; transform: translateY(0); }
+  36%           { opacity: 1; transform: translateY(-3px); }
+}
+@keyframes pacoBreathe {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-5px) scale(1.015); }
+}
+@keyframes pacoRingPop {
+  0%   { transform: scale(0.62); opacity: 0.4; }
+  60%  { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes pacoCheckDraw {
+  from { stroke-dashoffset: 1; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes pacoEnterUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.paco-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+/* Base = check fully drawn (resolution-independent via pathLength="1") so reduce shows it instantly. */
+.paco-check-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .paco-ring-active { animation: pacoRing 1.8s ease-in-out infinite; }
+  .paco-ring-core { animation: pacoCore 1.8s ease-in-out infinite; }
+  .paco-breathe { animation: pacoBreathe 3.4s ease-in-out infinite; }
+  .paco-dots .paco-dot { animation: pacoDot 1.35s ease-in-out infinite; }
+  .paco-dots .paco-dot:nth-child(1) { animation-delay: 0s; }
+  .paco-dots .paco-dot:nth-child(2) { animation-delay: 0.15s; }
+  .paco-dots .paco-dot:nth-child(3) { animation-delay: 0.30s; }
+  /* One-shots — fire once per remount (the indicator is keyed by phase state in React). */
+  .paco-ring-done { animation: pacoRingPop 0.28s cubic-bezier(0.34, 1.4, 0.5, 1) both; }
+  .paco-check-draw { animation: pacoCheckDraw 0.30s ease-out both; }
+  /* Mount-once entrance: divider, then idiom card lagging by 0.12s. */
+  .paco-enter { animation: pacoEnterUp 0.42s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+  .paco-enter-2 { animation: pacoEnterUp 0.42s cubic-bezier(0.2, 0.7, 0.3, 1) both; animation-delay: 0.12s; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .paco-dots .paco-dot { opacity: 0.6; }
+  .paco-ring-core { opacity: 1; }
+}
+
 @media print {
   body {
     background-color: #FFFBF3 !important;

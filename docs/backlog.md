@@ -16,6 +16,15 @@
 ## Bulk add follow-ups
 - Per-word definition preview: small (i) tooltip on each distractor showing a 1-line meaning before adding.
 - Per-word failure UX: when partial-success happens (2 of 3 succeed), show which specific word failed.
+- **⚠️ Background bulk-add (similaires) silent failure — REVISIT BEFORE SOFT-LAUNCH.** M5.5c
+  (v0.8.2) moved the multi-similaires add to the ⑥ "N mots en route" in-progress success screen,
+  keeping the bulk-add **fire-and-forget** (Omar: don't claim a completed success; the user can
+  keep browsing during the ~20 s background run). Consequence: a failed background add is **no
+  longer surfaced inline** — only `console.error`'d in `runBulkAdd` (`app/(app)/add/page.tsx`).
+  Acceptable now (single user; the word simply won't appear and can be re-added), but **must be
+  addressed before external users**: surface failed background adds and/or offer a retry (e.g. a
+  layout-level toast like the deferred-delete primitive, or a `/words` "couldn't add N" banner).
+  This is the deliberate tradeoff of the in-progress framing, logged so it isn't forgotten.
 
 ## Review experience
 - **French translation hide/show toggle + synonym / expansion-example work** (parked from v0.6.5 — next slice). Rework how/when the French gloss reveals in review, and add synonym / expanded-example surfacing. Separate from the v0.6.5 hygiene patch.
@@ -132,12 +141,22 @@
 - **`.next/types/validator.ts` TypeScript error** carried forward from M3.3 polish work.
   Error: `TS2307: Cannot find module '../../app/page.js' or its corresponding type declarations.` Claude Code dismissed across both M3.3 polish phases as a pre-existing build cache artifact. Want to verify against a pre-M3.3 commit before trusting the diagnosis. Quick check: `git stash`, `git checkout v0.3.2`, `npx tsc --noEmit 2>&1`, see if it appears; pop stash after. Likely benign but worth resolving cleanly when M4 touches the routing layer where it lives.
 
-- **PhaseChecklist active-indicator animation not firing.** Active phase was
-  specced with `motion-safe:animate-pulse` + staggered trailing "···" dots;
-  neither renders in practice. Investigate whether Tailwind is emitting
-  `animate-pulse` and whether the class lands on the element. Low priority —
-  static indicator still conveys state. Means the reduced-motion accessibility
-  contract is also untested in practice until this is sorted.
+- ~~**PhaseChecklist active-indicator animation not firing.**~~ **FIXED in M5.5c (v0.8.2),
+  completed to spec in the polish pass.** Root cause: `motion-safe:animate-pulse` + a `···` span
+  never rendered. The full choreography is now wired **verbatim from `MOTION-loading.md`** in
+  `globals.css` (`pacoRing` 1.8s + synced `pacoCore` dot, `pacoDot`, `pacoBreathe` w/ micro-scale,
+  the per-phase `pacoRingPop` + `pacoCheckDraw` stroke draw-on, `pacoEnterUp` entrance), gated
+  under `no-preference` with an honest `reduce` fallback. The one-shots re-fire per phase because
+  `PhaseRow`'s indicator is **keyed by state** (a one-shot on a persistent node plays once for the
+  whole screen). Pacing replaced: deterministic ~850ms dwell for steps 1–3, data-gated step 4,
+  ~3.05s min-visible floor (tunable). **Confirm on device that it both fires AND degrades** (do
+  not assert from spec).
+- ~~**¡Listo! "Voir la fiche" CTA clipped through the middle (mobile + desktop).**~~ **FIXED in
+  M5.5c (v0.8.2) polish.** Root cause: the `ready` view bottom-anchored its CTA inside a
+  hard-coded `min-h-[calc(100svh-4rem)]` column + `flex-1` spacer; the real two-row `TopNav` is
+  taller than 64px, so the column overran the viewport and the CTA sat below the fold. Fixed by
+  pinning the CTA via the shared `StickyActions` (fixed + safe-area, the fiche's working pattern)
+  and dropping the min-h column — no height math.
 
 ## Discovery follow-ups (M5.1)
 

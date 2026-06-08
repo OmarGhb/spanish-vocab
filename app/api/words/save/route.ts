@@ -73,5 +73,6 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Failed to create review card.' }, { status: 500 })
   }
 
-  return Response.json({ ok: true })
+  // Return the new word id so the add-flow ⑥ single-success WordRow can link to it.
+  return Response.json({ ok: true, id: savedWord.id })
 }

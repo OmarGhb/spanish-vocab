@@ -20,7 +20,10 @@ export default function WordRow({
   asListItem = true,
   flush = false,
 }: {
-  id: string
+  // Optional: when absent the row renders as a non-link <div> (same anatomy). Used by
+  // the add-flow ⑥ multi-success screen, where the similaire words are still being
+  // created in the background and have no /words/[id] yet. Reuse, not a parallel row.
+  id?: string
   word: string
   defEs: string
   card: WordCard | null
@@ -37,8 +40,8 @@ export default function WordRow({
   const wrapperCls = flush
     ? `${action ? 'bg-surface-alt' : 'bg-card'}`
     : `rounded-card border ${action ? SELECTION_PERSISTENT : 'bg-card border-line'}`
-  const row = (
-    <Link href={`/words/${id}`} className={`flex items-center gap-3 px-3.5 py-3 ${wrapperCls}`}>
+  const inner = (
+    <>
       <span
         className={`w-[7px] h-[7px] rounded-full shrink-0 ${action ? 'bg-accent' : 'bg-border-soft'}`}
         aria-hidden
@@ -51,7 +54,15 @@ export default function WordRow({
         <StatusPill card={card} />
         <MasteryGauge card={card} />
       </div>
+    </>
+  )
+  const cls = `flex items-center gap-3 px-3.5 py-3 ${wrapperCls}`
+  const row = id ? (
+    <Link href={`/words/${id}`} className={cls}>
+      {inner}
     </Link>
+  ) : (
+    <div className={cls}>{inner}</div>
   )
   return asListItem ? <li>{row}</li> : row
 }
