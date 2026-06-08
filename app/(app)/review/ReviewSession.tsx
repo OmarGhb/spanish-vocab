@@ -8,13 +8,16 @@ import type { BlankQuality } from '@/lib/rating'
 import type { ReviewCard } from './page'
 import FillInBlank from './FillInBlank'
 import MultipleChoice from './MultipleChoice'
+import Display from '../Display'
+import { mapReviewRow } from './mapCard'
 import { useFocusMode } from '../FocusMode'
 
 type Props = { cards: ReviewCard[] }
 
 // One entry per reviewed word, accumulated in-memory during the session.
 // correct = final rating was Hard/Good/Easy (2/3/4); ✗ = Again (1).
-type Outcome = { word: string; defEs: string; correct: boolean; timeMs: number }
+// firstTry = got it right WITHOUT a hint → the non-punitive "Sus du 1er coup" stat (board ⑥).
+type Outcome = { word: string; defEs: string; correct: boolean; firstTry: boolean; timeMs: number }
 
 function chooseMode(card: ReviewCard, index: number): 'blank' | 'mc' {
   if (card.distractors.length === 0) return 'blank'
@@ -25,7 +28,8 @@ function chooseMode(card: ReviewCard, index: number): 'blank' | 'mc' {
 // Same shape + ordering as the server query in page.tsx, run client-side so the
 // "Encore N" CTA can continue the session in place without a route navigation
 // (a <Link href="/review"> from /review served a stale Router-Cache page — the
-// rescheduled cards never came back).
+// rescheduled cards never came back). Shares mapReviewRow with the server page, so the
+// bilingual-field normalization (the M5.5e crash fix) applies to refetched batches too.
 async function fetchDueCards(): Promise<ReviewCard[]> {
   const supabase = createClient()
   const { data: rows } = await supabase
@@ -35,33 +39,7 @@ async function fetchDueCards(): Promise<ReviewCard[]> {
     .order('due', { ascending: true })
     .limit(20)
 
-  return (rows ?? []).map((row) => {
-    const w = row.words as {
-      word: string
-      lemma: string | null
-      definition: { es: string; fr: string; pos?: string }
-      examples: Array<{ es: string; fr: string }>
-      distractors: string[]
-    }
-    return {
-      id: row.id as string,
-      word_id: row.word_id as string,
-      due: row.due as string,
-      stability: row.stability as number,
-      difficulty: row.difficulty as number,
-      elapsed_days: row.elapsed_days as number,
-      scheduled_days: row.scheduled_days as number,
-      reps: row.reps as number,
-      lapses: row.lapses as number,
-      state: row.state as number,
-      last_review: row.last_review as string | null,
-      word: w.word,
-      lemma: w.lemma,
-      definition: w.definition,
-      examples: w.examples,
-      distractors: w.distractors,
-    }
-  })
+  return (rows ?? []).map(mapReviewRow)
 }
 
 export default function ReviewSession({ cards: initialCards }: Props) {
@@ -99,7 +77,7 @@ export default function ReviewSession({ cards: initialCards }: Props) {
     // rating yields exactly one recap row per word — no dedup needed.
     setOutcomes((prev) => [
       ...prev,
-      { word: card.word, defEs: card.definition?.es ?? '', correct: rating !== 1, timeMs },
+      { word: card.word, defEs: card.definition?.es ?? '', correct: rating !== 1, firstTry: rating !== 1 && !hintUsed, timeMs },
     ])
 
     try {
@@ -158,8 +136,7 @@ export default function ReviewSession({ cards: initialCards }: Props) {
 
   if (done) {
     const total = outcomes.length
-    const correct = outcomes.filter((o) => o.correct).length
-    const successPct = total > 0 ? Math.round((correct / total) * 100) : 0
+    const firstTry = outcomes.filter((o) => o.firstTry).length
     const totalMs = outcomes.reduce((sum, o) => sum + o.timeMs, 0)
     const timeLabel = totalMs < 60_000 ? '< 1 min' : `${Math.round(totalMs / 60_000)} min`
 
@@ -175,9 +152,7 @@ export default function ReviewSession({ cards: initialCards }: Props) {
         >
           <Image src="/paco-feliz.png" alt="Paco" width={56} height={56} className="object-contain shrink-0" />
           <div>
-            <p className="font-serif text-[27px] font-bold italic leading-none tracking-[-0.01em] text-ink">
-              ¡Buen trabajo!
-            </p>
+            <Display kind="buenTrabajo" className="text-[30px] leading-none text-ink">¡Buen trabajo!</Display>
             <p className="text-[13.5px] text-muted mt-[5px]">Session terminée</p>
           </div>
         </div>
@@ -187,7 +162,7 @@ export default function ReviewSession({ cards: initialCards }: Props) {
           <div className="flex bg-card border border-line rounded-2xl py-3.5">
             {[
               { label: 'Révisés', value: String(total) },
-              { label: 'Réussite', value: `${successPct}%` },
+              { label: 'Sus du 1er coup', value: String(firstTry) },
               { label: 'Temps', value: timeLabel },
             ].map((s, i) => (
               <div key={s.label} className={`flex-1 text-center ${i > 0 ? 'border-l border-hair/60' : ''}`}>
@@ -211,8 +186,8 @@ export default function ReviewSession({ cards: initialCards }: Props) {
               style={{ animationDelay: `${i * 35}ms` }}
             >
               <span
-                className={`flex items-center justify-center w-[26px] h-[26px] rounded-full shrink-0 ${
-                  o.correct ? 'bg-ok-bg text-ok' : 'bg-err-bg text-err'
+                className={`flex items-center justify-center w-[26px] h-[26px] rounded-full border shrink-0 ${
+                  o.correct ? 'bg-ok-bg border-sage-border text-sage-ink' : 'bg-card border-line text-faint'
                 }`}
               >
                 {o.correct ? (

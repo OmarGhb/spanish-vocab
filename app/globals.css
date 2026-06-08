@@ -19,6 +19,7 @@
   --color-amber-light: #F2DCB8; /* tinted fill / disabled-primary bg (board §01) */
   --color-amber-mid:   #D6924A; /* "Annuler" link on the dark undo toast (board T-object amberMid) */
   --color-amber-tint:  #F7E8D0; /* active ⋮ button bg / secondary pressed (board T-object amberTint) */
+  --color-amber-pale:  #E3BC8A; /* lightest rating rung "Facile" — amber-family, board RATE scale (M5.5e) */
   --color-ivory:       #FFFBF3; /* text on amber — distinct role from --color-card surface (board §01) */
   /* Reconciled to the board T-object value this slice (was #F5E0C0) — the §06 Words cluster
      consumes it; logged backlog item (b) "semantic-tint drift", deferred from M5.5a. */

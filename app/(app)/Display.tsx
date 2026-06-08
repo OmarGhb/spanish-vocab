@@ -8,14 +8,17 @@ import type { CSSProperties, ReactNode } from 'react'
 // allowlist; you cannot render Fraunces without naming one of the three allowed faces, so
 // the allowlist is enforced by the type system, not by convention.
 //
-//   kind="listo" → "¡Listo!"            (success headline, e.g. add flow · render in success/ink)
-//   kind="casi"  → "¡Casi!"             (near-miss headline — MUST be rendered in ink, color rule 6)
-//   kind="count" → big review numbers   (e.g. the "60" in "60 mots à revoir")
+//   kind="listo"       → "¡Listo!"        (add-flow success headline · render in ink)
+//   kind="casi"        → "¡Casi!"         (near-miss verdict — MUST be ink, color rule 6)
+//   kind="count"       → big review numbers (e.g. the "70" on the Réviser entry)
+//   kind="esoEs"       → "¡Eso es!"       (correct verdict · rendered in sage by the caller)
+//   kind="uy"          → "¡Uy!"           (wrong verdict · rendered in terra by the caller)
+//   kind="buenTrabajo" → "¡Buen trabajo!" (session-complete header · ink)
 //
 // Face only: Fraunces italic 700. Size and color come from the caller's className per the
 // type scale (Display/emotion 32–40), so `casi` can be inked per color rule 6. No usages
 // ship in M5.5a — they land with their screen clusters.
-type DisplayKind = 'listo' | 'casi' | 'count'
+type DisplayKind = 'listo' | 'casi' | 'count' | 'esoEs' | 'uy' | 'buenTrabajo'
 
 // `kind` is required by the type (the allowlist gate) but intentionally not read at runtime —
 // it constrains *what* may be set in Fraunces, not how it renders. DO NOT delete it as an

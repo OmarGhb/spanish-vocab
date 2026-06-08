@@ -1,25 +1,16 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { BookA, Lock } from 'lucide-react'
+import { BookA, Lock, Clock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { oneEmbed, type WordCard } from '@/lib/word-status'
 import { DICTIONARY_UNLOCK_THRESHOLD, getDictionaryState } from '@/lib/dictionary'
 import { buildDrillPool } from '@/lib/drill'
+import { estimateMinutes, RECENT_LOGS_WINDOW } from '@/lib/review-estimate'
 import WordRow from './WordRow'
-import EstimateInfo from './EstimateInfo'
+import Display from './Display'
+import Button from './Button'
 import UnlockSync from './UnlockSync'
 import DrillCard from './DrillCard'
-
-const COLD_START_MS = 12_000 // flat per-card estimate before we have enough data
-const MIN_USABLE_LOGS = 20
-const RECENT_LOGS_WINDOW = 200
-
-function median(values: number[]): number | null {
-  if (values.length === 0) return null
-  const sorted = [...values].sort((a, b) => a - b)
-  const mid = Math.floor(sorted.length / 2)
-  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid]
-}
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -67,11 +58,8 @@ export default async function HomePage() {
   const { unlocked: dictUnlocked, memorizedCount } = await getDictionaryState(supabase)
   const dictProgress = Math.min(memorizedCount, DICTIONARY_UNLOCK_THRESHOLD)
 
-  // Effort estimate: median time-per-card over recent logs (outlier-robust),
-  // falling back to a flat per-card cost until we have enough data.
-  const times = (logs ?? []).map((l) => l.time_ms as number).filter((t) => t > 0)
-  const perCardMs = times.length >= MIN_USABLE_LOGS ? median(times) ?? COLD_START_MS : COLD_START_MS
-  const minutes = Math.max(1, Math.round((due * perCardMs) / 60_000))
+  // Effort estimate via the shared helper (same formula the /review entry landing uses).
+  const minutes = estimateMinutes(due, (logs ?? []).map((l) => l.time_ms as number))
 
   type CardEmbed = WordCard & { reps: number }
   const previews = (recent ?? []).map((w) => {
@@ -92,22 +80,23 @@ export default async function HomePage() {
       {/* Flips the sticky dictionary-unlock flag on app load once ≥10 words are memorized. */}
       <UnlockSync />
       <div className="flex-1 px-5 pb-5 pt-3 flex flex-col gap-6">
-        {/* Review status — the loudest element */}
+        {/* Review status — the loudest element. The re-skinned crème+ hero (board ①), relocated
+            here from /review (which now auto-starts). A SURFACE, never amber-filled. */}
         {due > 0 ? (
-          <div className="bg-tint border border-accent/30 rounded-card p-5 flex flex-col">
-            <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-accent">Révision disponible</p>
-            <p className="font-serif text-2xl font-bold text-ink leading-tight mt-1">
-              {due} mot{due !== 1 ? 's' : ''} à revoir
-            </p>
-            <div className="mt-1.5">
-              <EstimateInfo minutes={minutes} />
+          <div className="bg-surface-alt border-[1.5px] border-tinted-border rounded-card shadow-card px-[22px] pt-5 pb-[18px]">
+            <div className="flex items-start justify-between gap-3">
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-amber-deep">Révision disponible</p>
+              <span className="flex items-center gap-1 text-[13px] text-muted shrink-0">
+                <Clock size={13} /> ≈ {minutes} min
+              </span>
             </div>
-            <Link
-              href="/review"
-              className="bg-accent text-white rounded-card py-3.5 text-center font-serif font-semibold text-sm mt-5"
-            >
-              Commencer la révision →
-            </Link>
+            <div className="flex items-baseline gap-2.5 mt-2">
+              <Display kind="count" className="text-[44px] leading-none text-ink">{due}</Display>
+              <span className="font-serif text-[19px] font-bold text-ink">mot{due !== 1 ? 's' : ''} à revoir</span>
+            </div>
+            <div className="mt-4">
+              <Button variant="primary" full href="/review">Commencer la révision →</Button>
+            </div>
           </div>
         ) : (
           <div className="bg-card border border-line rounded-card p-5 flex flex-col items-start gap-2">

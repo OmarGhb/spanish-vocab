@@ -91,14 +91,20 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
     setResult(rating)
   }
 
-  function optionStyle(option: string): string {
-    const base = 'w-full text-left rounded-lg border px-4 py-3 text-sm transition-colors'
-    if (!result) return `${base} border-line bg-card text-ink hover:border-accent`
-    // Canonical success/danger tint tokens (same hue + intensity as the écriture result
-    // surfaces and the bilan ✓/✗ circles) — not the old math-derived bg-ok/10 alphas.
-    if (option === word) return `${base} border-ok bg-ok-bg text-ok`
-    if (option === chosen && chosen !== word) return `${base} border-err bg-err-bg text-err`
-    return `${base} border-line text-muted opacity-50`
+  // Board ②: correct = sage (strong, the loud element); wrong-picked = GENTLE terra (1px + soft
+  // strike); others fade. Non-punitive — always surface the right answer over punishing the wrong.
+  type OptState = 'rest' | 'correct' | 'wrong' | 'faded'
+  function optState(option: string): OptState {
+    if (!result) return 'rest'
+    if (option === word) return 'correct'
+    if (option === chosen && chosen !== word) return 'wrong'
+    return 'faded'
+  }
+  const OPT_CLS: Record<OptState, string> = {
+    rest: 'bg-card border-line text-ink',
+    correct: 'bg-ok-bg border-[1.5px] border-sage-border text-sage-ink font-semibold',
+    wrong: 'bg-err-bg border-terra-border text-terra-ink',
+    faded: 'bg-card border-line text-faint opacity-55',
   }
 
   return (
@@ -139,12 +145,34 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
         )}
       </div>
 
-      <div className="flex flex-col gap-2">
-        {options.map((option) => (
-          <button key={option} onClick={() => handlePick(option)} className={optionStyle(option)}>
-            {option}
-          </button>
-        ))}
+      <div className="flex flex-col gap-[9px]">
+        {options.map((option) => {
+          const st = optState(option)
+          return (
+            <button
+              key={option}
+              onClick={() => handlePick(option)}
+              disabled={!!result}
+              className={`w-full flex items-center justify-between gap-3 text-left rounded-card border px-4 py-3.5 font-serif text-[17px] transition-colors ${OPT_CLS[st]}`}
+            >
+              <span className={st === 'wrong' ? 'line-through decoration-1' : ''}>{option}</span>
+              {st === 'correct' && (
+                <span className="flex items-center justify-center w-[22px] h-[22px] rounded-full bg-ok text-ivory shrink-0">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 13l4 4L19 7" />
+                  </svg>
+                </span>
+              )}
+              {st === 'wrong' && (
+                <span className="flex items-center justify-center w-[22px] h-[22px] rounded-full border border-terra-border text-terra-ink shrink-0">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M6 6l12 12M18 6L6 18" />
+                  </svg>
+                </span>
+              )}
+            </button>
+          )
+        })}
       </div>
 
       {result && (

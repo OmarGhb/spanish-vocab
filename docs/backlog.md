@@ -27,6 +27,19 @@
   This is the deliberate tradeoff of the in-progress framing, logged so it isn't forgotten.
 
 ## Review experience
+- **Countdown hint copy — show only for a user's first few answers ever (from M5.5e).** The
+  auto-advance countdown's explanatory captions ("Sans rien faire, la note X s'applique…" /
+  "Prends ton temps…") were removed in v0.8.4 (clutter after you know the mechanic). Re-introduce
+  them as a **one-time teaching aid** shown only for, say, a user's first ~2–3 graded answers ever,
+  then never again. Needs a persisted lifetime answer-count (on `profiles`, or derive from
+  `review_logs` count) — so it's a small data dependency, not an inline tweak. Pairs with the
+  disable-auto-advance setting below.
+- **"Disable auto-advance" accessibility setting (from M5.5e).** The review auto-advance countdown
+  (v0.8.4) always runs after a verdict (tunable `AUTO_ADVANCE_MS`; the user can pause/stop/override
+  per card, and reduced-motion gets a discrete numeric, but it still *starts* automatically). Some
+  users will want it off entirely — add a persisted per-user toggle (`profiles`) that, when set,
+  skips the timer and waits for an explicit ↵/tap. Low urgency (single user; the per-card stop
+  affordances cover it for now), but the right a11y end-state before beta.
 - **French translation hide/show toggle + synonym / expansion-example work** (parked from v0.6.5 — next slice). Rework how/when the French gloss reveals in review, and add synonym / expanded-example surfacing. Separate from the v0.6.5 hygiene patch.
 - Skip rating for trusted suggestions: if user accepts the auto-rating 5+ times in a row, offer a "trust suggestions" toggle.
 - Keyboard shortcuts: 1/2/3/4 for ratings, H for hint, Enter to confirm.
