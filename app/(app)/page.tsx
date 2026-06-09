@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { BookA, Lock, Clock, ChevronRight } from 'lucide-react'
+import { Lock, Clock, ChevronRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { oneEmbed, type WordCard } from '@/lib/word-status'
 import { DICTIONARY_UNLOCK_THRESHOLD, getDictionaryState } from '@/lib/dictionary'
@@ -121,8 +121,10 @@ export default async function HomePage() {
             href="/dictionary"
             className="flex items-center gap-3.5 bg-card border border-line rounded-2xl shadow-card px-[18px] py-4"
           >
-            <span className="w-[46px] h-[46px] rounded-xl bg-amber-light text-amber-deep flex items-center justify-center shrink-0">
-              <BookA size={26} strokeWidth={1.8} />
+            <span className="w-[46px] h-[46px] rounded-xl bg-amber-light flex items-center justify-center shrink-0">
+              {/* Handover book+A-Z+ribbon glyph (amber-deep), pre-recolored for the amber-light
+                  tile. Final icon system is the Accueil pass; swap the src there if it changes. */}
+              <Image src="/dict-book-amber.png" alt="" width={26} height={26} className="object-contain" />
             </span>
             <div className="flex-1 min-w-0">
               <p className="font-serif text-[17px] font-bold text-ink tracking-[-0.01em]">Ton dictionnaire</p>
