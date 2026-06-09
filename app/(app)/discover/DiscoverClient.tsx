@@ -74,8 +74,8 @@ function boldTarget(sentence: string, word: string): ReactNode {
 // painting the card), and a neutral "Bientôt" chip (NOT the live amber → arrow) so it
 // doesn't read as a tap-dead-end. Tapping shows a warm Paco-voice "pas encore disponible".
 function FeaturedCard({
-  Icon, kicker, title, sub, meta, onTap,
-}: { Icon: LucideIcon; kicker: string; title: string; sub: string; meta: string; onTap: () => void }) {
+  Icon, title, sub, onTap,
+}: { Icon: LucideIcon; title: string; sub: string; onTap: () => void }) {
   return (
     <button
       type="button"
@@ -86,10 +86,8 @@ function FeaturedCard({
         <Icon size={26} strokeWidth={1.8} />
       </span>
       <div className="flex-1 min-w-0">
-        <div className="text-[9.5px] font-bold uppercase tracking-[0.12em] text-accent">{kicker}</div>
-        <div className="font-serif text-lg font-bold tracking-[-0.01em] text-ink leading-[1.18] mt-[3px]">{title}</div>
+        <div className="font-serif text-lg font-bold tracking-[-0.01em] text-ink leading-[1.18]">{title}</div>
         <div className="text-[12.5px] text-muted leading-snug mt-1">{sub}</div>
-        <div className="text-[11px] font-semibold text-faint mt-1.5">{meta}</div>
       </div>
       <span className="shrink-0 text-[9.5px] font-bold uppercase tracking-[0.1em] text-faint border border-border-soft rounded-full px-2 py-1">
         Bientôt
@@ -226,18 +224,14 @@ export default function DiscoverClient() {
           <SectionLabel>Pour toi</SectionLabel>
           <FeaturedCard
             Icon={Share2}
-            kicker="À côté de tes mots"
             title="Dans le prolongement de tes mots"
             sub="Des mots choisis tout près de ce que tu apprends en ce moment."
-            meta="Bientôt · proche de ta collection"
             onTap={() => setComingSoon('adjacency')}
           />
           <FeaturedCard
             Icon={BarChart3}
-            kicker="Collection de référence"
             title="L'essentiel A2–B1"
             sub="Le socle de vocabulaire pour passer le cap intermédiaire."
-            meta="Bientôt · par paliers"
             onTap={() => setComingSoon('level')}
           />
           <div className="mt-1">
