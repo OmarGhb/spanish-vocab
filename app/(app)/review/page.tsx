@@ -35,6 +35,14 @@ export default async function ReviewPage() {
 
   const cards: ReviewCard[] = (rows ?? []).map(mapReviewRow)
 
+  // Cheap single-row flag read so the session can skip all unlock-evaluation work in the
+  // common case (already unlocked); only an un-crossed user can owe the review-end takeover.
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('dictionary_unlocked')
+    .maybeSingle()
+  const dictionaryUnlocked = profile?.dictionary_unlocked === true
+
   // The Réviser pill goes straight into a session (the entry card lives on Home now). Nothing
   // due → the restful Durmiendo passive state.
   if (cards.length === 0) {
@@ -52,5 +60,5 @@ export default async function ReviewPage() {
     )
   }
 
-  return <ReviewSession cards={cards} />
+  return <ReviewSession cards={cards} dictionaryUnlocked={dictionaryUnlocked} />
 }

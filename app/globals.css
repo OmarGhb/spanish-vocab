@@ -88,21 +88,41 @@ body {
   }
 }
 
-/* Dependency-free confetti for the dictionary unlock interstitial (Confetti.tsx).
-   Hidden by default; only animates when the user hasn't asked for reduced motion. */
-@keyframes confetti-fall {
-  0% { transform: translateY(-10%) rotate(0deg); opacity: 1; }
-  100% { transform: translateY(110vh) rotate(540deg); opacity: 0; }
+/* Dependency-free confetti for the dictionary unlock celebration (Confetti.tsx) — the ONE
+   sanctioned ceremony. A slow, living drift (board lxConfetti): each piece falls a short
+   way with a small rotation, fading in then out, on its own duration/delay. Hidden by
+   default (base = invisible) so reduced-motion / print / SSR show the finished screen with
+   no falling pieces. `--r` carries each piece's base rotation. */
+@keyframes confetti-drift {
+  0%   { transform: translateY(-26px) rotate(var(--r, 0deg)); opacity: 0; }
+  18%  { opacity: 0.9; }
+  82%  { opacity: 0.9; }
+  100% { transform: translateY(56px) rotate(calc(var(--r, 0deg) + 38deg)); opacity: 0; }
 }
 .confetti-piece {
   opacity: 0;
 }
 @media (prefers-reduced-motion: no-preference) {
   .confetti-piece {
-    animation-name: confetti-fall;
-    animation-timing-function: ease-in;
+    animation-name: confetti-drift;
+    animation-timing-function: ease-in-out;
     animation-iteration-count: infinite;
   }
+}
+
+/* Unlock takeover entrance + gentle life (UnlockTakeover.tsx, board lx* set). All gated
+   under no-preference; base styles are the final composed state, so reduced-motion / print
+   / SSR render the finished celebration with no motion. */
+@keyframes lxPop  { 0% { transform: scale(0.62); opacity: 0; } 70% { transform: scale(1.06); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes lxBob  { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes lxHalo { 0%, 100% { transform: scale(1); opacity: 0.85; } 50% { transform: scale(1.09); opacity: 1; } }
+@keyframes lxRise { 0% { transform: translateY(14px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+@media (prefers-reduced-motion: no-preference) {
+  .lx-pop  { animation: lxPop 0.62s cubic-bezier(.2,.8,.3,1.2) both; }
+  .lx-bob  { animation: lxBob 3.6s ease-in-out 1s infinite; }
+  .lx-halo { animation: lxHalo 2.9s ease-in-out infinite; }
+  /* `both` fill supplies the hidden-before state during the staggered animationDelay. */
+  .lx-rise { animation: lxRise 0.55s ease-out both; }
 }
 
 /* Review result-card entrance: a single quiet staggered fade-up (no bounce/confetti). */

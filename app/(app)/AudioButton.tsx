@@ -3,14 +3,17 @@
 import { Volume2 } from 'lucide-react'
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 
-type Props = { word: string; audioUrl?: string }
+// `variant` controls chrome only (same playback logic): 'inline' (default) is the bare
+// icon used across fiches; 'circle' is the dictionary row's 36px bordered speaker button
+// (board §4) — a separate tap target beside the row link.
+type Props = { word: string; audioUrl?: string; variant?: 'inline' | 'circle' }
 
 // useSyncExternalStore is the idiomatic SSR-safe way to read a browser global.
 // Server snapshot returns false → renders null during SSR; client snapshot
 // checks the real API after hydration.
 function noopSubscribe() { return () => {} }
 
-export default function AudioButton({ word, audioUrl }: Props) {
+export default function AudioButton({ word, audioUrl, variant = 'inline' }: Props) {
   const supported = useSyncExternalStore(noopSubscribe, () => 'speechSynthesis' in window, () => false)
   const [speaking, setSpeaking] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -64,6 +67,19 @@ export default function AudioButton({ word, audioUrl }: Props) {
       }
       speechSynthesis.addEventListener('voiceschanged', handler)
     }
+  }
+
+  if (variant === 'circle') {
+    return (
+      <button
+        type="button"
+        onClick={audioUrl ? playUrl : speakWord}
+        aria-label="Écouter la prononciation"
+        className={`shrink-0 w-9 h-9 rounded-full grid place-items-center border border-line bg-card text-accent transition-colors ${speaking ? 'animate-pulse' : ''}`}
+      >
+        <Volume2 size={17} strokeWidth={1.8} />
+      </button>
+    )
   }
 
   return (

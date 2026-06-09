@@ -1,17 +1,19 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { DICTIONARY_UNLOCK_THRESHOLD, getDictionaryState } from '@/lib/dictionary'
 import UnlockInterstitial from './UnlockInterstitial'
 
-// The celebration. Guarded so it only renders once the flag is actually set; a direct
-// visit before unlock bounces to /dictionary (which shows the locked screen).
+// The safety-net celebration page (reached via syncDictionaryUnlock's redirect when the
+// review-end takeover was missed). Render when the unlock is owed OR already flipped — the
+// flag is now flipped by the interstitial's own client mount (flip-on-show), so on the
+// first arrival the flag is still false but the count has crossed; a stray visit before
+// either is true bounces to /dictionary (the locked screen). memorizedCount drives the
+// Fraunces milestone number from the same source as the home/dictionary count.
 export default async function DictionaryUnlockedPage() {
   const supabase = await createClient()
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('dictionary_unlocked')
-    .maybeSingle()
+  const { unlocked, memorizedCount } = await getDictionaryState(supabase)
 
-  if (profile?.dictionary_unlocked !== true) redirect('/dictionary')
+  if (!unlocked && memorizedCount < DICTIONARY_UNLOCK_THRESHOLD) redirect('/dictionary')
 
-  return <UnlockInterstitial />
+  return <UnlockInterstitial memorizedCount={memorizedCount} />
 }

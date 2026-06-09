@@ -9,8 +9,11 @@ import AudioButton from '../AudioButton'
 // for scrollIntoView landing (via scroll-mt) and for resolving the active letter on scroll.
 const NAV_OFFSET = 112
 
-// A–Z reference of memorized words: word + Spanish gloss + audio, grouped by initial,
-// with an iOS-contacts jump rail. No status pills / meter / due-tint / reps / filters / sorts.
+// A–Z reference of memorized words: word + Spanish gloss + audio, grouped by initial, with
+// an iOS-contacts jump rail (+ held magnify bubble). No status pills / meter / due-tint /
+// reps / filters / sorts. The row gloss is the Spanish sense (definition.es): this is an
+// index of words the user has ALREADY memorized, so Spanish reinforces the learning frame;
+// the French stays available at the word fiche.
 export default function DictionaryIndex({ entries }: { entries: DictionaryEntry[] }) {
   const sections = groupAZ(entries)
   const present = new Set<Bucket>(sections.map((s) => s.letter))
@@ -19,6 +22,10 @@ export default function DictionaryIndex({ entries }: { entries: DictionaryEntry[
   const scrubbing = useRef(false)
   const lastLetter = useRef<Bucket | null>(null)
   const [activeLetter, setActiveLetter] = useState<Bucket | null>(null)
+  // Held (scrub) state — drives the amber rail pill + the floating magnify bubble. Distinct
+  // from activeLetter (which also tracks passive hand-scroll); null whenever not scrubbing.
+  const [heldLetter, setHeldLetter] = useState<Bucket | null>(null)
+  const [heldY, setHeldY] = useState(0)
 
   // Rail shows every letter; '#' only when there are non-letter initials.
   const railLetters: Bucket[] = [...AZ_BUCKETS, ...(present.has('#') ? (['#'] as Bucket[]) : [])]
@@ -41,7 +48,8 @@ export default function DictionaryIndex({ entries }: { entries: DictionaryEntry[
   }
 
   // Map the pointer Y over the rail strip to a letter, snap to the nearest present one, and
-  // scroll there — but only when the resolved letter changes, to avoid churn during a drag.
+  // scroll there. The magnify bubble tracks the finger (heldY); the scroll only fires when
+  // the resolved letter changes, to avoid churn during a drag.
   function jumpFromY(clientY: number) {
     const rail = railRef.current
     if (!rail) return
@@ -49,10 +57,18 @@ export default function DictionaryIndex({ entries }: { entries: DictionaryEntry[
     const ratio = (clientY - rect.top) / rect.height
     const idx = Math.max(0, Math.min(railLetters.length - 1, Math.floor(ratio * railLetters.length)))
     const letter = nearestPresent(idx)
-    if (!letter || letter === lastLetter.current) return
+    if (!letter) return
+    setHeldLetter(letter)
+    setHeldY(Math.max(rect.top, Math.min(rect.bottom, clientY)))
+    if (letter === lastLetter.current) return
     lastLetter.current = letter
     setActiveLetter(letter)
     scrollToLetter(letter)
+  }
+
+  function endScrub() {
+    scrubbing.current = false
+    setHeldLetter(null)
   }
 
   // Keep the active letter in sync when the user scrolls the list by hand (rAF-throttled).
@@ -84,15 +100,18 @@ export default function DictionaryIndex({ entries }: { entries: DictionaryEntry[
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="pl-5 pr-9 pt-3 pb-10 flex flex-col gap-5">
-        {/* Header — no back chevron (top-level pill destination) */}
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-accent">Lexique personnel</p>
-          <h1 className="font-serif text-3xl font-bold text-ink leading-none mt-1.5">Dictionnaire</h1>
-          <p className="text-sm text-muted mt-1.5">
+      <div className="pl-[22px] pr-[30px] pt-1.5 pb-10 flex flex-col">
+        {/* Masthead — no back chevron (top-level pill destination) */}
+        <div className="pb-3">
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-accent">Lexique personnel</p>
+          <h1 className="font-serif text-[34px] font-bold text-ink leading-none tracking-[-0.025em] mt-1.5">
+            Dictionnaire
+          </h1>
+          <p className="text-[13.5px] text-muted mt-[7px]">
             {count} mot{count !== 1 ? 's' : ''} dans ton dictionnaire
           </p>
         </div>
+        <div className="h-px bg-hair" />
 
         {/* A–Z sections */}
         {sections.map((section) => (
@@ -103,24 +122,38 @@ export default function DictionaryIndex({ entries }: { entries: DictionaryEntry[
             }}
             className="scroll-mt-28"
           >
-            <h2 className="font-serif text-sm font-bold text-accent mb-1 px-1">{section.letter}</h2>
+            <div className="flex items-center gap-3 pt-4 pb-1">
+              <span className="font-serif text-base font-bold italic text-accent">{section.letter}</span>
+              <span className="flex-1 h-px bg-hair" />
+            </div>
             <ul className="flex flex-col">
               {section.entries.map((e) => (
-                <li key={e.id} className="flex items-center gap-3 border-b border-line px-1 py-3">
+                <li key={e.id} className="flex items-center gap-3.5 border-b border-hair py-3">
                   {/* Row taps to the fiche; audio is a SEPARATE sibling tap target. */}
                   <Link href={`/words/${e.id}`} className="flex-1 min-w-0">
-                    <p className="font-serif text-lg font-bold text-ink leading-none tracking-[-0.02em]">
+                    <p className="font-serif text-xl font-bold text-ink leading-[1.15] tracking-[-0.01em]">
                       {e.word}
                     </p>
-                    {e.defEs && <p className="text-xs text-muted italic mt-[3px] line-clamp-1">{e.defEs}</p>}
+                    {e.defEs && (
+                      <p className="font-serif text-sm italic text-muted mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
+                        {e.defEs}
+                      </p>
+                    )}
                   </Link>
-                  <AudioButton word={e.word} audioUrl={e.audioUrl} />
+                  <AudioButton word={e.word} audioUrl={e.audioUrl} variant="circle" />
                 </li>
               ))}
             </ul>
           </section>
         ))}
       </div>
+
+      {/* Bottom fade — implies the list continues below the fold (cosmetic scroll hint).
+          Viewport-fixed, pinned to the column, click-through. */}
+      <div
+        className="fixed inset-x-0 bottom-0 mx-auto w-full max-w-[430px] h-10 z-10 pointer-events-none"
+        style={{ background: 'linear-gradient(180deg, transparent, var(--color-page))' }}
+      />
 
       {/* Jump rail — viewport-fixed, centered like the content column so it pins to the column's
           right edge (not the window edge) and stays visible at any scroll position. The wrapper is
@@ -129,6 +162,29 @@ export default function DictionaryIndex({ entries }: { entries: DictionaryEntry[
         className="fixed inset-y-0 left-1/2 w-full max-w-[430px] -translate-x-1/2 z-20 pointer-events-none flex items-center justify-end"
         style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
+        {/* Magnify bubble — iOS-Contacts: a large amber letter that tracks the finger while held. */}
+        {heldLetter && (
+          <div
+            className="absolute right-[34px] -translate-y-1/2 flex items-center"
+            style={{ top: heldY }}
+          >
+            <span
+              className="w-[62px] h-[62px] rounded-full bg-accent text-ivory grid place-items-center font-serif text-[32px] font-bold italic leading-none"
+              style={{ boxShadow: '0 6px 20px rgba(154,90,28,0.34)' }}
+            >
+              {heldLetter}
+            </span>
+            <span
+              className="w-0 h-0"
+              style={{
+                borderTop: '7px solid transparent',
+                borderBottom: '7px solid transparent',
+                borderLeft: '9px solid var(--color-accent)',
+              }}
+            />
+          </div>
+        )}
+
         <div
           ref={railRef}
           aria-hidden
@@ -145,22 +201,24 @@ export default function DictionaryIndex({ entries }: { entries: DictionaryEntry[
             ev.preventDefault()
             jumpFromY(ev.clientY)
           }}
-          onPointerUp={() => {
-            scrubbing.current = false
-          }}
-          onPointerCancel={() => {
-            scrubbing.current = false
-          }}
+          onPointerUp={endScrub}
+          onPointerCancel={endScrub}
         >
           {railLetters.map((letter) => {
             const enabled = present.has(letter)
+            const held = letter === heldLetter
             const active = enabled && letter === activeLetter
             return (
               <span
                 key={letter}
-                className={`w-4 text-center text-[9px] font-bold leading-[1.15] transition-transform ${
-                  active ? 'text-accent scale-125' : enabled ? 'text-accent' : 'text-line'
+                className={`text-center leading-[1.15] grid place-items-center transition-all ${
+                  held
+                    ? 'w-[18px] h-[18px] rounded-full bg-accent text-ivory text-[12px] font-bold'
+                    : `w-[13px] text-[10px] ${
+                        active ? 'text-accent font-bold scale-110' : enabled ? 'text-accent font-bold' : 'text-faint/40 font-medium'
+                      }`
                 }`}
+                style={held ? { boxShadow: 'var(--shadow-amber-sm)' } : undefined}
               >
                 {letter}
               </span>

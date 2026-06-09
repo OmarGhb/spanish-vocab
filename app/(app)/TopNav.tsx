@@ -110,9 +110,9 @@ export default function TopNav({ dictionaryUnlocked }: { dictionaryUnlocked: boo
           <Link
             href="/dictionary"
             aria-label="Dictionnaire (verrouillé)"
-            className="flex items-center gap-1.5 rounded-full px-5 py-1.5 text-sm font-serif font-bold whitespace-nowrap shrink-0 border border-dashed border-accent/60 bg-card text-ink"
+            className="flex items-center gap-1.5 rounded-full px-5 py-1.5 text-sm font-serif font-bold whitespace-nowrap shrink-0 border border-dashed border-tinted-border bg-card text-faint opacity-85"
           >
-            <Lock size={16} strokeWidth={1.8} className="text-accent/60" />
+            <Lock size={16} strokeWidth={1.8} className="text-faint" />
             Dictionnaire
           </Link>
         )}

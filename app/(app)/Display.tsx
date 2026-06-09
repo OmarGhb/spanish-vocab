@@ -14,11 +14,12 @@ import type { CSSProperties, ReactNode } from 'react'
 //   kind="esoEs"       → "¡Eso es!"       (correct verdict · rendered in sage by the caller)
 //   kind="uy"          → "¡Uy!"           (wrong verdict · rendered in terra by the caller)
 //   kind="buenTrabajo" → "¡Buen trabajo!" (session-complete header · ink)
+//   kind="milestone"   → unlock-milestone count (the dictionary "10" · amber-deep, M5.5g)
 //
 // Face only: Fraunces italic 700. Size and color come from the caller's className per the
 // type scale (Display/emotion 32–40), so `casi` can be inked per color rule 6. No usages
 // ship in M5.5a — they land with their screen clusters.
-type DisplayKind = 'listo' | 'casi' | 'count' | 'esoEs' | 'uy' | 'buenTrabajo'
+type DisplayKind = 'listo' | 'casi' | 'count' | 'esoEs' | 'uy' | 'buenTrabajo' | 'milestone'
 
 // `kind` is required by the type (the allowlist gate) but intentionally not read at runtime —
 // it constrains *what* may be set in Fraunces, not how it renders. DO NOT delete it as an

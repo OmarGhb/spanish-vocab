@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { BlankQuality } from '@/lib/rating'
 import type { ReviewCard } from './page'
@@ -11,8 +12,10 @@ import MultipleChoice from './MultipleChoice'
 import Display from '../Display'
 import { mapReviewRow } from './mapCard'
 import { useFocusMode } from '../FocusMode'
+import { evaluateDictionaryUnlock } from '../dictionary/actions'
+import UnlockTakeover from '../dictionary/UnlockTakeover'
 
-type Props = { cards: ReviewCard[] }
+type Props = { cards: ReviewCard[]; dictionaryUnlocked: boolean }
 
 // One entry per reviewed word, accumulated in-memory during the session.
 // correct = final rating was Hard/Good/Easy (2/3/4); ✗ = Again (1).
@@ -42,7 +45,8 @@ async function fetchDueCards(): Promise<ReviewCard[]> {
   return (rows ?? []).map(mapReviewRow)
 }
 
-export default function ReviewSession({ cards: initialCards }: Props) {
+export default function ReviewSession({ cards: initialCards, dictionaryUnlocked }: Props) {
+  const router = useRouter()
   // Card deck is stateful so "Encore N" can swap in the next due batch in place.
   const [cards, setCards] = useState<ReviewCard[]>(initialCards)
   const [index, setIndex] = useState(0)
@@ -52,6 +56,17 @@ export default function ReviewSession({ cards: initialCards }: Props) {
   const [continuing, setContinuing] = useState(false)
   // écriture verdict for the current card → flips the header to success on a correct answer.
   const [verdict, setVerdict] = useState<BlankQuality | null>(null)
+
+  // Dictionary-unlock takeover, grafted onto the bilan (M5.5g). When a session crosses the
+  // 10th memorized word, the normal bilan shows first; tapping EITHER bilan exit then shows
+  // the takeover once, and "Plus tard" resumes the exit the user had tapped. `unlock` holds
+  // the read-only evaluate result (memorized count for the milestone number); the flag is
+  // flipped by UnlockTakeover's own mount (flip-on-show), so quitting before tapping can't
+  // lose the celebration — the Home safety-net still fires.
+  const [unlock, setUnlock] = useState<{ shouldCelebrate: boolean; memorizedCount: number } | null>(null)
+  const [pendingExit, setPendingExit] = useState<'continue' | 'home' | null>(null)
+  const [showTakeover, setShowTakeover] = useState(false)
+  const takeoverShownRef = useRef(false)
 
   // Full-focus for the WHOLE session, including the bilan (slice 3): suppress the app nav
   // from the first card through the recap, restoring it only on unmount. Encore→next batch
@@ -95,12 +110,24 @@ export default function ReviewSession({ cards: initialCards }: Props) {
     if (index + 1 >= cards.length) {
       // Session over. Count cards still due now — reflects the reschedule the
       // /api/review POST just wrote — to decide whether to show the "Encore N" CTA.
+      // In parallel, evaluate the dictionary-unlock crossing (read-only; only when the
+      // user hasn't already unlocked — the common case skips the query entirely).
       try {
         const supabase = createClient()
-        const { count } = await supabase
-          .from('review_cards')
-          .select('*', { count: 'exact', head: true })
-          .lte('due', new Date().toISOString())
+        const [{ count }] = await Promise.all([
+          supabase
+            .from('review_cards')
+            .select('*', { count: 'exact', head: true })
+            .lte('due', new Date().toISOString()),
+          (async () => {
+            if (dictionaryUnlocked || takeoverShownRef.current) return
+            try {
+              setUnlock(await evaluateDictionaryUnlock())
+            } catch {
+              // Non-fatal: the Home/app-load safety-net still catches the crossing.
+            }
+          })(),
+        ])
         setDueRemaining(count ?? 0)
       } catch {
         setDueRemaining(0)
@@ -133,6 +160,25 @@ export default function ReviewSession({ cards: initialCards }: Props) {
     } finally {
       setContinuing(false)
     }
+  }
+
+  // Perform a bilan exit directly (no takeover): continue the session or go home.
+  function performExit(kind: 'continue' | 'home') {
+    if (kind === 'continue') void handleContinue()
+    else router.push('/')
+  }
+
+  // A bilan exit was tapped. If the unlock crossing is owed and the takeover hasn't shown
+  // yet, intercalate it once (remembering which exit to resume on "Plus tard"); otherwise
+  // exit straight away.
+  function attemptExit(kind: 'continue' | 'home') {
+    if (unlock?.shouldCelebrate && !takeoverShownRef.current) {
+      takeoverShownRef.current = true
+      setPendingExit(kind)
+      setShowTakeover(true)
+      return
+    }
+    performExit(kind)
   }
 
   if (done) {
@@ -217,7 +263,7 @@ export default function ReviewSession({ cards: initialCards }: Props) {
           {dueRemaining > 0 && (
             <button
               type="button"
-              onClick={handleContinue}
+              onClick={() => attemptExit('continue')}
               disabled={continuing}
               className="w-full flex items-center justify-center gap-2.5 rounded-card py-[15px] px-5 bg-accent text-card font-serif text-base font-semibold tracking-[-0.01em] disabled:opacity-60"
               style={{ boxShadow: '0 2px 6px rgba(154,90,28,0.28)' }}
@@ -234,13 +280,27 @@ export default function ReviewSession({ cards: initialCards }: Props) {
               )}
             </button>
           )}
-          <Link
-            href="/"
+          <button
+            type="button"
+            onClick={() => attemptExit('home')}
             className="w-full rounded-card border border-line bg-card py-[14px] text-center font-serif text-base font-semibold text-ink"
           >
             ← Accueil
-          </Link>
+          </button>
         </div>
+
+        {/* Unlock takeover — grafted over the bilan once a session crosses 10 memorized.
+            Flips the sticky flag on its own mount; "Plus tard" resumes the tapped exit. */}
+        {showTakeover && unlock && (
+          <UnlockTakeover
+            memorizedCount={unlock.memorizedCount}
+            onPrimary={() => router.push('/dictionary')}
+            onDismiss={() => {
+              setShowTakeover(false)
+              performExit(pendingExit ?? 'home')
+            }}
+          />
+        )}
       </div>
     )
   }

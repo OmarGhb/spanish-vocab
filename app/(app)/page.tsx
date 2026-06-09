@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { BookA, Lock, Clock } from 'lucide-react'
+import { BookA, Lock, Clock, ChevronRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { oneEmbed, type WordCard } from '@/lib/word-status'
 import { DICTIONARY_UNLOCK_THRESHOLD, getDictionaryState } from '@/lib/dictionary'
@@ -113,33 +113,43 @@ export default async function HomePage() {
         {/* Conjugaison drill — the first game mode. Active at ≥5 trusted verbs, else soft-locked. */}
         <DrillCard count={trustedVerbCount} />
 
-        {/* Dictionary card — secondary, below the Review CTA so it never competes with it */}
+        {/* Dictionary card — secondary, below the Review CTA so it never competes with it.
+            A calm SURFACE, never amber-filled (carte ≠ contrôle). Icon = the swappable BookA
+            placeholder (final pick deferred to the Accueil pass). */}
         {dictUnlocked ? (
           <Link
             href="/dictionary"
-            className="flex items-center gap-3 bg-card border border-line rounded-card p-4"
+            className="flex items-center gap-3.5 bg-card border border-line rounded-2xl shadow-card px-[18px] py-4"
           >
-            <span className="w-10 h-10 rounded-full bg-tint text-accent flex items-center justify-center shrink-0">
-              <BookA size={20} strokeWidth={1.8} />
+            <span className="w-[46px] h-[46px] rounded-xl bg-amber-light text-amber-deep flex items-center justify-center shrink-0">
+              <BookA size={26} strokeWidth={1.8} />
             </span>
-            <div className="min-w-0">
-              <p className="font-serif text-base font-bold text-ink leading-none">Ton dictionnaire</p>
-              <p className="text-sm text-muted mt-1">
+            <div className="flex-1 min-w-0">
+              <p className="font-serif text-[17px] font-bold text-ink tracking-[-0.01em]">Ton dictionnaire</p>
+              <p className="text-[13.5px] text-muted mt-0.5">
                 {memorizedCount} mot{memorizedCount !== 1 ? 's' : ''}
               </p>
             </div>
+            <ChevronRight size={20} strokeWidth={2} className="text-faint shrink-0" />
           </Link>
         ) : (
           <Link
             href="/dictionary"
-            className="flex items-center gap-3 bg-card border border-dashed border-line rounded-card p-4"
+            className="flex items-center gap-3.5 bg-transparent border-[1.5px] border-dashed border-tinted-border rounded-2xl px-[18px] py-4"
           >
-            <span className="w-10 h-10 rounded-full bg-surface-alt text-muted flex items-center justify-center shrink-0">
-              <Lock size={18} strokeWidth={1.8} />
+            <span className="w-[46px] h-[46px] rounded-xl bg-surface-alt text-faint flex items-center justify-center shrink-0">
+              <Lock size={20} strokeWidth={1.9} />
             </span>
-            <div className="min-w-0">
-              <p className="font-serif text-base font-bold text-ink leading-none">Ton dictionnaire personnel</p>
-              <p className="text-sm text-muted mt-1">{dictProgress}/10 mémorisés</p>
+            <div className="flex-1 min-w-0">
+              <p className="font-serif text-base font-bold text-muted tracking-[-0.01em]">Ton dictionnaire personnel</p>
+              <div className="mt-2 flex items-center gap-2.5">
+                <div className="flex-1 h-1.5 rounded-full bg-surface-alt overflow-hidden">
+                  <div className="h-full bg-accent rounded-full" style={{ width: `${(dictProgress / DICTIONARY_UNLOCK_THRESHOLD) * 100}%` }} />
+                </div>
+                <span className="text-[12.5px] font-semibold text-faint whitespace-nowrap tabular-nums">
+                  {dictProgress}/{DICTIONARY_UNLOCK_THRESHOLD} mémorisés
+                </span>
+              </div>
             </div>
           </Link>
         )}
