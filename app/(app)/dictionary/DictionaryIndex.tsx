@@ -211,10 +211,10 @@ export default function DictionaryIndex({ entries }: { entries: DictionaryEntry[
             return (
               <span
                 key={letter}
-                className={`text-center leading-[1.15] grid place-items-center transition-all ${
+                className={`flex items-center justify-center leading-none transition-all shrink-0 ${
                   held
                     ? 'w-[18px] h-[18px] rounded-full bg-accent text-ivory text-[12px] font-bold'
-                    : `w-[13px] text-[10px] ${
+                    : `w-[18px] h-[15px] text-[10px] ${
                         active ? 'text-accent font-bold scale-110' : enabled ? 'text-accent font-bold' : 'text-faint/40 font-medium'
                       }`
                 }`}
