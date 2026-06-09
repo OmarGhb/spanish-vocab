@@ -93,7 +93,7 @@ describe('computeRating — verb recalibration', () => {
     inParadigm: (a: string) => isInParadigm(a, lemma),
   })
   const rate = (target: string, lemma: string, userAnswer: string, timeMs = 3000) =>
-    computeRating({ correctWord: target, userAnswer, timeMs, hintUsed: false, mode: 'blank', verb: verbCtx(target, lemma) })
+    computeRating({ correctWord: target, userAnswer, timeMs, hintLevel: 0, mode: 'blank', verb: verbCtx(target, lemma) })
 
   it('wrongForm (lemma typed) → rating 1 (À revoir), not "close"', () => {
     expect(rate('estudiamos', 'estudiar', 'estudiar').rating).toBe(1)
@@ -120,9 +120,31 @@ describe('non-verb grading is untouched', () => {
   })
 
   it('computeRating without verb context grades via classifyBlankAnswer', () => {
-    const wrong = computeRating({ correctWord: 'mercado', userAnswer: 'biblioteca', timeMs: 2000, hintUsed: false, mode: 'blank' })
+    const wrong = computeRating({ correctWord: 'mercado', userAnswer: 'biblioteca', timeMs: 2000, hintLevel: 0, mode: 'blank' })
     expect(wrong.rating).toBe(1)
-    const exact = computeRating({ correctWord: 'mercado', userAnswer: 'mercado', timeMs: 2000, hintUsed: false, mode: 'blank' })
+    const exact = computeRating({ correctWord: 'mercado', userAnswer: 'mercado', timeMs: 2000, hintLevel: 0, mode: 'blank' })
     expect(exact.rating).toBe(4)
+  })
+})
+
+describe('tiered hint cap (écriture, M5.5f)', () => {
+  const exactFast = (hintLevel: number) =>
+    computeRating({ correctWord: 'mercado', userAnswer: 'mercado', timeMs: 2000, hintLevel, mode: 'blank' }).rating
+
+  it('caps an exact-fast answer (base 4) by hint depth: 0→4, 1→3, 2→2, 3→1', () => {
+    expect(exactFast(0)).toBe(4)
+    expect(exactFast(1)).toBe(3)
+    expect(exactFast(2)).toBe(2)
+    expect(exactFast(3)).toBe(1)
+  })
+
+  it('only lowers — never raises a low base rating', () => {
+    expect(computeRating({ correctWord: 'mercado', userAnswer: 'biblioteca', timeMs: 2000, hintLevel: 1, mode: 'blank' }).rating).toBe(1)
+  })
+
+  it('MCQ rating is unaffected by hintLevel (no double penalty)', () => {
+    const a = computeRating({ correctWord: 'mercado', userAnswer: 'mercado', timeMs: 2000, hintLevel: 0, mode: 'mc' }).rating
+    const b = computeRating({ correctWord: 'mercado', userAnswer: 'mercado', timeMs: 2000, hintLevel: 1, mode: 'mc' }).rating
+    expect(a).toBe(b)
   })
 })

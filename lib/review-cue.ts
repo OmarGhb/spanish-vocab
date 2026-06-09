@@ -48,3 +48,18 @@ export function verbCue(target: string, lemma: string): VerbCue {
 
   return cue
 }
+
+// Raw {tense, person} for building a deterministic conjugation grid (Indice 2 + verb verdicts) —
+// returns null unless the target resolves to a SINGLE finite grid tense AND an unambiguous person
+// on a trusted paradigm, so callers can degrade safely (Indice 2 → ES definition; verdict → plain
+// reveal) rather than highlight a guessed cell. The display-side companion to verbCue.
+export function verbGridCoords(target: string, lemma: string): { tense: Tense; person: Person } | null {
+  if (!canDisplayParadigm(lemma)) return null
+  const tenses = new Set<Tense>(analyze(target, lemma).map((m) => m.tense))
+  if (tenses.size !== 1) return null
+  const tense = [...tenses][0]
+  if (!FINITE_TENSES.has(tense)) return null
+  const person = unambiguousPerson(target, lemma)
+  if (!person) return null
+  return { tense, person }
+}

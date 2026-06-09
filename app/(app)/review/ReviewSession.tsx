@@ -71,8 +71,9 @@ export default function ReviewSession({ cards: initialCards }: Props) {
     cardStartRef.current = Date.now()
   }, [index])
 
-  async function handleRate(rating: 1 | 2 | 3 | 4, timeMs: number, hintUsed: boolean) {
+  async function handleRate(rating: 1 | 2 | 3 | 4, timeMs: number, hintLevel: number) {
     const card = cards[index]
+    const hintUsed = hintLevel > 0
     // The deck is fixed (one row per word, no re-show), so a single append per
     // rating yields exactly one recap row per word — no dedup needed.
     setOutcomes((prev) => [

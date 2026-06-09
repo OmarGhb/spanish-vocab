@@ -98,17 +98,24 @@ export function classifyVerbBlank(params: {
   return { quality: 'wrong', reason: 'wrong', distance }
 }
 
+// HINT_CAP[n] = the highest rating still suggestable after n hints (écriture tiered Indice, M5.5f):
+// 0 → Facile(4) · 1 → Bien(3) · 2 → Difficile(2) · 3 → À revoir(1). A hint only LOWERS the
+// suggestion, never raises it. Replaces the old single hintUsed −1 penalty (no double count).
+const HINT_CAP: readonly (1 | 2 | 3 | 4)[] = [4, 3, 2, 1]
+
 export function computeRating(params: {
   correctWord: string
   userAnswer: string
   timeMs: number
-  hintUsed: boolean
+  // Number of écriture Indice tiers revealed (0–3). Caps the suggested rating in the blank mode;
+  // MCQ's recognition hint (the FR reveal) does not affect its rating, as before.
+  hintLevel: number
   mode: Mode
   // When present (verb card, POS-gated), grading classifies against the conjugated target +
   // paradigm via classifyVerbBlank instead of classifyBlankAnswer. Rating mapping unchanged.
   verb?: { target: string; lemma: string; inParadigm: (answer: string) => boolean }
 }): RatingResult {
-  const { correctWord, userAnswer, timeMs, hintUsed, mode, verb } = params
+  const { correctWord, userAnswer, timeMs, hintLevel, mode, verb } = params
 
   // fast < 5 s · medium 5–15 s · slow > 15 s
   const speed: 'fast' | 'medium' | 'slow' =
@@ -156,9 +163,11 @@ export function computeRating(params: {
       reason = speed === 'fast' ? 'Exact · rapide' : `Exact · ${timeLabel(timeMs)}`
     }
 
-    if (hintUsed) {
-      rating = Math.max(1, rating - 1) as 1 | 2 | 3 | 4
-      reason += ' · indice utilisé'
+    // Tiered hint cap (replaces the old −1 penalty): each Indice used lowers the ceiling one notch.
+    const cap = HINT_CAP[Math.min(Math.max(hintLevel, 0), 3)]
+    if (rating > cap) {
+      rating = cap
+      reason += ` · ${hintLevel} indice${hintLevel > 1 ? 's' : ''}`
     }
   }
 

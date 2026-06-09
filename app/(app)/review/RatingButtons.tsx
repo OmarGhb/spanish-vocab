@@ -46,7 +46,6 @@ function usePrefersReducedMotion(): boolean {
 export default function RatingButtons({ result, onRate }: Props) {
   const reduced = usePrefersReducedMotion()
   const [phase, setPhase] = useState<Phase>('counting')
-  const [selected, setSelected] = useState<1 | 2 | 3 | 4 | null>(null)
   const [progress, setProgress] = useState(0) // 0..1 bar fill
   const [secondsLeft, setSecondsLeft] = useState(Math.ceil(AUTO_ADVANCE_MS / 1000))
 
@@ -82,28 +81,21 @@ export default function RatingButtons({ result, onRate }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase])
 
-  // Enter advances now with the current selection (chosen, else the suggestion).
+  // Enter advances now with the suggestion.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Enter') {
         e.preventDefault()
-        doAdvance(selected ?? result.rating)
+        doAdvance(result.rating)
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [selected, result.rating])
+  }, [result.rating])
 
+  // One tap advances with that rating — the suggested OR any other (no select-then-confirm step).
   function onPillClick(r: 1 | 2 | 3 | 4) {
-    // Tapping the currently-effective (selected, else suggested) pill advances immediately;
-    // tapping a different pill selects it + cancels the countdown.
-    const effective = selected ?? result.rating
-    if (r === effective) {
-      doAdvance(r)
-      return
-    }
-    setSelected(r)
-    setPhase('stopped')
+    doAdvance(r)
   }
 
   return (
@@ -112,7 +104,7 @@ export default function RatingButtons({ result, onRate }: Props) {
 
       <div className="grid grid-cols-4 gap-[9px]">
         {([1, 2, 3, 4] as const).map((r) => {
-          const filled = selected !== null ? selected === r : r === result.rating
+          const filled = r === result.rating // pre-filled suggestion; any pill is a one-tap choice
           const cls = filled
             ? `${TONE[r].fill} ${TONE[r].text} shadow-amber-sm`
             : 'bg-card border-line text-ink'
@@ -121,7 +113,6 @@ export default function RatingButtons({ result, onRate }: Props) {
               key={r}
               type="button"
               onClick={() => onPillClick(r)}
-              aria-pressed={selected === r}
               className={`rounded-full border-[1.5px] py-[7px] text-center font-sans text-[13.5px] font-semibold leading-tight transition-colors ${cls}`}
             >
               {LABELS[r]}

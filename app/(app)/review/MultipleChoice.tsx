@@ -13,7 +13,7 @@ type Props = {
   // cardStartRef is written by ReviewSession on each card mount (in a useEffect) and
   // read here only inside event handlers — never during render.
   cardStartRef: React.RefObject<number>
-  onRate: (rating: 1 | 2 | 3 | 4, timeMs: number, hintUsed: boolean) => void
+  onRate: (rating: 1 | 2 | 3 | 4, timeMs: number, hintLevel: number) => void
 }
 
 function shuffle<T>(arr: T[], seed: number): T[] {
@@ -87,7 +87,7 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
     const timeMs = Date.now() - cardStartRef.current
     setChosen(option)
     setFrozenTimeMs(timeMs)
-    const rating = computeRating({ correctWord: word, userAnswer: option, timeMs, hintUsed, mode: 'mc' })
+    const rating = computeRating({ correctWord: word, userAnswer: option, timeMs, hintLevel: hintUsed ? 1 : 0, mode: 'mc' })
     setResult(rating)
   }
 
@@ -120,6 +120,10 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
       )}
 
       <div>
+        {/* Instruction eyebrow — pairs with écriture's "Complétez la phrase" (M5.5f). */}
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted mb-3">
+          Choisissez la bonne réponse
+        </p>
         {prompt.type === 'definition' ? (
           <>
             <p className="font-serif text-sm text-ink leading-relaxed">{prompt.es}</p>
@@ -178,7 +182,7 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
       {result && (
         // Quiet fade-up cascade matching écriture's rating slot (verdict already fades itself).
         <div className="fade-up" style={{ animationDelay: '0.18s' }}>
-          <RatingButtons result={result} onRate={(r) => onRate(r, frozenTimeMs, hintUsed)} />
+          <RatingButtons result={result} onRate={(r) => onRate(r, frozenTimeMs, hintUsed ? 1 : 0)} />
         </div>
       )}
     </div>
