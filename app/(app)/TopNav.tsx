@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef } from 'react'
-import { House, Library, Plus, Book, Compass, UserRound, Lock } from 'lucide-react'
+import { House, Library, Plus, Book, Compass, UserRound, BookA, Lock } from 'lucide-react'
 import { useFocusMode } from './FocusMode'
 import { SELECTION_ACTIVE } from './selection'
 
@@ -103,15 +103,11 @@ export default function TopNav({ dictionaryUnlocked }: { dictionaryUnlocked: boo
               dictActive ? `border-transparent ${SELECTION_ACTIVE}` : 'bg-card text-ink border-accent/60'
             }`}
           >
-            {/* Handover book+A-Z+ribbon glyph, pre-recolored: ivory on the active amber fill,
-                ink when resting (board §0). Final icon system is the Accueil pass. */}
-            <Image
-              src={dictActive ? '/dict-book-ivory.png' : '/dict-book-ink.png'}
-              alt=""
-              width={16}
-              height={16}
-              className="object-contain shrink-0"
-            />
+            {/* Vector BookA (not the raster handover glyph): at 16px beside five vector pill
+                icons the PNG read darker/softer and inconsistent. The real book artwork lives
+                on the Home card tile; the nav pill stays vector + accent/60 like its siblings
+                until the Accueil pass gives the nav a single tintable icon system. */}
+            <BookA size={16} strokeWidth={dictActive ? 2.2 : 1.8} className={dictActive ? undefined : 'text-accent/60'} />
             Dictionnaire
           </Link>
         ) : (
