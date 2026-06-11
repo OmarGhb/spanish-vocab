@@ -2,7 +2,8 @@
 
 import Image from 'next/image'
 import { PERSON_LABELS } from '@/lib/conjugation-grid'
-import { drillTenseLabel } from '@/lib/drill'
+import { tenseLabel } from '@/lib/drill'
+import Button from '../Button'
 import type { DrillOutcome } from './DrillResult'
 
 // End-of-drill recap: score X/10, the missed list (verbe · temps · personne — struck réponse →
@@ -65,7 +66,7 @@ export default function DrillRecap({
                   <div className="flex items-baseline gap-2.5">
                     <span className="font-serif text-[17px] font-semibold italic text-ink">{o.prompt.verb}</span>
                     <span className="text-[11.5px] font-semibold text-muted">
-                      {drillTenseLabel(o.prompt.tense)} · {PERSON_LABELS[o.prompt.person]}
+                      {tenseLabel(o.prompt.tense)} · {PERSON_LABELS[o.prompt.person]}
                     </span>
                   </div>
                   <div className="mt-2 flex items-center gap-2.5 font-serif text-[15px]">
@@ -87,20 +88,17 @@ export default function DrillRecap({
         className="flex gap-3 px-6 pt-3.5 shrink-0"
         style={{ paddingBottom: 'max(1.75rem, env(safe-area-inset-bottom))' }}
       >
-        <button
-          type="button"
-          onClick={onFinish}
-          className="flex-1 rounded-card border border-line bg-card py-3.5 text-center font-serif text-[15px] font-semibold text-muted"
-        >
-          Terminer
-        </button>
-        <button
-          type="button"
-          onClick={onReplay}
-          className="flex-[1.4] rounded-card bg-accent py-3.5 text-center font-serif text-[15px] font-bold text-white"
-        >
-          Rejouer
-        </button>
+        {/* Canonical CTA pair (board §03), Rejouer weighted 1.4× as in the review bilan. */}
+        <div className="flex-1">
+          <Button variant="secondary" full type="button" onClick={onFinish}>
+            Terminer
+          </Button>
+        </div>
+        <div className="flex-[1.4]">
+          <Button variant="primary" full type="button" onClick={onReplay}>
+            Rejouer
+          </Button>
+        </div>
       </div>
     </div>
   )

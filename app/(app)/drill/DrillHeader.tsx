@@ -33,19 +33,20 @@ export default function DrillHeader({
   const pct = (count / total) * 100
   return (
     <div className="px-5 pt-[max(0.5rem,env(safe-area-inset-top))]">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <button
           type="button"
           onClick={onExit}
           aria-label="Quitter l'entraînement"
-          className="-ml-1 flex h-8 w-8 items-center justify-center text-2xl leading-none text-muted hover:text-ink"
+          className="-ml-1 flex h-8 w-8 shrink-0 items-center justify-center text-2xl leading-none text-muted hover:text-ink"
         >
           ×
         </button>
-        <span className="text-sm font-semibold text-muted tabular-nums">
+        <span className="shrink-0 text-sm font-semibold text-muted tabular-nums">
           {count} / {total}
         </span>
-        <span className={`text-xs font-semibold uppercase tracking-widest ${TEXT[tone]}`}>
+        {/* Long Spanish names (e.g. PRETÉRITO PERFECTO SIMPLE) ellipsize before crowding the counter. */}
+        <span className={`min-w-0 truncate text-right text-xs font-semibold uppercase tracking-widest ${TEXT[tone]}`}>
           {tenseLabel}
         </span>
       </div>

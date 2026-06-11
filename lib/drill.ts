@@ -44,28 +44,44 @@ function isDrillTense(t: Tense): t is DrillTense {
   return DRILL_TENSE_SET.has(t)
 }
 
-// Grammar terms are shown in SPANISH (accented), consistently, everywhere a tense label appears —
-// setup chips, both focus headers (prompt + result), the cue chip, and the recap missed-list. The
-// short canonical set (the conjugation-grid sheet keeps its own longer labelEs). French stays only
-// for instructional chrome + the verdict/teaching prose (TENSE_FR, below). The label↔key mapping is
-// regression-locked in drill.test.ts so a future relabel/rekey fails CI.
-export const DRILL_TENSES: ReadonlyArray<{ tense: DrillTense; label: string }> = [
-  { tense: 'presente', label: 'Presente' },
-  { tense: 'preterito', label: 'Pretérito' },
-  { tense: 'imperfecto', label: 'Imperfecto' },
-  { tense: 'futuro', label: 'Futuro' },
-  { tense: 'condicional', label: 'Condicional' },
-  { tense: 'subjPresente', label: 'Subjuntivo' },
-]
+// Grammar terms are shown in SPANISH, consistently, everywhere a tense label appears in the drill —
+// setup chips, both focus headers (prompt + result), the cue chip, the result teaching line, and the
+// recap missed-list. `tenseLabel` is the SINGLE source for those surfaces (no tense string is ever
+// inlined in a drill component); `DRILL_TENSES` keeps only the ordered key list the setup screen maps
+// over. The conjugation-grid sheet keeps its own labelEs/glossFr (a separate concern, reused as-is).
+export const DRILL_TENSES: ReadonlyArray<{ tense: DrillTense }> = DRILL_TENSES_ORDER.map((tense) => ({
+  tense,
+}))
 
-const DRILL_TENSE_LABEL: Record<DrillTense, string> = Object.fromEntries(
-  DRILL_TENSES.map((t) => [t.tense, t.label]),
-) as Record<DrillTense, string>
+// Canonical FULL Spanish display name for a drill tense ("Pretérito indefinido"), the one
+// source every drill surface renders. Regression-locked in drill.test.ts so a future relabel/rekey
+// fails CI. (lib/review-cue.ts keeps its own short `drillTenseLabel` below — a different surface.)
+const TENSE_LABEL: Record<DrillTense, string> = {
+  presente: 'Presente',
+  preterito: 'Pretérito indefinido',
+  imperfecto: 'Imperfecto',
+  futuro: 'Futuro',
+  condicional: 'Condicional',
+  subjPresente: 'Subjuntivo presente',
+}
 
-// Canonical short Spanish label for a tense ("Pretérito"), shared by the chips/headers/cue/recap.
-// The French teaching line uses TENSE_FR instead (grammar terms in prose stay French).
+export function tenseLabel(tense: DrillTense): string {
+  return TENSE_LABEL[tense]
+}
+
+// Short Spanish label ("Pretérito") — kept ONLY for lib/review-cue.ts's review cue chip, whose
+// compact layout wants the short form. Drill surfaces use the full `tenseLabel` above.
+const DRILL_TENSE_LABEL_SHORT: Record<DrillTense, string> = {
+  presente: 'Presente',
+  preterito: 'Pretérito',
+  imperfecto: 'Imperfecto',
+  futuro: 'Futuro',
+  condicional: 'Condicional',
+  subjPresente: 'Subjuntivo',
+}
+
 export function drillTenseLabel(tense: DrillTense): string {
-  return DRILL_TENSE_LABEL[tense]
+  return DRILL_TENSE_LABEL_SHORT[tense]
 }
 
 // ── person scope ────────────────────────────────────────────────────────────────────────────
@@ -221,26 +237,18 @@ export function gradeDrillAnswer(params: {
 }
 
 // ── teaching line (¡Uy! only) ───────────────────────────────────────────────────────────────────
-const TENSE_FR: Record<DrillTense, string> = {
-  presente: 'le présent',
-  preterito: 'le passé simple',
-  imperfecto: "l'imparfait",
-  futuro: 'le futur',
-  condicional: 'le conditionnel',
-  subjPresente: 'le subjonctif présent',
-}
-
-// Deterministic "tu as donné le [X], on attendait le [Y]" line, generated ONLY when the wrong answer
-// is itself a recognizable form (analyze() non-empty). On a pure typo-wrong (answer not in the
-// paradigm) it returns null → the result shows just the struck answer + correct form. It NEVER
-// guesses: an answer that maps to several distinct tenses degrades to "Ce n'est pas le [Y]".
+// Deterministic "tu as donné [X], on attendait [Y]" line, generated ONLY when the wrong answer is
+// itself a recognizable form (analyze() non-empty). On a pure typo-wrong (answer not in the paradigm)
+// it returns null → the result shows just the struck answer + correct form. It NEVER guesses: an
+// answer that maps to several distinct tenses degrades to "Ce n'est pas [Y]". The FRENCH prose frame
+// carries the SPANISH tense names from `tenseLabel` (the drill's single tense-name source).
 export function drillTeachingLine(params: {
   userAnswer: string
   lemma: string
   targetTense: DrillTense
 }): string | null {
   const { userAnswer, lemma, targetTense } = params
-  const target = TENSE_FR[targetTense]
+  const target = tenseLabel(targetTense)
   // Prefer accent-EXACT paradigm matches over accent-folded ones (the logró/logro lesson): an
   // accented "hablé" is unambiguously preterite, whereas a bare "hable" genuinely collides with
   // the subjunctive — so it should degrade. Fall back to folded matching only when nothing matches
@@ -261,7 +269,7 @@ export function drillTeachingLine(params: {
   const others = new Set([...drillTenses].filter((t) => t !== targetTense))
 
   if (others.size === 1) {
-    return `Tu as donné ${TENSE_FR[[...others][0]]}, on attendait ${target}.`
+    return `Tu as donné ${tenseLabel([...others][0])}, on attendait ${target}.`
   }
   if (others.size === 0 && drillTenses.has(targetTense)) {
     // Right tense, wrong person (the form maps only to the target tense).

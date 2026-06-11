@@ -39,7 +39,7 @@ describe('buildConjugationGrid', () => {
     const grid = buildConjugationGrid('estudiar', 'estudié', PRET)
     expect(grid).not.toBeNull()
     expect(grid!.tense).toBe('preterito')
-    expect(grid!.labelEs).toBe('Pretérito perfecto simple')
+    expect(grid!.labelEs).toBe('Pretérito indefinido')
     expect(grid!.glossFr).toBe('passé simple')
     expect(grid!.cells.map((c) => c.surface)).toEqual([
       'estudié', 'estudiaste', 'estudió', 'estudiamos', 'estudiasteis', 'estudiaron',
@@ -101,7 +101,7 @@ describe('buildConjugationGridForTense (drill — tense + person known)', () => 
   it('builds the 2×3 grid and highlights only the asked person', () => {
     const grid = buildConjugationGridForTense('ir', 'preterito', 'nosotros')
     expect(grid).not.toBeNull()
-    expect(grid!.labelEs).toBe('Pretérito perfecto simple')
+    expect(grid!.labelEs).toBe('Pretérito indefinido')
     const hot = grid!.cells.filter((c) => c.highlighted)
     expect(hot).toHaveLength(1)
     expect(hot[0].person).toBe('nosotros')

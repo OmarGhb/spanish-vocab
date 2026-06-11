@@ -49,7 +49,7 @@ const GRID_TENSE_LABELS: Record<
   { labelEs: string; glossFr: string }
 > = {
   presente: { labelEs: 'Presente', glossFr: 'présent' },
-  preterito: { labelEs: 'Pretérito perfecto simple', glossFr: 'passé simple' },
+  preterito: { labelEs: 'Pretérito indefinido', glossFr: 'passé simple' },
   imperfecto: { labelEs: 'Pretérito imperfecto', glossFr: 'imparfait' },
   futuro: { labelEs: 'Futuro simple', glossFr: 'futur' },
   condicional: { labelEs: 'Condicional', glossFr: 'conditionnel' },

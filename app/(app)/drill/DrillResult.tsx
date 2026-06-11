@@ -1,8 +1,9 @@
 'use client'
 
+import { useEffect } from 'react'
 import Image from 'next/image'
 import { buildConjugationGridForTense } from '@/lib/conjugation-grid'
-import { drillTeachingLine, drillTenseLabel, type DrillPromptItem, type DrillVerdict } from '@/lib/drill'
+import { drillTeachingLine, tenseLabel, type DrillPromptItem, type DrillVerdict } from '@/lib/drill'
 import Button from '../Button'
 import ConjugationGrid from '../ConjugationGrid'
 import DrillHeader from './DrillHeader'
@@ -12,9 +13,12 @@ import DrillHeader from './DrillHeader'
 // teaching line on a ¡Uy!. Uses the same Paco-mood reveal family as /review (paco-feliz/pensando/sad).
 export type DrillOutcome = { prompt: DrillPromptItem; userAnswer: string; verdict: DrillVerdict }
 
-const META: Record<DrillVerdict, { img: string; excl: string; color: string; note: string; tone: 'ok' | 'warm' | 'err' }> = {
+// ¡Casi! is chromatically NEUTRAL (board §6): the face word + the answer word are ink, and the
+// focus-header bar stays amber (`accent`) — the near-miss borrows no semantic hue, Paco Pensando
+// carries the warmth. ¡Eso es! = sage, ¡Uy! = gentle terra (error). The old `warm` hue is gone.
+const META: Record<DrillVerdict, { img: string; excl: string; color: string; note: string; tone: 'accent' | 'ok' | 'err' }> = {
   correct: { img: '/paco-feliz.png', excl: '¡Eso es!', color: 'text-ok', note: 'du premier coup', tone: 'ok' },
-  close: { img: '/paco-pensando.png', excl: '¡Casi!', color: 'text-warm', note: 'presque', tone: 'warm' },
+  close: { img: '/paco-pensando.png', excl: '¡Casi!', color: 'text-ink', note: 'presque', tone: 'accent' },
   wrong: { img: '/paco-sad.png', excl: '¡Uy!', color: 'text-err', note: 'pas tout à fait', tone: 'err' },
 }
 
@@ -42,9 +46,22 @@ export default function DrillResult({
   // sheet, asked person highlighted. Always non-null for a trusted drill prompt; guarded regardless.
   const grid = buildConjugationGridForTense(prompt.verb, prompt.tense, prompt.person)
 
+  // Enter advances to the next prompt — the keyboard echo of tapping "Suivant" (the result screen
+  // has no input/form to catch it, so it's wired at the window).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && !e.repeat) {
+        e.preventDefault()
+        onNext()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onNext])
+
   return (
     <div className="flex-1 min-h-0 flex flex-col">
-      <DrillHeader count={count} total={total} tenseLabel={drillTenseLabel(prompt.tense)} tone={m.tone} onExit={onExit} />
+      <DrillHeader count={count} total={total} tenseLabel={tenseLabel(prompt.tense)} tone={m.tone} onExit={onExit} />
 
       <div className="flex-1 min-h-0 overflow-y-auto px-5 pt-6">
         {/* Reveal */}
@@ -67,7 +84,9 @@ export default function DrillResult({
           {verdict !== 'correct' && (
             <p className="mt-2 font-serif text-[14.5px] italic text-muted">
               Ta réponse :{' '}
-              <span className="text-err line-through decoration-err/50">{userAnswer}</span>
+              {/* Surface the right answer over punishing the wrong one: no strike. A ¡Casi! typo is
+                  chromatically neutral (sepia); a ¡Uy! wrong form is gentle terra (error). */}
+              <span className={verdict === 'close' ? 'text-muted' : 'text-err'}>{userAnswer}</span>
             </p>
           )}
           <p className="mt-4 border-t border-line pt-3.5 font-serif text-base leading-[1.6] text-ink">
@@ -76,13 +95,13 @@ export default function DrillResult({
           </p>
         </div>
 
-        {/* Teaching line (¡Uy! only, when the answer is a recognizable form) */}
+        {/* Teaching line (¡Uy! only, when the answer is a recognizable form) — a calm crème+ callout,
+            no semantic hue and no mascot (the verdict head already carries Paco). */}
         {teaching && (
           <div
-            className="fade-up mt-3.5 flex gap-3 rounded-r-card border-l-[3px] border-accent bg-tint px-4 py-3.5"
+            className="fade-up mt-3.5 rounded-[12px] border border-tinted-border bg-surface-alt px-4 py-3.5"
             style={{ animationDelay: '0.18s' }}
           >
-            <Image src="/paco-pensando.png" alt="" width={30} height={30} className="object-contain shrink-0 mt-0.5" />
             <p className="text-[13.5px] leading-relaxed text-ink">{teaching}</p>
           </div>
         )}

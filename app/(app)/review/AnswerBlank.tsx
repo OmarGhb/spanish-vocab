@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import type { RefObject } from 'react'
 
 type Props = {
@@ -20,12 +21,15 @@ type Props = {
 // iterated/reverted on its own if iOS fights it, without touching the result card.
 // Accents are not handled here (plain text input) — see the custom-keyboard milestone.
 export default function AnswerBlank({ value, onChange, inputRef, onFocus, ghost }: Props) {
+  // The faux caret only blinks while the input actually holds focus — otherwise an idle blank reads
+  // as editable when it isn't (the user thinks they can type but the field is blurred).
+  const [focused, setFocused] = useState(false)
   return (
     <span className="relative inline-block min-w-[64px] border-b-2 border-accent px-1.5 pb-px text-center font-serif font-bold text-accent">
       {/* Visible value + faux caret (clicks fall through to the input on top). */}
       <span className="pointer-events-none whitespace-pre">{value}</span>
       {ghost && !value && <span className="pointer-events-none text-accent/45">{ghost}</span>}
-      <span className="caret" aria-hidden />
+      {focused && <span className="caret" aria-hidden />}
       <input
         ref={inputRef}
         type="text"
@@ -37,8 +41,14 @@ export default function AnswerBlank({ value, onChange, inputRef, onFocus, ghost 
         aria-label="Ta réponse"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        onFocus={onFocus}
-        className="absolute inset-0 w-full border-0 bg-transparent p-0 text-transparent caret-transparent outline-none"
+        onFocus={() => {
+          setFocused(true)
+          onFocus?.()
+        }}
+        onBlur={() => setFocused(false)}
+        // Hit area extends past the thin visible blank (transparent input, so the look is unchanged)
+        // — a blurred blank is easy to re-tap and start typing again, esp. with a thumb.
+        className="absolute -inset-y-3 -inset-x-2 w-[calc(100%+1rem)] border-0 bg-transparent p-0 text-transparent caret-transparent outline-none"
       />
     </span>
   )

@@ -7,6 +7,7 @@ import {
   gradeDrillAnswer,
   drillTeachingLine,
   personsForScope,
+  tenseLabel,
   drillTenseLabel,
   DRILL_PROMPT_COUNT,
   DRILL_TENSES,
@@ -153,21 +154,22 @@ describe('gradeDrillAnswer (strict)', () => {
 })
 
 describe('drillTeachingLine', () => {
+  // French prose frame, SPANISH tense names (from tenseLabel — the drill's single tense-name source).
   it('names the tense the wrong answer belongs to', () => {
     // "hablé" is the preterite — asked the futuro.
     expect(drillTeachingLine({ userAnswer: 'hablé', lemma: 'hablar', targetTense: 'futuro' })).toBe(
-      'Tu as donné le passé simple, on attendait le futur.',
+      'Tu as donné Pretérito indefinido, on attendait Futuro.',
     )
   })
   it('flags the infinitive', () => {
     expect(drillTeachingLine({ userAnswer: 'hablar', lemma: 'hablar', targetTense: 'presente' })).toBe(
-      "Tu as donné l'infinitif, on attendait le présent.",
+      "Tu as donné l'infinitif, on attendait Presente.",
     )
   })
   it('right tense, wrong person → person hint', () => {
     // "hablas" (tú present) when the prompt asked yo present.
     expect(drillTeachingLine({ userAnswer: 'hablas', lemma: 'hablar', targetTense: 'presente' })).toBe(
-      "C'est bien le présent, mais pas la bonne personne.",
+      "C'est bien Presente, mais pas la bonne personne.",
     )
   })
   it('returns null for a pure typo not in the paradigm', () => {
@@ -177,7 +179,7 @@ describe('drillTeachingLine', () => {
     // "hable" exactly equals the subjuntivo form (no accent), so it is named precisely; the accented
     // preterite "hablé" does NOT exact-match, so it does not muddy the result.
     expect(drillTeachingLine({ userAnswer: 'hable', lemma: 'hablar', targetTense: 'futuro' })).toBe(
-      'Tu as donné le subjonctif présent, on attendait le futur.',
+      'Tu as donné Subjuntivo presente, on attendait Futuro.',
     )
   })
 })
@@ -220,31 +222,32 @@ describe('drill tense pool is EXACTLY the six finite tenses', () => {
   })
 })
 
-describe('chip label ↔ conjugator key round-trip (a future mislabel/rekey fails CI)', () => {
-  // The sweep test ("emitted tense ∈ selected set") can't catch a mislabel — the key is still valid,
-  // only the label lies. This pins the label↔key mapping to an independent expectation.
+describe('tenseLabel ↔ conjugator key round-trip (a future mislabel/rekey fails CI)', () => {
+  // tenseLabel is the SINGLE tense-name source for every drill surface. A mislabel keeps the key
+  // valid while the label lies — the sweep test can't catch that, so this pins the mapping to an
+  // independent expectation: the FULL Spanish display names.
   const EXPECTED: Record<DrillTense, string> = {
     presente: 'Presente',
-    preterito: 'Pretérito',
+    preterito: 'Pretérito indefinido',
     imperfecto: 'Imperfecto',
     futuro: 'Futuro',
     condicional: 'Condicional',
-    subjPresente: 'Subjuntivo',
+    subjPresente: 'Subjuntivo presente',
   }
 
-  it('DRILL_TENSES is exactly the expected key→label set (no missing / extra / mislabel)', () => {
+  it('DRILL_TENSES is exactly the six finite keys (no missing / extra)', () => {
     expect(DRILL_TENSES).toHaveLength(DRILL_TENSES_ORDER.length)
-    expect(Object.fromEntries(DRILL_TENSES.map((t) => [t.tense, t.label]))).toEqual(EXPECTED)
+    expect(DRILL_TENSES.map((t) => t.tense)).toEqual([...DRILL_TENSES_ORDER])
   })
 
-  it('drillTenseLabel round-trips each key to its label', () => {
+  it('tenseLabel round-trips each key to its full Spanish display name', () => {
     for (const key of DRILL_TENSES_ORDER) {
-      expect(drillTenseLabel(key)).toBe(EXPECTED[key])
+      expect(tenseLabel(key)).toBe(EXPECTED[key])
     }
   })
 })
 
-describe('drillTenseLabel', () => {
+describe('drillTenseLabel (short — review-cue surface only)', () => {
   it('maps to the short accented Spanish label', () => {
     expect(drillTenseLabel('preterito')).toBe('Pretérito')
     expect(drillTenseLabel('subjPresente')).toBe('Subjuntivo')

@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { Check } from 'lucide-react'
-import { DRILL_TENSES, DRILL_PROMPT_COUNT, type DrillTense, type PersonScope } from '@/lib/drill'
+import { DRILL_TENSES, DRILL_PROMPT_COUNT, tenseLabel, type DrillTense, type PersonScope } from '@/lib/drill'
+import Button from '../Button'
 import type { DrillPrefs } from './page'
 
 // Setup screen (focus mode): tense multi-select + person-scope toggle, pre-filled from saved prefs.
@@ -57,7 +58,7 @@ export default function DrillSetup({
           <span className="text-xs text-muted">plusieurs possibles</span>
         </div>
         <div className="mt-3.5 flex flex-wrap gap-2.5">
-          {DRILL_TENSES.map(({ tense, label }) => {
+          {DRILL_TENSES.map(({ tense }) => {
             const on = tenses.has(tense)
             return (
               <button
@@ -65,14 +66,14 @@ export default function DrillSetup({
                 type="button"
                 aria-pressed={on}
                 onClick={() => toggle(tense)}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2.5 text-sm transition-colors ${
+                className={`inline-flex items-center gap-1.5 rounded-full border-[1.5px] px-3.5 py-2.5 text-sm transition-colors ${
                   on
-                    ? 'border-accent bg-accent font-semibold text-white'
+                    ? 'border-accent bg-accent font-semibold text-ivory shadow-amber-sm'
                     : 'border-line bg-card text-muted'
                 }`}
               >
                 {on && <Check size={13} strokeWidth={3} />}
-                {label}
+                {tenseLabel(tense)}
               </button>
             )
           })}
@@ -101,14 +102,15 @@ export default function DrillSetup({
         className="px-6 pt-3.5 shrink-0"
         style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
       >
-        <button
+        <Button
+          variant="primary"
+          full
           type="button"
           disabled={!canStart}
           onClick={() => onStart({ tenses: [...tenses], personScope: scope })}
-          className="w-full rounded-card bg-accent py-4 text-center font-serif text-base font-bold text-white transition-opacity disabled:opacity-40"
         >
           Commencer
-        </button>
+        </Button>
         <p className="mt-2.5 text-center text-[12.5px] text-muted">
           {tenses.size} temps · {personCount} personnes ·{' '}
           <strong className="font-semibold text-ink">{DRILL_PROMPT_COUNT} questions</strong>
@@ -134,8 +136,8 @@ function PersonOption({
       type="button"
       aria-pressed={on}
       onClick={onClick}
-      className={`flex items-center gap-3.5 rounded-card border px-4 py-3.5 text-left transition-colors ${
-        on ? 'border-accent bg-tint' : 'border-line bg-card'
+      className={`flex items-center gap-3.5 rounded-card border-[1.5px] px-4 py-3.5 text-left transition-colors ${
+        on ? 'border-accent bg-surface-alt' : 'border-line bg-card'
       }`}
     >
       <span
@@ -143,7 +145,7 @@ function PersonOption({
           on ? 'border-accent bg-accent' : 'border-line'
         }`}
       >
-        {on && <span className="h-2 w-2 rounded-full bg-white" />}
+        {on && <span className="h-2 w-2 rounded-full bg-ivory" />}
       </span>
       <span className="flex-1">
         <span className="block text-[15.5px] font-semibold text-ink">{title}</span>

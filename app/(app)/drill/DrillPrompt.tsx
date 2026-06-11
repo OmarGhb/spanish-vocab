@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type React from 'react'
 import { buildConjugationGridForTense, PERSON_LABELS } from '@/lib/conjugation-grid'
-import { drillTenseLabel, type DrillPromptItem } from '@/lib/drill'
+import { tenseLabel, type DrillPromptItem } from '@/lib/drill'
+import Button from '../Button'
 import ConjugationGrid from '../ConjugationGrid'
 import AnswerBlank from '../review/AnswerBlank'
 import AccentBar from '../review/AccentBar'
@@ -50,14 +51,14 @@ export default function DrillPrompt({
 
   return (
     <div className="flex-1 min-h-0 flex flex-col">
-      <DrillHeader count={count} total={total} tenseLabel={drillTenseLabel(prompt.tense)} onExit={onExit} />
+      <DrillHeader count={count} total={total} tenseLabel={tenseLabel(prompt.tense)} onExit={onExit} />
 
       <form onSubmit={handleSubmit} className="flex-1 min-h-0 flex flex-col px-5 pt-7">
         <p className="text-center text-[10px] font-bold uppercase tracking-[0.14em] text-muted opacity-80">
           Complète la phrase
         </p>
 
-        <div ref={cardRef} className="mt-6 bg-card border border-line rounded-card p-5 scroll-mt-24">
+        <div ref={cardRef} className="mt-6 bg-card border border-line rounded-card p-5 shadow-card scroll-mt-24">
           <p className="font-serif text-[20px] leading-[1.7] text-ink">
             {prompt.frame}
             <AnswerBlank value={answer} onChange={setAnswer} inputRef={inputRef} />
@@ -68,7 +69,7 @@ export default function DrillPrompt({
               <span className="opacity-50">·</span>
               <span>{PERSON_LABELS[prompt.person]}</span>
               <span className="opacity-50">·</span>
-              <span>{drillTenseLabel(prompt.tense).toLowerCase()}</span>
+              <span>{tenseLabel(prompt.tense).toLowerCase()}</span>
             </span>
           </div>
         </div>
@@ -94,13 +95,9 @@ export default function DrillPrompt({
         {/* Accent row (desktop-only) + Valider, pinned bottom */}
         <div className="flex flex-col gap-3 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
           <AccentBar inputRef={inputRef} value={answer} onChange={setAnswer} />
-          <button
-            type="submit"
-            disabled={!answer.trim()}
-            className="w-full rounded-card bg-accent py-4 text-center font-serif text-base font-bold text-white transition-opacity disabled:opacity-40"
-          >
+          <Button variant="primary" full type="submit" disabled={!answer.trim()}>
             Valider
-          </button>
+          </Button>
         </div>
       </form>
 
@@ -119,9 +116,11 @@ export default function DrillPrompt({
                 Fermer
               </button>
             </div>
-            <ConjugationGrid grid={grid} />
+            {/* Before answering, the asked cell is BLANKED (pattern-completion, like the réviser
+                Indice) — the sheet helps you find the form, it never hands it to you. */}
+            <ConjugationGrid grid={grid} blankTarget />
             <p className="mt-3.5 text-[12.5px] leading-relaxed text-muted">
-              La conjugaison surlignée correspond à la personne demandée —{' '}
+              La case à compléter correspond à la personne demandée —{' '}
               <strong className="font-semibold text-ink">{PERSON_LABELS[prompt.person]}</strong>.
             </p>
           </div>
