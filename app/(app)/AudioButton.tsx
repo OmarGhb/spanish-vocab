@@ -2,6 +2,7 @@
 
 import { Volume2 } from 'lucide-react'
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useSettings } from './SettingsProvider'
 
 // `variant` controls chrome only (same playback logic): 'inline' (default) is the bare
 // icon used across fiches; 'circle' is the dictionary row's 36px bordered speaker button
@@ -17,6 +18,10 @@ export default function AudioButton({ word, audioUrl, variant = 'inline' }: Prop
   const supported = useSyncExternalStore(noopSubscribe, () => 'speechSynthesis' in window, () => false)
   const [speaking, setSpeaking] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  // "Vitesse de lecture" — applied as playbackRate over the cached MP3 (which is baked at 0.9×;
+  // the rate is perceivedTarget ÷ 0.9, see lib/playback-speed.ts). The Web-Speech fallback below
+  // is a SEPARATE engine (no cached file) and stays at its fixed 0.9 — out of this control's scope.
+  const { playbackRate } = useSettings()
 
   useEffect(() => {
     return () => { audioRef.current?.pause() }
@@ -35,6 +40,9 @@ export default function AudioButton({ word, audioUrl, variant = 'inline' }: Prop
       audioRef.current.pause()
       audioRef.current.currentTime = 0
     }
+    // Re-apply on every play so a mid-session speed change takes effect. preservesPitch stays at
+    // its default (true), so the rate change doesn't pitch-shift the voice.
+    audioRef.current.playbackRate = playbackRate
     void audioRef.current.play()
   }
 

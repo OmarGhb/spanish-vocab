@@ -15,7 +15,7 @@ import { useFocusMode } from '../FocusMode'
 import { evaluateDictionaryUnlock } from '../dictionary/actions'
 import UnlockTakeover from '../dictionary/UnlockTakeover'
 
-type Props = { cards: ReviewCard[]; dictionaryUnlocked: boolean }
+type Props = { cards: ReviewCard[]; dictionaryUnlocked: boolean; cardsPerSession: number }
 
 // One entry per reviewed word, accumulated in-memory during the session.
 // correct = final rating was Hard/Good/Easy (2/3/4); ✗ = Again (1).
@@ -33,19 +33,19 @@ function chooseMode(card: ReviewCard, index: number): 'blank' | 'mc' {
 // (a <Link href="/review"> from /review served a stale Router-Cache page — the
 // rescheduled cards never came back). Shares mapReviewRow with the server page, so the
 // bilingual-field normalization (the M5.5e crash fix) applies to refetched batches too.
-async function fetchDueCards(): Promise<ReviewCard[]> {
+async function fetchDueCards(limit: number): Promise<ReviewCard[]> {
   const supabase = createClient()
   const { data: rows } = await supabase
     .from('review_cards')
-    .select('*, words(word, lemma, definition, examples, distractors)')
+    .select('*, words(word, lemma, definition, examples, distractors, audio_urls)')
     .lte('due', new Date().toISOString())
     .order('due', { ascending: true })
-    .limit(20)
+    .limit(limit)
 
   return (rows ?? []).map(mapReviewRow)
 }
 
-export default function ReviewSession({ cards: initialCards, dictionaryUnlocked }: Props) {
+export default function ReviewSession({ cards: initialCards, dictionaryUnlocked, cardsPerSession }: Props) {
   const router = useRouter()
   // Card deck is stateful so "Encore N" can swap in the next due batch in place.
   const [cards, setCards] = useState<ReviewCard[]>(initialCards)
@@ -145,7 +145,7 @@ export default function ReviewSession({ cards: initialCards, dictionaryUnlocked 
     if (continuing) return
     setContinuing(true)
     try {
-      const next = await fetchDueCards()
+      const next = await fetchDueCards(cardsPerSession)
       if (next.length === 0) {
         setDueRemaining(0) // nothing left (raced to 0) — recap now offers only Accueil
         return

@@ -116,6 +116,7 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
         <ResultReveal
           verdict={chosen === word ? 'correct' : 'wrong'}
           note={chosen === word ? (hintUsed ? 'avec un indice' : 'du premier coup') : null}
+          audioUrl={card.audioUrl}
         />
       )}
 

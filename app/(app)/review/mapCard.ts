@@ -23,6 +23,7 @@ type RawRow = {
     definition: { es?: unknown; fr?: unknown; pos?: unknown } | null
     examples: Array<{ es?: unknown; fr?: unknown }> | null
     distractors: string[] | null
+    audio_urls: { es_ES?: string } | null
   }
 }
 
@@ -53,5 +54,6 @@ export function mapReviewRow(row: RawRow): ReviewCard {
       fr: flatBilingual(e?.fr, 'fr'),
     })),
     distractors: w.distractors ?? [],
+    ...(typeof w.audio_urls?.es_ES === 'string' ? { audioUrl: w.audio_urls.es_ES } : {}),
   }
 }

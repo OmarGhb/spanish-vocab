@@ -15,6 +15,10 @@ export type DictionaryEntry = {
 export type DictionaryState = {
   unlocked: boolean
   memorizedCount: number
+  // Lifetime reviews across the user's collection: Σ review_cards.reps over the SAME scope as
+  // memorizedCount (manual ∪ promoted). ts-fsrs increments reps on every review, so this is a
+  // deterministic, monotonic total — independent of review_logs (which is the broken logger).
+  totalReviews: number
   entries: DictionaryEntry[]
 }
 
@@ -33,27 +37,31 @@ export async function getDictionaryState(
   // strictly the memorized SUBSET of Mes mots — no word in one but not the other.
   const { data } = await supabase
     .from('words')
-    .select('id, word, definition, audio_urls, review_cards(state, due, stability)')
+    .select('id, word, definition, audio_urls, review_cards(state, due, stability, reps)')
     .or('origin.eq.manual,discovery_status.eq.promoted')
 
-  const entries: DictionaryEntry[] = (data ?? [])
-    .map((w): DictionaryEntry | null => {
-      // review_cards is a to-one embed (UNIQUE word_id) → object; normalize, never index [0].
-      const card = oneEmbed(w.review_cards as unknown as WordCard | WordCard[] | null)
-      if (!isMemorized(card)) return null
-      const def = w.definition as Record<string, unknown> | null
-      const audio = w.audio_urls as { es_ES?: string } | null
-      return {
-        id: w.id as string,
-        word: w.word as string,
-        // Spanish-first: the inline gloss is the Spanish definition, like every other surface.
-        defEs: typeof def?.es === 'string' ? def.es : '',
-        audioUrl: typeof audio?.es_ES === 'string' ? audio.es_ES : undefined,
-      }
+  // Single pass: collect memorized entries AND sum reps over EVERY in-scope card (not just the
+  // memorized subset — total reviews counts all reviewed cards). reps is read off the same
+  // normalized embed via a local cast (kept off WordCard so its {state,due,stability} shape stays).
+  let totalReviews = 0
+  const entries: DictionaryEntry[] = []
+  for (const w of data ?? []) {
+    // review_cards is a to-one embed (UNIQUE word_id) → object; normalize, never index [0].
+    const card = oneEmbed(w.review_cards as unknown as WordCard | WordCard[] | null)
+    totalReviews += oneEmbed(w.review_cards as unknown as { reps?: number } | { reps?: number }[] | null)?.reps ?? 0
+    if (!isMemorized(card)) continue
+    const def = w.definition as Record<string, unknown> | null
+    const audio = w.audio_urls as { es_ES?: string } | null
+    entries.push({
+      id: w.id as string,
+      word: w.word as string,
+      // Spanish-first: the inline gloss is the Spanish definition, like every other surface.
+      defEs: typeof def?.es === 'string' ? def.es : '',
+      audioUrl: typeof audio?.es_ES === 'string' ? audio.es_ES : undefined,
     })
-    .filter((e): e is DictionaryEntry => e !== null)
+  }
 
-  return { unlocked, memorizedCount: entries.length, entries }
+  return { unlocked, memorizedCount: entries.length, totalReviews, entries }
 }
 
 // ── A–Z bucketing (pure, unit-tested) ───────────────────────────────────────

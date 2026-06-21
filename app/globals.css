@@ -34,6 +34,7 @@
   /* Reconciled #F5E0D8 → board terra-tint; the swipe Supprimer panel bg. */
   --color-err-bg:      #F4E1D8;
   --color-terra-ink:   #8E3A1F; /* destructive text/icon on terra-tint (board T-object terraInk; matches Button's §03 pressed constant) */
+  --color-terra-border: #DDA994; /* destructive outline — danger chevrons, alert chips, delete-field (board T-object terraBorder; mirrors the constant inlined in Button §03) */
   --color-warm:        #E8A24A; /* "close / ¡Casi!" accent — between accent and easy */
 
   /* Rating buttons — amber gradation (darkest = worst, lightest = best) */

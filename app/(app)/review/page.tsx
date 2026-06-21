@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import Button from '../Button'
 import ReviewSession from './ReviewSession'
 import { mapReviewRow } from './mapCard'
+import { clampCardsPerSession } from '@/lib/session-cap'
 
 export type ReviewCard = {
   id: string
@@ -21,27 +22,30 @@ export type ReviewCard = {
   definition: { es: string; fr: string; pos?: string }
   examples: Array<{ es: string; fr: string }>
   distractors: string[]
+  // Cached MP3 URL for the "Lecture auto à la révélation" autoplay (undefined → no audio).
+  audioUrl?: string
 }
 
 export default async function ReviewPage() {
   const supabase = await createClient()
 
-  const { data: rows } = await supabase
-    .from('review_cards')
-    .select('*, words(word, lemma, definition, examples, distractors)')
-    .lte('due', new Date().toISOString())
-    .order('due', { ascending: true })
-    .limit(20)
-
-  const cards: ReviewCard[] = (rows ?? []).map(mapReviewRow)
-
-  // Cheap single-row flag read so the session can skip all unlock-evaluation work in the
-  // common case (already unlocked); only an un-crossed user can owe the review-end takeover.
+  // Cheap single-row read: unlock flag (skips unlock-evaluation work when already unlocked) +
+  // the user's session cap. Read BEFORE the deck query so the cap bounds the .limit().
   const { data: profile } = await supabase
     .from('profiles')
-    .select('dictionary_unlocked')
+    .select('dictionary_unlocked, cards_per_session')
     .maybeSingle()
   const dictionaryUnlocked = profile?.dictionary_unlocked === true
+  const cardsPerSession = clampCardsPerSession(profile?.cards_per_session)
+
+  const { data: rows } = await supabase
+    .from('review_cards')
+    .select('*, words(word, lemma, definition, examples, distractors, audio_urls)')
+    .lte('due', new Date().toISOString())
+    .order('due', { ascending: true })
+    .limit(cardsPerSession)
+
+  const cards: ReviewCard[] = (rows ?? []).map(mapReviewRow)
 
   // The Réviser pill goes straight into a session (the entry card lives on Home now). Nothing
   // due → the restful Durmiendo passive state.
@@ -60,5 +64,5 @@ export default async function ReviewPage() {
     )
   }
 
-  return <ReviewSession cards={cards} dictionaryUnlocked={dictionaryUnlocked} />
+  return <ReviewSession cards={cards} dictionaryUnlocked={dictionaryUnlocked} cardsPerSession={cardsPerSession} />
 }

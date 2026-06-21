@@ -25,6 +25,8 @@ export default function TopNav({ dictionaryUnlocked }: { dictionaryUnlocked: boo
   const activeRef = useRef<HTMLAnchorElement>(null)
   // The locked pill never shows active styling; only the unlocked pill lights on /dictionary*.
   const dictActive = dictionaryUnlocked && (path === '/dictionary' || path.startsWith('/dictionary/'))
+  // Account avatar lights amber on the Profil surface (nav-icon accent, not a card fill).
+  const accountActive = path === '/account' || path.startsWith('/account/')
 
   // If the active pill is off-screen in the scroll row, bring it into view on mount.
   useEffect(() => {
@@ -64,7 +66,10 @@ export default function TopNav({ dictionaryUnlocked }: { dictionaryUnlocked: boo
         <Link
           href="/account"
           aria-label="Compte"
-          className="w-9 h-9 rounded-full bg-tint text-accent flex items-center justify-center shrink-0"
+          aria-current={accountActive ? 'page' : undefined}
+          className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
+            accountActive ? 'bg-accent text-ivory shadow-amber-sm' : 'bg-tint text-accent'
+          }`}
         >
           <UserRound size={20} strokeWidth={1.8} />
         </Link>

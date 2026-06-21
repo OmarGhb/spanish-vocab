@@ -3,6 +3,20 @@
 > The repo-canonical backlog (as of v0.6.1 — M5.3a). Items here are not yet scheduled.
 > Committed work lives in `docs/roadmap.md`. When a backlog item is promoted to a milestone, it moves out of this file.
 
+## Scheduling (FSRS)
+- **New-cards-per-day cap — KNOWN, ACCEPTED GAP (parked from M5.5i).** New-card introduction is
+  currently **uncapped**: adding a word creates its `review_cards` row with `due = now` (immediately
+  due), and the `/review` queue is a flat `due ≤ now ORDER BY due LIMIT cards_per_session` over new
+  + review cards mixed — there is no per-day new-card budget anywhere (ts-fsrs runs with default
+  params; the cap is an Anki-only feature). M5.5i (Profil) wires **session size**
+  (`cards_per_session`, the "Cartes par session" stepper) but deliberately does NOT touch new-card
+  introduction; the Profil surface renders **"Nouvelles cartes / jour" as an inert BIENTÔT row**. A
+  real daily new-card limit (separate new vs review queues, a per-day introduction budget) is
+  deferred — not yet scheduled.
+
+## Error handling / observability
+- **`getDictionaryState` swallows its own `words`-fetch error (logged at M5.5i).** `lib/dictionary.ts` does `const { data } = await supabase.from('words')…` and never inspects `.error`, so on a DB read failure it silently returns `memorizedCount: 0` / `totalReviews: 0` / `entries: []` — a real error renders as honest-looking zeros. Shared by **four consumers** (the /dictionary page + unlock actions + Home + the /account stats strip), so a fix should capture/log `.error` once inside the function (mirrors the `console.error` guard M5.5i added for the /account `totalWords` count). Small, isolated; deliberately NOT folded into M5.5i (touches a function shared beyond the surface). Low urgency (single user; a words-table read failure is rare and loud elsewhere).
+
 ## Word list improvements
 - ~~Pagination: show 10 newest by default, "Voir plus" button or infinite scroll.~~ **SHIPPED as M5.4a (v0.7.0)** — load-on-scroll progressive append (IntersectionObserver, initial 40 / +30).
 - ~~Swipe-to-delete: requires a swipeable-list approach.~~ **Delete SHIPPED in M5.4b (v0.7.1)** — swipe-to-reveal on `/words` + a detail-page button, via the deferred-delete/undo primitive. **Bulk / multi-select / select-all** (+ a batch delete endpoint) was scoped as **M5.4c** but **DROPPED** (decided not to build; the deferred-delete primitive stays set-shaped if the need returns). **Archive** (soft-delete + `archived` flag in schema) stays deferred — separate from delete.
@@ -147,6 +161,8 @@
   "why" line (c) and the parked /review Astuce hint (M5.3b) depend on its output.
 
 ## Known bugs (shipped, deferred)
+
+- **⚠️ `review_logs` insert has written the wrong key column since inception → table empty for ALL users (confirmed M5.5i; fix is its own commit).** `app/api/review/route.ts`'s log insert sends `word_id: row.word_id`, but `review_logs` has **no `word_id` column** and is keyed by **`card_id` (uuid, NOT NULL)** — so every insert fails with Postgres **42703** and is swallowed (the error is `console.warn`'d, the route still returns `{ok:true}` since the card update already succeeded). Net effect: `review_logs` has been empty across all users since the feature shipped, while `review_cards` advances normally. **Diagnosed because** the /account "révisions" strip read 0 while `sum(review_cards.reps)` = 532 real reviews. **Downstream:** the Home review-time estimate (median of recent `review_logs.time_ms`) has silently run on the 12000 ms/card fallback the whole time. **Fix (planned, separate commit):** swap the payload `word_id: row.word_id` → `card_id: cardId` (the validated request id the handler already fetches/updates by); elevate the `console.warn` to `console.error`. **NO backfill** — the ~532 historical reviews were never logged and their per-review `time_ms`/`rating`/`reviewed_at` are unrecoverable; logging accumulates from the fix forward and the Home estimate self-heals as new reviews land. (M5.5i re-sourced the /account révisions figure to `Σ review_cards.reps` so that stat is correct regardless of this fix.)
 
 - **Accent-tolerant autocomplete prefix matching is broken** (M3.2 spec).
   Reproduced: typing `bebí` (acute) and `bebì` (grave) both produce the same dropdown of unaccented forms only (`bebi, bebia, bebio, bebian, bebias`). Expected: dropdown should surface `bebí, bebía, bebías, bebíamos, bebían` — actual Spanish forms with accents preserved. Same bug reproduces on `comi`/`comí`. Investigate `prefixMatch` in `lib/wordlist.ts` — the accent normalization branch may not be wired up, OR the prefix comparison is happening before the WORDS array is normalized. Bonus: also handle grave-as-acute (typing `bebì` should still find `bebí`), since Spanish doesn't use grave accents.

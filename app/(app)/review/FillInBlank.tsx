@@ -269,7 +269,7 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
 
   return (
     <div className="flex flex-col gap-4">
-      <ResultReveal verdict={verdict} note={note} />
+      <ResultReveal verdict={verdict} note={note} audioUrl={card.audioUrl} />
 
       {/* ¡Eso es! — surface reveal with the answer in sage */}
       {quality === 'exact' && (
