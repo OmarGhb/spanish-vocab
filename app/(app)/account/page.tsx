@@ -8,6 +8,7 @@ import { GroupHead, SettingsCard } from '@/components/form/SettingsCard'
 import { ActiveRow, SoonRow, DisplayRow, NavRow } from '@/components/form/Rows'
 import SessionSizeStepper from './SessionSizeStepper'
 import { AutoplayToggle, SpeedSegmented } from './AudioControls'
+import ThemePicker from './ThemePicker'
 import AccountActions from './AccountClient'
 import pkg from '../../../package.json'
 
@@ -106,6 +107,7 @@ export default async function AccountPage() {
       <SettingsCard>
         <SoonRow first label="Langue de l'interface" help="Français · Español" />
         <SoonRow label="Variante d'espagnol" help="Espagne · Amérique latine" />
+        <ThemePicker />
         <SoonRow label="Thèmes Discovery" help="Centres d'intérêt pour la découverte." />
       </SettingsCard>
 

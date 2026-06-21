@@ -10,6 +10,7 @@ const ProfileSchema = z
     cards_per_session: z.number().int().min(MIN_CARDS_PER_SESSION).max(MAX_CARDS_PER_SESSION).optional(),
     autoplay_audio: z.boolean().optional(),
     playback_speed: z.enum(['lent', 'normal', 'rapide']).optional(),
+    theme: z.enum(['sepia', 'ardoise', 'indigo', 'nuit']).optional(),
   })
   // Reject an empty body so a no-op write can't silently "succeed".
   .refine((o) => Object.keys(o).length > 0, { message: 'No fields to update.' })

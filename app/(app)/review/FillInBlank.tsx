@@ -231,7 +231,7 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
           <button
             type="submit"
             disabled={!answer.trim()}
-            className="flex-[2] rounded-card bg-accent py-3 text-center font-sans text-[15px] font-semibold text-ivory disabled:bg-amber-light disabled:text-[#C2A877] transition-colors"
+            className="flex-[2] rounded-card bg-accent py-3 text-center font-sans text-[15px] font-semibold text-ivory disabled:bg-amber-light disabled:text-disabled-ink transition-colors"
           >
             Valider →
           </button>

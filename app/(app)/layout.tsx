@@ -5,6 +5,7 @@ import { FocusModeProvider } from './FocusMode'
 import { DeferredDeleteProvider } from './DeferredDelete'
 import { SettingsProvider } from './SettingsProvider'
 import { DEFAULT_PLAYBACK_SPEED, type PlaybackSpeed } from '@/lib/playback-speed'
+import { coerceTheme } from '@/lib/theme'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -20,7 +21,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // memorized scan). Missing row → column defaults via the fallbacks below.
   const { data: profile } = await supabase
     .from('profiles')
-    .select('dictionary_unlocked, autoplay_audio, playback_speed')
+    .select('dictionary_unlocked, autoplay_audio, playback_speed, theme')
     .maybeSingle()
 
   return (
@@ -29,6 +30,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <SettingsProvider
           initialAutoplayAudio={profile?.autoplay_audio ?? true}
           initialPlaybackSpeed={(profile?.playback_speed as PlaybackSpeed) ?? DEFAULT_PLAYBACK_SPEED}
+          initialTheme={coerceTheme(profile?.theme)}
         >
           <div className="w-full max-w-[430px] mx-auto min-h-screen flex flex-col">
             <TopNav dictionaryUnlocked={profile?.dictionary_unlocked === true} />

@@ -70,7 +70,7 @@ export default function AccountActions({ totalWords }: { totalWords: number }) {
 
       {sheetOpen && (
         <div
-          className="fixed inset-0 z-50 flex flex-col justify-end bg-[rgba(36,22,8,0.42)]"
+          className="fixed inset-0 z-50 flex flex-col justify-end bg-scrim"
           onClick={closeSheet}
         >
           <div

@@ -16,17 +16,10 @@ import type { ComponentProps, ReactNode } from 'react'
 // Tokens (globals.css) — the board §01 roles this button consumes: amber-deep / amber-light /
 // ivory / faint / border-soft + shadow-amber(-sm). No §01 palette role is inlined here.
 //
-// The remaining inline hexes are NOT §01 palette roles — they exist ONLY in the board's §03
-// button table, so they live here as documented button-state constants (tracked, not stray):
-//   #C2A877 — disabled-primary text (an amber-on-amber-light desaturation; board §03 only —
-//             deliberately NOT --color-faint #A88F6B nor --color-muted #7A5A3A, which are both
-//             darker/different, so it can't reuse either)
-//   #DDA994 — destructive resting border (board §03)
-//   #8E3A1F — destructive pressed text (board §03)
-//   #F7E8D0 / #F4E1D8 — secondary / destructive PRESSED bg (board amber-tint / terra-tint).
-//             The existing --color-tint / --color-err-bg approximate these but differ; full
-//             semantic-tint reconciliation rides the §06 status/Words cluster (logged in
-//             roadmap/backlog), not this additive foundation.
+// All button-state colours read through tokens (theming milestone Phase 1 — de-hardcoded the inline
+// §03 hexes so a [data-theme] override re-themes the button): secondary pressed → amber-tint,
+// destructive border → terra-border, destructive pressed bg/text → err-bg / terra-ink, and the
+// disabled-primary label → the role token --color-disabled-ink (was the bespoke #C2A877).
 type Variant = 'primary' | 'secondary' | 'text' | 'destructive'
 
 const BASE =
@@ -41,17 +34,17 @@ const VARIANT: Record<Variant, string> = {
   primary:
     'bg-accent text-ivory shadow-amber ' +
     'active:bg-amber-deep active:translate-y-px active:shadow-[0_1px_3px_rgba(154,90,28,0.3)] ' +
-    'disabled:bg-amber-light disabled:text-[#C2A877] disabled:shadow-none',
+    'disabled:bg-amber-light disabled:text-disabled-ink disabled:shadow-none',
   secondary:
     'bg-card text-ink border-accent ' +
-    'active:bg-[#F7E8D0] active:text-amber-deep ' +
+    'active:bg-amber-tint active:text-amber-deep ' +
     'disabled:text-faint disabled:border-border-soft',
   text:
     'bg-transparent text-accent underline underline-offset-[3px] ' +
     'active:text-amber-deep disabled:text-faint',
   destructive:
-    'bg-card text-err border-[#DDA994] ' +
-    'active:bg-[#F4E1D8] active:text-[#8E3A1F] active:border-err ' +
+    'bg-card text-err border-terra-border ' +
+    'active:bg-err-bg active:text-terra-ink active:border-err ' +
     'disabled:text-faint disabled:border-border-soft',
 }
 

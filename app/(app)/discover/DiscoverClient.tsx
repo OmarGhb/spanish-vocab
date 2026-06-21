@@ -427,15 +427,15 @@ export default function DiscoverClient() {
               lift
               onSwipeRight={() => decide('kept')}
               onSwipeLeft={() => decide('known')}
-              rightWash="rgba(194,122,44,0.15)"
-              leftWash="rgba(74,124,111,0.15)"
+              rightWash="color-mix(in srgb, var(--color-accent) 15%, transparent)"
+              leftWash="color-mix(in srgb, var(--color-ok) 15%, transparent)"
               rightStamp={
-                <span className="font-sans text-[21px] font-extrabold uppercase tracking-[0.04em] text-amber-deep border-[3px] border-amber-deep rounded-[11px] px-3.5 py-1.5 bg-[rgba(255,251,243,0.72)]">
+                <span className="font-sans text-[21px] font-extrabold uppercase tracking-[0.04em] text-amber-deep border-[3px] border-amber-deep rounded-[11px] px-3.5 py-1.5 bg-[color-mix(in_srgb,var(--color-card)_72%,transparent)]">
                   À apprendre
                 </span>
               }
               leftStamp={
-                <span className="font-sans text-[21px] font-extrabold uppercase tracking-[0.04em] text-sage-ink border-[3px] border-ok rounded-[11px] px-3.5 py-1.5 bg-[rgba(255,251,243,0.72)]">
+                <span className="font-sans text-[21px] font-extrabold uppercase tracking-[0.04em] text-sage-ink border-[3px] border-ok rounded-[11px] px-3.5 py-1.5 bg-[color-mix(in_srgb,var(--color-card)_72%,transparent)]">
                   Je connais
                 </span>
               }

@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next"
 import { Inter, Lora, Fraunces } from "next/font/google"
+import { cookies } from "next/headers"
+import { coerceTheme, THEME_COOKIE } from "@/lib/theme"
 import "./globals.css"
 
 const inter = Inter({
@@ -41,14 +43,20 @@ export const viewport: Viewport = {
   initialScale: 1,
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // FOUC-free theming: seed the root data-theme from the cookie (mirrored on every theme change,
+  // reseeded from profiles by SettingsProvider on mount). Defaults to Sépia when absent (e.g. a
+  // logged-out visitor). suppressHydrationWarning covers a cookie/profile mismatch on first paint.
+  const theme = coerceTheme((await cookies()).get(THEME_COOKIE)?.value)
+
   return (
     <html
       lang="en"
+      data-theme={theme}
       className={`${inter.variable} ${lora.variable} ${fraunces.variable} h-full antialiased`}
       suppressHydrationWarning
     >

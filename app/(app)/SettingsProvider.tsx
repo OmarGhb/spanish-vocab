@@ -1,7 +1,8 @@
 'use client'
 
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { playbackRateFor, DEFAULT_PLAYBACK_SPEED, type PlaybackSpeed } from '@/lib/playback-speed'
+import { DEFAULT_THEME, THEME_COOKIE, type ThemeId } from '@/lib/theme'
 
 // App-wide AUDIO settings, server-seeded from `profiles` in app/(app)/layout.tsx and consumed by
 // every cached-audio surface (AudioButton + the review-reveal autoplay). profiles is the single
@@ -13,8 +14,10 @@ type SettingsValue = {
   autoplayAudio: boolean
   playbackSpeed: PlaybackSpeed
   playbackRate: number // derived from playbackSpeed via the tested helper (÷ baked 0.9)
+  theme: ThemeId
   setAutoplayAudio: (v: boolean) => void
   setPlaybackSpeed: (v: PlaybackSpeed) => void
+  setTheme: (v: ThemeId) => void
 }
 
 // Defaults match the column defaults — used when a consumer renders outside the provider
@@ -22,6 +25,12 @@ type SettingsValue = {
 const DEFAULTS = {
   autoplayAudio: true,
   playbackSpeed: DEFAULT_PLAYBACK_SPEED,
+  theme: DEFAULT_THEME,
+}
+
+// One-year theme cookie — read by the root layout to set <html data-theme> server-side (FOUC-free).
+function writeThemeCookie(id: ThemeId) {
+  document.cookie = `${THEME_COOKIE}=${id};path=/;max-age=31536000;samesite=lax`
 }
 
 const SettingsContext = createContext<SettingsValue | null>(null)
@@ -30,13 +39,26 @@ export function SettingsProvider({
   children,
   initialAutoplayAudio,
   initialPlaybackSpeed,
+  initialTheme,
 }: {
   children: ReactNode
   initialAutoplayAudio: boolean
   initialPlaybackSpeed: PlaybackSpeed
+  initialTheme: ThemeId
 }) {
   const [autoplayAudio, setAutoplay] = useState(initialAutoplayAudio)
   const [playbackSpeed, setSpeed] = useState<PlaybackSpeed>(initialPlaybackSpeed)
+  const [theme, setThemeState] = useState<ThemeId>(initialTheme)
+
+  // profiles is canonical: reconcile the <html data-theme> + cookie to the server-seeded theme on
+  // mount (covers a missing/stale cookie, e.g. first load on a new device after login). Common case
+  // (cookie already matches) is a no-op → no flash.
+  useEffect(() => {
+    if (document.documentElement.dataset.theme !== initialTheme) {
+      document.documentElement.dataset.theme = initialTheme
+    }
+    writeThemeCookie(initialTheme)
+  }, [initialTheme])
 
   // Fire-and-forget persistence — the optimistic local state is what the UI reads; a failed
   // write self-heals on the next load (the stored value simply stays as it was).
@@ -62,16 +84,29 @@ export function SettingsProvider({
     },
     [patch],
   )
+  // Live theme switch: flip the root attribute (instant re-theme via CSS) + mirror the cookie (SSR)
+  // + persist to profiles (canonical).
+  const setTheme = useCallback(
+    (v: ThemeId) => {
+      setThemeState(v)
+      document.documentElement.dataset.theme = v
+      writeThemeCookie(v)
+      patch({ theme: v })
+    },
+    [patch],
+  )
 
   const value = useMemo<SettingsValue>(
     () => ({
       autoplayAudio,
       playbackSpeed,
       playbackRate: playbackRateFor(playbackSpeed),
+      theme,
       setAutoplayAudio,
       setPlaybackSpeed,
+      setTheme,
     }),
-    [autoplayAudio, playbackSpeed, setAutoplayAudio, setPlaybackSpeed],
+    [autoplayAudio, playbackSpeed, theme, setAutoplayAudio, setPlaybackSpeed, setTheme],
   )
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>
@@ -86,5 +121,6 @@ export function useSettings(): SettingsValue {
     playbackRate: playbackRateFor(DEFAULTS.playbackSpeed),
     setAutoplayAudio: () => {},
     setPlaybackSpeed: () => {},
+    setTheme: () => {},
   }
 }

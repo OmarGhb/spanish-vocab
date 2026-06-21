@@ -1,9 +1,17 @@
 @import "tailwindcss";
 
+/* Fonts MUST stay `inline`: they var-chain to the next/font CSS vars (--font-inter / --font-lora,
+   applied on <html> in app/layout.tsx), so the utility must emit var(--font-inter) directly. */
 @theme inline {
   --font-sans: var(--font-inter);
   --font-serif: var(--font-lora);
+}
 
+/* Colors / radius / shadow are NON-inline so their utilities emit var(--color-*) / var(--shadow-*)
+   instead of a baked-in literal — that is what lets a runtime [data-theme] block re-theme them
+   (theming milestone, Phase 0). The values below are the Sépia default (= byte-identical to before
+   the split); each [data-theme="…"] block overrides this same set. */
+@theme {
   /* Paco palette */
   --color-page:        #F5EDDA;
   --color-card:        #FFFBF3;
@@ -20,7 +28,8 @@
   --color-amber-mid:   #D6924A; /* "Annuler" link on the dark undo toast (board T-object amberMid) */
   --color-amber-tint:  #F7E8D0; /* active ⋮ button bg / secondary pressed (board T-object amberTint) */
   --color-amber-pale:  #E3BC8A; /* lightest rating rung "Facile" — amber-family, board RATE scale (M5.5e) */
-  --color-ivory:       #FFFBF3; /* text on amber — distinct role from --color-card surface (board §01) */
+  --color-ivory:       #FFFBF3; /* text/knob ON the accent fill — distinct role from --color-card surface (board §01). LEGIBILITY token: per-palette (Nuit flips to a dark ink); designer-specced. */
+  --color-disabled-ink: #C2A877; /* disabled-PRIMARY button label (sits on --color-amber-light). Role token (de-hardcoded from the inline #C2A877). LEGIBILITY token: per-palette desaturated-accent value (petrol-grey / lilac-grey / dim-amber); designer-specced, NOT a color-mix. */
   /* Reconciled to the board T-object value this slice (was #F5E0C0) — the §06 Words cluster
      consumes it; logged backlog item (b) "semantic-tint drift", deferred from M5.5a. */
   --color-tint:        #F6E7CC;
@@ -35,7 +44,8 @@
   --color-err-bg:      #F4E1D8;
   --color-terra-ink:   #8E3A1F; /* destructive text/icon on terra-tint (board T-object terraInk; matches Button's §03 pressed constant) */
   --color-terra-border: #DDA994; /* destructive outline — danger chevrons, alert chips, delete-field (board T-object terraBorder; mirrors the constant inlined in Button §03) */
-  --color-warm:        #E8A24A; /* "close / ¡Casi!" accent — between accent and easy */
+  --color-warm:        #E8A24A; /* "close / ¡Casi!" accent — between accent and easy. FIXED across themes (handover: not re-themed). */
+  --color-scrim:       rgba(36,22,8,0.42); /* dimming overlay behind the delete-sheet (de-hardcoded). LEGIBILITY token: per-palette (Nuit wants a deeper scrim); designer-specced. */
 
   /* Rating buttons — amber gradation (darkest = worst, lightest = best) */
   --color-again: oklch(0.65 0.13 55);
@@ -53,6 +63,66 @@
   --shadow-amber-sm: 0 2px 6px rgba(154,90,28,0.25);                                  /* active pill / momentary selection */
   --shadow-menu:     0 12px 34px rgba(61,43,26,0.22);                                 /* overflow menu / dark undo toast (board T-object shadowMenu) */
   --shadow-lift:     0 10px 26px rgba(61,43,26,0.20), 0 28px 56px rgba(61,43,26,0.14); /* actively-swiped (lifted) discovery card (board T-object shLift) */
+}
+
+/* ════════════ THEME OVERRIDES — theming milestone (Phase 2 + 4) ════════════
+   Sépia is the @theme :root default above (unchanged → parity). Each block below overrides the
+   per-palette token set on the root [data-theme] attribute. Selector `:root[data-theme=…]`
+   (specificity 0,2,0) outranks the @theme `:root,:host` defaults regardless of source order.
+   13 mapped roles + on-accent + the 6 legibility tokens come from the LOCKED handover/designer
+   table; the accent-family TINTS are color-mix-derived so they track each theme's accent. */
+
+/* Accent-family tints — derived for the 3 non-Sépia themes (Sépia keeps its literals above for
+   byte-parity). Percentages reverse-engineered from the Sépia literals (derivation, flagged). */
+:root[data-theme="ardoise"],
+:root[data-theme="indigo"],
+:root[data-theme="nuit"] {
+  --color-amber-mid:     color-mix(in srgb, var(--color-accent) 78%, var(--color-card));
+  --color-amber-tint:    color-mix(in srgb, var(--color-accent) 15%, var(--color-card));
+  --color-amber-pale:    color-mix(in srgb, var(--color-accent) 50%, var(--color-card));
+  --color-tint:          color-mix(in srgb, var(--color-accent) 17%, var(--color-card));
+  --color-tinted-border: color-mix(in srgb, var(--color-accent) 38%, var(--color-card));
+  --color-hair:          color-mix(in srgb, var(--color-line)   64%, var(--color-card));
+}
+
+/* ── Ardoise — light, cool (grey-blue paper + petrol accent) ── */
+:root[data-theme="ardoise"] {
+  --color-page: #E9ECEE; --color-card: #FAFCFD; --color-surface-alt: #DBE0E3;
+  --color-line: #C5CDD2; --color-border-soft: #D8DEE2;
+  --color-ink: #1F2A30; --color-muted: #4C5A62; --color-faint: #889099;
+  --color-accent: #2F6E8C; --color-amber-deep: #214F66; --color-amber-light: #CFE1EA;
+  --color-ok: #3E7C6E; --color-err: #B84C2A;
+  --color-ok-bg: #D5E8E0; --color-sage-ink: #2B584C; --color-sage-border: #B4D2C8;
+  --color-err-bg: #F1DCD3; --color-terra-ink: #8E3A1F; --color-terra-border: #DCA793;
+  --color-ivory: #FFFBF3; --color-disabled-ink: #94B3C4; --color-scrim: rgba(18,28,34,0.44);
+}
+
+/* ── Indigo — light, violet (lilac paper + indigo accent) ── */
+:root[data-theme="indigo"] {
+  --color-page: #ECEAF1; --color-card: #FBFAFE; --color-surface-alt: #DEDAE8;
+  --color-line: #CAC5D8; --color-border-soft: #DCD8E6;
+  --color-ink: #262234; --color-muted: #534D6E; --color-faint: #8E889F;
+  --color-accent: #5A52B5; --color-amber-deep: #423B8C; --color-amber-light: #DCD8F2;
+  --color-ok: #4A7C6F; --color-err: #B84C2A;
+  --color-ok-bg: #DAE7E1; --color-sage-ink: #2E5A4E; --color-sage-border: #B9D4CC;
+  --color-err-bg: #F4E0D8; --color-terra-ink: #8E3A1F; --color-terra-border: #DDA994;
+  --color-ivory: #FFFBF3; --color-disabled-ink: #AAA4D0; --color-scrim: rgba(26,22,40,0.46);
+}
+
+/* ── Nuit — dark (warm charcoal + amber accent). Success/danger INVERT to their bright
+   dark-ground values (never the light sage/terra); on-accent flips to dark ink (#2A2218).
+   Phase 4: --tw-shadow-color darkens every .shadow-* utility on the charcoal ground (the
+   mechanism that works — the utilities read --tw-shadow-color, not var(--shadow-card)). */
+:root[data-theme="nuit"] {
+  --color-page: #1E1813; --color-card: #2A2218; --color-surface-alt: #342A1E;
+  --color-line: #463A28; --color-border-soft: #382E20;
+  --color-ink: #F3E9D8; --color-muted: #BFAA8A; --color-faint: #897A60;
+  --color-accent: #D9974A; --color-amber-deep: #ECBB78; --color-amber-light: #3A2E1E;
+  --color-ok: #6FB39E; --color-err: #E07A55;
+  --color-ok-bg: #233D34; --color-sage-ink: #8ACCB6; --color-sage-border: #365E50;
+  --color-err-bg: #4A2519; --color-terra-ink: #EC8E6B; --color-terra-border: #7A4230;
+  --color-ivory: #2A2218; --color-disabled-ink: #877046; --color-scrim: rgba(6,4,2,0.66);
+  --tw-shadow-color: rgba(0,0,0,0.55);
 }
 
 body {

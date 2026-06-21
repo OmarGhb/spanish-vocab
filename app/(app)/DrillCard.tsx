@@ -59,7 +59,7 @@ export default function DrillCard({ count }: { count: number }) {
         </div>
         <Image src="/paco-feliz.png" alt="Paco" width={72} height={72} className="object-contain shrink-0" />
       </div>
-      <span className="mt-4 block rounded-card bg-accent py-3.5 text-center font-serif text-sm font-bold text-white">
+      <span className="mt-4 block rounded-card bg-accent py-3.5 text-center font-serif text-sm font-bold text-ivory">
         S&apos;entraîner →
       </span>
     </Link>
