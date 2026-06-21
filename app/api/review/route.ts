@@ -85,7 +85,9 @@ export async function POST(request: Request) {
   // Log the review. If this insert fails we accept it — the card state is already
   // written and losing the log is less harmful than leaving the card un-advanced.
   const { error: logError } = await supabase.from('review_logs').insert({
-    word_id: row.word_id,
+    // review_logs is keyed by card_id (uuid, NOT NULL → review_cards); it has no word_id column.
+    // cardId is the validated request id this handler fetched and updated the card by (=== row.id).
+    card_id: cardId,
     user_id: user.id,
     rating,
     reviewed_at: now.toISOString(),
@@ -95,7 +97,9 @@ export async function POST(request: Request) {
   })
 
   if (logError) {
-    console.warn('[review] log insert failed (card already updated):', logError.message)
+    // Non-fatal (the card is already advanced — don't 500 the review over a lost log), but now that
+    // the insert should succeed, a failure here is a real unexpected error, not the known-broken baseline.
+    console.error('[review] log insert failed (card already updated):', logError.message)
   }
 
   return Response.json({ ok: true })
