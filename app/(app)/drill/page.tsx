@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Rows3 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import {
   buildDrillPool,
@@ -9,7 +10,7 @@ import {
   type PersonScope,
 } from '@/lib/drill'
 import { displayNameFromEmail } from '@/lib/display-name'
-import DrillCard from '../DrillCard'
+import HubCardLocked from '../HubCardLocked'
 import DrillClient from './DrillClient'
 
 export type DrillPrefs = { tenses: DrillTense[]; personScope: PersonScope }
@@ -51,8 +52,16 @@ export default async function DrillPage() {
   // Soft-lock fallback for a direct visit below the unlock threshold (the Home card normally gates).
   if (pool.length < DRILL_UNLOCK_THRESHOLD) {
     return (
-      <div className="flex-1 flex flex-col justify-center gap-5 px-5 pb-10">
-        <DrillCard count={pool.length} />
+      <div className="flex-1 flex flex-col justify-center items-center gap-5 px-5 pb-10">
+        <div className="w-full max-w-[260px]">
+          <HubCardLocked
+            icon={<Rows3 size={19} strokeWidth={1.7} />}
+            title="Conjugaison"
+            have={pool.length}
+            need={DRILL_UNLOCK_THRESHOLD}
+            unit="verbes"
+          />
+        </div>
         <Link href="/" className="text-center text-sm text-accent">
           ← Accueil
         </Link>
