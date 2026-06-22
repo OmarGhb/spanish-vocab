@@ -22,8 +22,11 @@ import type { ComponentProps, ReactNode } from 'react'
 // disabled-primary label → the role token --color-disabled-ink (was the bespoke #C2A877).
 type Variant = 'primary' | 'secondary' | 'text' | 'destructive'
 
+// `active:scale` adds the spec's depress lever on top of each variant's existing colour/shadow
+// press states (board §03). A native disabled <button> never receives :active, so it stays inert
+// without an explicit guard; the keyboard focus ring is the global a/button:focus-visible rule.
 const BASE =
-  'inline-flex items-center justify-center gap-2 font-sans font-semibold leading-none border-[1.5px] border-transparent disabled:cursor-not-allowed'
+  'inline-flex items-center justify-center gap-2 font-sans font-semibold leading-none border-[1.5px] border-transparent transition-transform duration-100 ease-out active:scale-[0.98] disabled:cursor-not-allowed'
 
 const SHAPE = {
   full: 'w-full text-[15px] px-[22px] py-[15px] rounded-[14px]',

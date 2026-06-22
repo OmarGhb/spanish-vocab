@@ -36,7 +36,7 @@ export default function CollectionSection({
     <div className="flex">
       <div className="w-[3px] rounded-full bg-accent shrink-0 mr-[13px]" aria-hidden />
       <div className="flex-1 min-w-0">
-        <Link href={headerHref} className="flex items-center justify-between px-0.5 pb-3">
+        <Link href={headerHref} className="press-row flex items-center justify-between px-0.5 pb-3">
           <span className="font-serif text-[19px] font-bold text-ink tracking-[-0.01em]">{label}</span>
           <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-amber-deep bg-amber-tint border border-amber-light rounded-full px-2.5 py-1.5 shrink-0">
             {discover ? (
@@ -79,7 +79,7 @@ export default function CollectionSection({
             {state === 'established' && (
               <Link
                 href="/words"
-                className="mt-3 self-center inline-flex items-center justify-center gap-1.5 w-full text-[14px] font-semibold text-accent underline underline-offset-[3px]"
+                className="press-row mt-3 self-center inline-flex items-center justify-center gap-1.5 w-full text-[14px] font-semibold text-accent underline underline-offset-[3px]"
               >
                 Voir les {totalCount} mots <ChevronRight size={14} strokeWidth={2.2} />
               </Link>

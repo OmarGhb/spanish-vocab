@@ -47,11 +47,11 @@ export default function TopNav({ dictionaryUnlocked }: { dictionaryUnlocked: boo
         <Link
           href="/"
           aria-label="Accueil"
-          className="w-9 h-9 rounded-full bg-tint text-accent flex items-center justify-center shrink-0"
+          className="press-icon w-9 h-9 rounded-full bg-tint text-accent flex items-center justify-center shrink-0"
         >
           <House size={20} strokeWidth={1.8} />
         </Link>
-        <Link href="/" className="flex-1 flex items-center justify-center gap-2 min-w-0">
+        <Link href="/" className="press-row flex-1 flex items-center justify-center gap-2 min-w-0">
           {/* Nav avatar (Animando). SWAP POINT (M5.5a): replace with the 32px head-shoulders
               Animando crop (@1×/2×/3×) once that asset lands — paco.png is already Animando, so
               this is asset-gated only; do not block on it. */}
@@ -68,7 +68,7 @@ export default function TopNav({ dictionaryUnlocked }: { dictionaryUnlocked: boo
           aria-label="Compte"
           aria-current={accountActive ? 'page' : undefined}
           className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
-            accountActive ? 'bg-accent text-ivory shadow-amber-sm' : 'bg-tint text-accent'
+            accountActive ? 'press-pill-amber bg-accent text-ivory shadow-amber-sm' : 'press-icon bg-tint text-accent'
           }`}
         >
           <UserRound size={20} strokeWidth={1.8} />
@@ -88,7 +88,7 @@ export default function TopNav({ dictionaryUnlocked }: { dictionaryUnlocked: boo
               ref={active ? activeRef : undefined}
               aria-current={active ? 'page' : undefined}
               className={`flex items-center gap-1.5 rounded-full px-5 py-1.5 text-sm font-serif font-bold whitespace-nowrap shrink-0 border ${
-                active ? `border-transparent ${SELECTION_ACTIVE}` : 'bg-card text-ink border-accent/60'
+                active ? `press-pill-amber border-transparent ${SELECTION_ACTIVE}` : 'press-pill bg-card text-ink border-accent/60'
               }`}
             >
               <Icon size={16} strokeWidth={active ? 2.2 : 1.8} className={active ? undefined : 'text-accent/60'} />
@@ -105,7 +105,7 @@ export default function TopNav({ dictionaryUnlocked }: { dictionaryUnlocked: boo
             ref={dictActive ? activeRef : undefined}
             aria-current={dictActive ? 'page' : undefined}
             className={`flex items-center gap-1.5 rounded-full px-5 py-1.5 text-sm font-serif font-bold whitespace-nowrap shrink-0 border ${
-              dictActive ? `border-transparent ${SELECTION_ACTIVE}` : 'bg-card text-ink border-accent/60'
+              dictActive ? `press-pill-amber border-transparent ${SELECTION_ACTIVE}` : 'press-pill bg-card text-ink border-accent/60'
             }`}
           >
             {/* Vector BookA (not the raster handover glyph): at 16px beside five vector pill
@@ -119,7 +119,7 @@ export default function TopNav({ dictionaryUnlocked }: { dictionaryUnlocked: boo
           <Link
             href="/dictionary"
             aria-label="Dictionnaire (verrouillé)"
-            className="flex items-center gap-1.5 rounded-full px-5 py-1.5 text-sm font-serif font-bold whitespace-nowrap shrink-0 border border-dashed border-tinted-border bg-card text-faint opacity-85"
+            className="press-pill flex items-center gap-1.5 rounded-full px-5 py-1.5 text-sm font-serif font-bold whitespace-nowrap shrink-0 border border-dashed border-tinted-border bg-card text-faint opacity-85"
           >
             <Lock size={16} strokeWidth={1.8} className="text-faint" />
             Dictionnaire

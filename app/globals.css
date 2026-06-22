@@ -301,6 +301,93 @@ body {
   .paco-ring-core { opacity: 1; }
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   Press feedback (M5.7, GUIDANCE-press-states) — ONE reusable vocabulary so
+   every actionable surface reacts at touch, built entirely from the EXISTING
+   palette (no new hue). Pure CSS (:active / :focus-visible) so Server Components
+   stay server-side and pointercancel / scroll-cancel are handled natively by
+   :active. Three layered levers per the spec: (a) a darkening veil, (b) depress
+   (scale), (c) shadow reduction. Apply ONE press-* class per element:
+     .press-card          cards / clickable header blocks  → veil 6% + scale .985 + shadow drop
+     .press-card-feature  the crème+ feature card          → veil 10% + scale .985 + shadow drop
+     .press-row           list rows / flat text links      → veil 6%, NO scale (rows must not jump)
+     .press-pill          pills (collection, inactive nav) → veil 6% + scale .94
+     .press-pill-amber    amber-FILLED active nav pill      → darken to amber-deep + scale .94
+     .press-icon          round icon targets (avatar, etc.) → veil 6% + scale .94
+   Locked / non-actionable elements get NO press-* class (the gated hub cards).
+   The veil is an overlay that PRESERVES the rest-surface colour underneath; it
+   uses var(--color-ink), which flips light on the dark Nuit theme, so the veil
+   reads as a contrast press-highlight on every palette. */
+.press-card,
+.press-card-feature,
+.press-row,
+.press-pill,
+.press-pill-amber,
+.press-icon {
+  position: relative;
+  transition: transform 110ms ease-out, box-shadow 110ms ease-out;
+}
+.press-card::after,
+.press-card-feature::after,
+.press-row::after,
+.press-pill::after,
+.press-icon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--color-ink);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 110ms ease-out;
+}
+/* Veil — press in is near-immediate (40ms), release eases out (110ms). */
+.press-card:active::after,
+.press-row:active::after,
+.press-pill:active::after,
+.press-icon:active::after {
+  opacity: 0.06; /* pressSurfaceVeil = ink @ 6% */
+  transition-duration: 40ms;
+}
+.press-card-feature:active::after {
+  opacity: 0.1; /* pressSurfaceVeilStrong on the already-tinted crème+ surface */
+  transition-duration: 40ms;
+}
+/* Depress + shadow reduction. */
+.press-card:active,
+.press-card-feature:active {
+  transform: scale(0.985);
+  box-shadow: 0 1px 2px rgba(61, 43, 26, 0.05); /* shadow steps toward the surface */
+}
+.press-pill:active,
+.press-icon:active {
+  transform: scale(0.94); /* scalePressSmall */
+}
+/* Amber-filled active nav pill: darken the fill itself (it has no veil overlay). */
+.press-pill-amber:active {
+  background-color: var(--color-amber-deep);
+  transform: scale(0.94);
+}
+/* Keyboard focus ring — accessibility, distinct from the tactile press (spec §8).
+   Derived from the accent so it themes across palettes (no literal hue). */
+a:focus-visible,
+button:focus-visible,
+[role='button']:focus-visible,
+[tabindex]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 35%, transparent); /* focusRing */
+}
+/* Reduced motion: keep the colour veil / fill change, drop the movement (spec §8). */
+@media (prefers-reduced-motion: reduce) {
+  .press-card:active,
+  .press-card-feature:active,
+  .press-pill:active,
+  .press-pill-amber:active,
+  .press-icon:active {
+    transform: none;
+  }
+}
+
 @media print {
   body {
     background-color: #FFFBF3 !important;

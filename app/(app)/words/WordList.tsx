@@ -203,7 +203,7 @@ export default function WordList({ items }: { items: WordListItem[] }) {
               type="button"
               onClick={() => setSearch('')}
               aria-label="Effacer la recherche"
-              className="shrink-0 grid place-items-center w-[22px] h-[22px] rounded-full text-accent text-lg leading-none"
+              className="press-icon shrink-0 grid place-items-center w-[22px] h-[22px] rounded-full text-accent text-lg leading-none"
             >
               ×
             </button>
@@ -221,8 +221,8 @@ export default function WordList({ items }: { items: WordListItem[] }) {
                 onClick={() => setFilter(key)}
                 className={`text-[13.5px] px-[17px] py-[9px] rounded-full ${
                   active
-                    ? `font-semibold ${SELECTION_ACTIVE}`
-                    : 'font-medium bg-card text-ink border-[1.5px] border-line'
+                    ? `press-pill-amber font-semibold ${SELECTION_ACTIVE}`
+                    : 'press-pill font-medium bg-card text-ink border-[1.5px] border-line'
                 }`}
               >
                 {label}

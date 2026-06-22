@@ -44,7 +44,7 @@ function CircleClose({ onClose }: { onClose: () => void }) {
       type="button"
       onClick={onClose}
       aria-label="Fermer"
-      className="w-[38px] h-[38px] rounded-full border border-line bg-card grid place-items-center text-muted shrink-0"
+      className="press-icon w-[38px] h-[38px] rounded-full border border-line bg-card grid place-items-center text-muted shrink-0"
     >
       <X size={19} strokeWidth={2} />
     </button>
@@ -80,7 +80,7 @@ function FeaturedCard({
     <button
       type="button"
       onClick={onTap}
-      className="text-left w-full bg-card border border-line rounded-[16px] shadow-card p-[15px] flex items-center gap-3.5"
+      className="press-card text-left w-full bg-card border border-line rounded-[16px] shadow-card p-[15px] flex items-center gap-3.5"
     >
       <span className="w-[52px] h-[52px] rounded-[14px] bg-accent text-ivory grid place-items-center shrink-0 shadow-amber-sm">
         <Icon size={26} strokeWidth={1.8} />
@@ -246,7 +246,7 @@ export default function DiscoverClient() {
                   type="button"
                   onClick={() => void startTopic(t)}
                   className={`text-left rounded-[16px] border p-[15px] pb-3.5 flex flex-col gap-3 min-h-[152px] transition-colors ${
-                    sel ? 'bg-surface-alt border-[1.5px] border-accent' : 'bg-card border-line shadow-card active:bg-tint'
+                    sel ? 'press-card-feature bg-surface-alt border-[1.5px] border-accent' : 'press-card bg-card border-line shadow-card'
                   }`}
                 >
                   <span

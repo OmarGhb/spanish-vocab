@@ -68,7 +68,7 @@ export default function WordDetailActions({ wordId, word }: { wordId: string; wo
         aria-label="Actions"
         aria-haspopup="menu"
         aria-expanded={open}
-        className={`grid place-items-center w-[38px] h-[38px] rounded-full border ${
+        className={`press-icon grid place-items-center w-[38px] h-[38px] rounded-full border ${
           open ? 'border-accent bg-amber-tint text-amber-deep' : 'border-line bg-card text-muted'
         }`}
       >
@@ -85,7 +85,7 @@ export default function WordDetailActions({ wordId, word }: { wordId: string; wo
             role="menuitem"
             onClick={handleRelearn}
             disabled={relearning}
-            className="w-full flex items-center gap-3 px-4 py-3.5 text-left text-[14.5px] text-ink disabled:opacity-60"
+            className="press-row w-full flex items-center gap-3 px-4 py-3.5 text-left text-[14.5px] text-ink disabled:opacity-60"
           >
             <RotateCcw size={18} className="text-muted shrink-0" />
             Remettre à réviser
@@ -95,7 +95,7 @@ export default function WordDetailActions({ wordId, word }: { wordId: string; wo
             type="button"
             role="menuitem"
             onClick={handleDelete}
-            className="w-full flex items-center gap-3 px-4 py-3.5 text-left text-[14.5px] font-semibold text-err"
+            className="press-row w-full flex items-center gap-3 px-4 py-3.5 text-left text-[14.5px] font-semibold text-err"
           >
             <Trash2 size={17} className="text-err shrink-0" />
             Supprimer

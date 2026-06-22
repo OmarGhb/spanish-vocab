@@ -27,8 +27,8 @@ export default function HubCard({
       href={href}
       className={`flex flex-col rounded-2xl p-3.5 min-h-[118px] ${
         feature
-          ? 'bg-surface-alt border border-tinted-border border-l-[3px] border-l-accent shadow-card'
-          : 'bg-card border border-line shadow-card-sm'
+          ? 'press-card-feature bg-surface-alt border border-tinted-border border-l-[3px] border-l-accent shadow-card'
+          : 'press-card bg-card border border-line shadow-card-sm'
       }`}
     >
       <div className="flex items-center justify-between">

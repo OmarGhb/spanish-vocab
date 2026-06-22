@@ -10,7 +10,7 @@ export function Stepper({ value, onChange }: { value: number; onChange: (next: n
   const atMin = atMinCards(value)
   const atMax = atMaxCards(value)
   const btn = (disabled: boolean) =>
-    `w-9 h-9 rounded-full grid place-items-center border-[1.5px] ${
+    `press-icon w-9 h-9 rounded-full grid place-items-center border-[1.5px] ${
       disabled ? 'border-border-soft text-faint cursor-not-allowed' : 'border-accent text-accent'
     }`
   return (
@@ -79,7 +79,7 @@ export function Segmented<T extends string>({
             aria-pressed={on}
             onClick={() => onChange(o.value)}
             className={`px-[15px] py-[7px] rounded-full font-sans text-[13px] whitespace-nowrap transition-colors ${
-              on ? 'bg-accent text-ivory font-semibold shadow-amber-sm' : 'text-muted font-medium'
+              on ? 'press-pill-amber bg-accent text-ivory font-semibold shadow-amber-sm' : 'press-pill text-muted font-medium'
             }`}
           >
             {o.label}

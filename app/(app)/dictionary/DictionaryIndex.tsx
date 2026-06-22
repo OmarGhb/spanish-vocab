@@ -130,7 +130,7 @@ export default function DictionaryIndex({ entries }: { entries: DictionaryEntry[
               {section.entries.map((e) => (
                 <li key={e.id} className="flex items-center gap-3.5 border-b border-hair py-3">
                   {/* Row taps to the fiche; audio is a SEPARATE sibling tap target. */}
-                  <Link href={`/words/${e.id}`} className="flex-1 min-w-0">
+                  <Link href={`/words/${e.id}`} className="press-row flex-1 min-w-0">
                     <p className="font-serif text-xl font-bold text-ink leading-[1.15] tracking-[-0.01em]">
                       {e.word}
                     </p>

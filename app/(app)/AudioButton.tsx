@@ -83,7 +83,7 @@ export default function AudioButton({ word, audioUrl, variant = 'inline' }: Prop
         type="button"
         onClick={audioUrl ? playUrl : speakWord}
         aria-label="Écouter la prononciation"
-        className={`shrink-0 w-9 h-9 rounded-full grid place-items-center border border-line bg-card text-accent transition-colors ${speaking ? 'animate-pulse' : ''}`}
+        className={`press-icon shrink-0 w-9 h-9 rounded-full grid place-items-center border border-line bg-card text-accent transition-colors ${speaking ? 'animate-pulse' : ''}`}
       >
         <Volume2 size={17} strokeWidth={1.8} />
       </button>

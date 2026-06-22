@@ -56,7 +56,11 @@ export default function WordRow({
       </div>
     </>
   )
-  const cls = `flex items-center gap-3 px-3.5 py-3 ${wrapperCls}`
+  // Press veil ONLY on the standalone linked row (Home preview / plain lists). The `flush`
+  // variant is wrapped by SwipeRow, whose pointer-drag owns the gesture — a press veil there
+  // would flash as the swipe starts. The non-link (id-less) row isn't actionable → no press.
+  const press = id && !flush ? ' press-row' : ''
+  const cls = `flex items-center gap-3 px-3.5 py-3 ${wrapperCls}${press}`
   const row = id ? (
     <Link href={`/words/${id}`} className={cls}>
       {inner}

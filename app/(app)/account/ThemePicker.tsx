@@ -31,7 +31,7 @@ export default function ThemePicker() {
               onClick={() => setTheme(p.id)}
               aria-pressed={selected}
               aria-label={p.name}
-              className="flex flex-col items-center gap-[7px]"
+              className="press-card flex flex-col items-center gap-[7px]"
             >
               <span
                 className="relative block w-[52px] h-[52px] rounded-[15px] overflow-hidden border-[1.5px]"

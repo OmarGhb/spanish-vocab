@@ -123,11 +123,11 @@ export function NavRow({
     </RowWrap>
   )
   return external ? (
-    <a href={href} className="block">
+    <a href={href} className="press-row block">
       {inner}
     </a>
   ) : (
-    <Link href={href} className="block">
+    <Link href={href} className="press-row block">
       {inner}
     </Link>
   )
