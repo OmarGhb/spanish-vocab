@@ -325,6 +325,10 @@ body {
 .press-pill-amber,
 .press-icon {
   position: relative;
+  /* `cursor: pointer` is also the iOS Safari trigger that makes :active fire on TAP for
+     non-button elements (<a>/<div> cards & rows) — without it, the tap press is silent on
+     iPhone. (Empty `ontouchstart` on <body> is the other trigger; cursor keeps it CSS-only.) */
+  cursor: pointer;
   transition: transform 110ms ease-out, box-shadow 110ms ease-out;
 }
 .press-card::after,
@@ -346,22 +350,22 @@ body {
 .press-row:active::after,
 .press-pill:active::after,
 .press-icon:active::after {
-  opacity: 0.06; /* pressSurfaceVeil = ink @ 6% */
+  opacity: 0.1; /* pressSurfaceVeil — ink @ 10% (was 6%, imperceptible on a real screen) */
   transition-duration: 40ms;
 }
 .press-card-feature:active::after {
-  opacity: 0.1; /* pressSurfaceVeilStrong on the already-tinted crème+ surface */
+  opacity: 0.14; /* pressSurfaceVeilStrong on the already-tinted crème+ surface */
   transition-duration: 40ms;
 }
 /* Depress + shadow reduction. */
 .press-card:active,
 .press-card-feature:active {
-  transform: scale(0.985);
+  transform: scale(0.97); /* scalePress — a clearly-felt depress (was 0.985) */
   box-shadow: 0 1px 2px rgba(61, 43, 26, 0.05); /* shadow steps toward the surface */
 }
 .press-pill:active,
 .press-icon:active {
-  transform: scale(0.94); /* scalePressSmall */
+  transform: scale(0.92); /* scalePressSmall */
 }
 /* Amber-filled active nav pill: darken the fill itself (it has no veil overlay). */
 .press-pill-amber:active {

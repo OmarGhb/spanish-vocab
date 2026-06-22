@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next"
 import { Inter, Lora, Fraunces } from "next/font/google"
 import { cookies } from "next/headers"
 import { coerceTheme, THEME_COOKIE } from "@/lib/theme"
+import TouchActiveFix from "./TouchActiveFix"
 import "./globals.css"
 
 const inter = Inter({
@@ -60,7 +61,11 @@ export default async function RootLayout({
       className={`${inter.variable} ${lora.variable} ${fraunces.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col" suppressHydrationWarning>{children}</body>
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
+        {/* Enables CSS :active press feedback on iOS Safari (needs a touchstart listener). */}
+        <TouchActiveFix />
+        {children}
+      </body>
     </html>
   )
 }
