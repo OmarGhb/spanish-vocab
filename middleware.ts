@@ -26,9 +26,15 @@ export async function middleware(request: NextRequest) {
   // Refresh session — must happen before any redirect or response.
   const { data: { user } } = await supabase.auth.getUser()
 
-  const isLoginPage = request.nextUrl.pathname.startsWith('/login')
+  // Public (logged-out-reachable) auth routes. Without /signup + /forgot-password here, the guard
+  // below would bounce a logged-out visitor straight back to /login and make signup unreachable.
+  const { pathname } = request.nextUrl
+  const isPublicAuthRoute =
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/signup') ||
+    pathname.startsWith('/forgot-password')
 
-  if (!user && !isLoginPage) {
+  if (!user && !isPublicAuthRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)

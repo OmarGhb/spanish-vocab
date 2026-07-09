@@ -25,6 +25,10 @@ type Props = {
   help?: string
   mono?: boolean
   trailing?: ReactNode
+  // Auth screens (login/signup) drop the label-above and use the label text AS the placeholder
+  // inside the field; the label survives as the input's aria-label so it's still announced. The
+  // settings surfaces (/account, change-password) keep the visible label-above layout.
+  labelAsPlaceholder?: boolean
 }
 
 export default function Field({
@@ -38,6 +42,7 @@ export default function Field({
   help,
   mono = false,
   trailing,
+  labelAsPlaceholder = false,
 }: Props) {
   const isError = !!error
   // Border precedence: error (terra) → disabled (soft) → default (line), with focus (amber +
@@ -50,7 +55,7 @@ export default function Field({
 
   return (
     <div>
-      <FieldLabel>{label}</FieldLabel>
+      {!labelAsPlaceholder && <FieldLabel>{label}</FieldLabel>}
       <div
         className={`flex items-center gap-2.5 rounded-[14px] border-[1.5px] px-[15px] py-[13px] ${
           disabled ? 'bg-page' : 'bg-card'
@@ -60,11 +65,12 @@ export default function Field({
           type={type}
           value={value}
           onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-          placeholder={placeholder}
+          placeholder={labelAsPlaceholder ? label : placeholder}
+          aria-label={labelAsPlaceholder ? label : undefined}
           disabled={disabled}
           readOnly={!onChange}
           className={`flex-1 min-w-0 bg-transparent outline-none text-ink placeholder:text-faint placeholder:italic disabled:text-faint ${
-            mono ? 'font-sans text-[15px] tracking-[0.18em]' : 'font-serif text-base'
+            mono ? 'font-sans text-[15px] tracking-[0.18em] placeholder-shown:tracking-normal' : 'font-serif text-base'
           }`}
         />
         {trailing}

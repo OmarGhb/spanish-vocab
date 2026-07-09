@@ -1,18 +1,33 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { isValidEmail } from '@/lib/password-policy'
+import Field, { RevealLink } from '@/components/form/Field'
+import Button from '@/app/(app)/Button'
 
+// First-run gate (Login). Rebuilt onto the canonical auth foundation (Field/Button + [data-theme]
+// tokens) — a small warm Paco presence, not a hero takeover. Any auth failure collapses to one
+// non-committal terracotta message on the password field (never reveal which field was wrong).
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  async function handleSubmit(e: React.SyntheticEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (loading) return
+    // Keep the button always enabled (an email-only gate reads as a dead button on Nuit, and the
+    // password can't be validated client-side anyway) — validate on submit via the terracotta path.
+    if (!isValidEmail(email) || password.length === 0) {
+      setError('Entre ton e-mail et ton mot de passe.')
+      return
+    }
     setLoading(true)
     setError(null)
 
@@ -21,7 +36,7 @@ export default function LoginPage() {
 
     if (authError) {
       console.error(authError)
-      setError(authError.message)
+      setError('E-mail ou mot de passe incorrect.')
       setLoading(false)
       return
     }
@@ -30,37 +45,51 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-6">
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-col gap-4 w-full max-w-sm bg-card p-8 rounded-card shadow-card"
-      >
-        <h1 className="font-serif text-2xl text-ink">Paco</h1>
-        <input
+    <main className="flex min-h-screen flex-col px-[26px] pb-[26px] pt-[52px] w-full max-w-[430px] mx-auto">
+      {/* Warm Paco presence — a door, not a hero. */}
+      <div className="flex flex-col items-center gap-4 mb-8">
+        <div className="w-[84px] h-[84px] rounded-full bg-amber-light border border-line grid place-items-center overflow-hidden">
+          <Image src="/paco.png" alt="Paco" width={76} height={76} className="object-contain mt-2" />
+        </div>
+        <div className="text-center">
+          <h1 className="font-serif text-[27px] font-bold tracking-[-0.02em] text-ink">Te revoilà !</h1>
+          <p className="mt-2 font-sans text-[13.5px] text-muted">Reprends là où Paco t’attend.</p>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <Field
+          label="E-mail"
           type="email"
-          placeholder="Email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="border border-line rounded-lg px-3 py-2.5 text-base bg-card text-ink placeholder:text-muted focus:outline-none focus:border-accent"
+          onChange={setEmail}
+          labelAsPlaceholder
         />
-        <input
-          type="password"
-          placeholder="Mot de passe"
+        <Field
+          label="Mot de passe"
+          type={showPassword ? 'text' : 'password'}
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="border border-line rounded-lg px-3 py-2.5 text-base bg-card text-ink placeholder:text-muted focus:outline-none focus:border-accent"
+          onChange={setPassword}
+          labelAsPlaceholder
+          mono
+          error={error}
+          trailing={<RevealLink shown={showPassword} onClick={() => setShowPassword((s) => !s)} />}
         />
-        {error && <p className="text-err text-sm">{error}</p>}
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-accent text-ivory rounded-lg px-4 py-2.5 text-sm font-semibold disabled:opacity-50"
-        >
-          {loading ? 'Connexion…' : 'Se connecter'}
-        </button>
+        <div className="flex justify-end -mt-1">
+          <Button variant="text" href="/forgot-password">Mot de passe oublié ?</Button>
+        </div>
+        <div className="mt-1">
+          <Button type="submit" variant="primary" full disabled={loading}>
+            {loading ? 'Connexion…' : 'Se connecter'}
+          </Button>
+        </div>
       </form>
+
+      <div className="flex-1" />
+      <div className="flex items-center justify-center gap-1.5 pt-[22px]">
+        <span className="font-sans text-[13.5px] text-muted">Pas encore de compte ?</span>
+        <Button variant="text" href="/signup">Créer un compte</Button>
+      </div>
     </main>
   )
 }
