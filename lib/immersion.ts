@@ -302,3 +302,154 @@ export const DRILL_CHROME = {
   finish: { fr: 'Terminer', es: 'Terminar' },
   replay: { fr: 'Rejouer', es: 'Jugar de nuevo' },
 } as const satisfies Record<string, ChromePair>
+
+// Shared-component chrome (M6.1d-ii) — the last 3 parked components flip here (their remaining
+// French consumers join now). answerAria reuses REVIEW_CHROME.yourAnswer (done in M6.1d-i).
+export const SHARED_CHROME = {
+  audioAria: { fr: 'Écouter la prononciation', es: 'Escuchar la pronunciación' },
+  loadingWait: { fr: 'Pendant que tu attends', es: 'Mientras esperas' },
+  genFor: { fr: 'Paco creuse pour', es: 'Paco busca para' }, // + « {word} » in JSX
+} as const satisfies Record<string, ChromePair>
+
+// Dictionary chrome (M6.1d-ii). Reuses NAV_CHROME.dictionary (Diccionario). Dynamic count lines
+// (N mémorisés, N restant(s), N mots dans ton dictionnaire, the "Plus que N" nudge) build per-lang.
+export const DICT_CHROME = {
+  personalLexicon: { fr: 'Lexique personnel', es: 'Vocabulario personal' },
+  dictWaits: { fr: 'Ton dictionnaire t’attend', es: 'Tu diccionario te espera' },
+  lockedBody: {
+    fr: 'Mémorise 10 mots et il s’ouvre. Chacun s’y rangera tout seul, de A à Z — ta collection à toi, rien que les mots que tu sais.',
+    es: 'Memoriza 10 palabras y se abre. Cada una se ordenará sola, de la A a la Z — tu colección personal, solo las palabras que sabes.',
+  },
+  unlocked: { fr: 'Débloqué', es: 'Desbloqueado' },
+  dictUnlocked: { fr: 'Ton dictionnaire est débloqué !', es: '¡Tu diccionario está desbloqueado!' },
+  shelvedBody: {
+    fr: 'Rangés de A à Z, rien que les tiens. Le premier rayon d’une longue étagère.',
+    es: 'Ordenadas de la A a la Z, solo las tuyas. El primer estante de una larga estantería.',
+  },
+  openMyDict: { fr: 'Ouvrir mon dictionnaire', es: 'Abrir mi diccionario' },
+  later: { fr: 'Plus tard', es: 'Más tarde' },
+} as const satisfies Record<string, ChromePair>
+
+// Add-flow chrome (M6.1d-ii). Reuses DETAIL_CHROME (form/def/examples eyebrows + reveal/hide toggles),
+// DISCOVER_CHROME.retry/genPhasePhon, WORDS_CHROME.undo, DRILL_CHROME.back. Many dynamic/interpolated
+// lines (word/lemma/count/days) build per-language at the render site.
+export const ADD_CHROME = {
+  newWord: { fr: 'Nouveau mot', es: 'Nueva palabra' },
+  enterWord: { fr: 'Entre un mot espagnol', es: 'Escribe una palabra en español' },
+  helperParagraph: {
+    fr: 'Paco va générer la définition, des exemples et des mots similaires pour enrichir ton apprentissage.',
+    es: 'Paco generará la definición, ejemplos y palabras similares para enriquecer tu aprendizaje.',
+  },
+  search: { fr: 'Rechercher', es: 'Buscar' }, // + → in JSX
+  didYouMean: { fr: 'Voulais-tu dire…', es: '¿Querías decir…?' },
+  noneOfThese: { fr: 'Aucune de ces propositions', es: 'Ninguna de estas opciones' },
+  conjugatedForm: { fr: 'Forme conjuguée', es: 'Forma conjugada' },
+  searchAnother: { fr: 'Chercher un autre mot', es: 'Buscar otra palabra' },
+  notInSpanish: { fr: "Ce mot n'existe pas en espagnol", es: 'Esta palabra no existe en español' },
+  errorRetry: { fr: 'Erreur — réessayer', es: 'Error — reintentar' },
+  errorOccurred: { fr: "Une erreur s'est produite — veuillez réessayer.", es: 'Ha ocurrido un error — inténtalo de nuevo.' },
+  listoSub: { fr: 'Voici ce que Paco a trouvé.', es: 'Esto es lo que Paco ha encontrado.' },
+  seeCard: { fr: 'Voir la fiche', es: 'Ver la ficha' }, // + → in JSX
+  familyWords: { fr: 'Mots de la même famille', es: 'Palabras de la misma familia' },
+  similarNotConfuse: { fr: 'Mots similaires à ne pas confondre', es: 'Palabras similares que no debes confundir' },
+  similarHelper: {
+    fr: "Apprendre des mots de la même famille en parallèle aide ton cerveau à les distinguer en contexte. Touche chaque mot pour l'ajouter à ton vocabulaire.",
+    es: 'Aprender palabras de la misma familia en paralelo ayuda a tu cerebro a distinguirlas en contexto. Toca cada palabra para añadirla a tu vocabulario.',
+  },
+  addToCollection: { fr: 'Ajouter à ma collection', es: 'Añadir a mi colección' },
+  selectAll: { fr: 'Tout sélectionner', es: 'Seleccionar todo' },
+  deselectAll: { fr: 'Tout désélectionner', es: 'Deseleccionar todo' },
+  exampleHide: { fr: 'Masquer', es: 'Ocultar' }, // add's bare "Masquer" (≠ detail's "Masquer la traduction")
+  bringTomorrow: { fr: 'Paco te le ramènera demain pour ta première révision.', es: 'Paco te la traerá mañana para tu primer repaso.' },
+  nextReviewToday: { fr: 'prochaine révision aujourd’hui', es: 'próximo repaso hoy' },
+  noNeedRecreateReview: { fr: 'Pas besoin de le re-créer — ouvre-le pour le réviser.', es: 'No hace falta volver a crearla — ábrela para repasarla.' },
+  viewMyWords: { fr: 'Voir mes mots', es: 'Ver mis palabras' },
+  addAnother: { fr: 'Ajouter un autre mot', es: 'Añadir otra palabra' },
+  wordsEnRouteHelp: {
+    fr: 'Tes mots sont en train d’être ajoutés à ta bibliothèque — ça peut prendre jusqu’à 20 secondes. Tu peux continuer à naviguer.',
+    es: 'Tus palabras se están añadiendo a tu biblioteca — puede tardar hasta 20 segundos. Puedes seguir navegando.',
+  },
+} as const satisfies Record<string, ChromePair>
+
+// Account chrome (M6.1d-ii). Reuses DISCOVER_CHROME.soon ("Bientôt"→Pronto) + WORDS_CHROME.undo
+// ("Annuler"→Cancelar). NOTE: the ImmersionModePicker's OWN strings are DELIBERATELY left French
+// (it's the meta-control about the FR/ES choice + the escape hatch out of `totale`). PASSWORD_POLICY
+// is resolved here (mode-aware) so the shared FR constant stays FR for signup.
+export const ACCOUNT_CHROME = {
+  // Group heads
+  ghLearning: { fr: 'Apprentissage', es: 'Aprendizaje' },
+  ghAudio: { fr: 'Audio', es: 'Audio' },
+  ghPreferences: { fr: 'Préférences', es: 'Preferencias' },
+  ghNotifications: { fr: 'Notifications', es: 'Notificaciones' },
+  ghAccount: { fr: 'Compte', es: 'Cuenta' },
+  ghAbout: { fr: 'À propos / Support', es: 'Acerca de / Soporte' },
+  // Learning
+  cardsPerSession: { fr: 'Cartes par session', es: 'Tarjetas por sesión' },
+  cardsPerSessionHelp: { fr: 'Nombre de cartes par révision.', es: 'Número de tarjetas por repaso.' },
+  newCardsDay: { fr: 'Nouvelles cartes / jour', es: 'Tarjetas nuevas / día' },
+  newCardsDayHelp: { fr: 'Limite d’introduction quotidienne.', es: 'Límite de introducción diaria.' },
+  retentionGoal: { fr: 'Objectif de rétention', es: 'Objetivo de retención' },
+  retentionGoalHelp: { fr: 'Cible de mémorisation visée.', es: 'Nivel de memorización deseado.' },
+  practiceReviews: { fr: 'Révisions d’entraînement', es: 'Repasos de entrenamiento' },
+  practiceReviewsHelp: { fr: 'Réviser hors planning, sans impact.', es: 'Repasar fuera de la programación, sin impacto.' },
+  hardWords: { fr: 'Mots difficiles', es: 'Palabras difíciles' },
+  hardWordsHelp: { fr: 'Séance ciblée sur les mots qui résistent.', es: 'Sesión centrada en las palabras que se resisten.' },
+  // Audio
+  autoplay: { fr: 'Lecture auto à la révélation', es: 'Reproducción automática al revelar' },
+  autoplayHelp: { fr: 'Prononce le mot quand la réponse s’affiche.', es: 'Pronuncia la palabra cuando aparece la respuesta.' },
+  playbackSpeed: { fr: 'Vitesse de lecture', es: 'Velocidad de reproducción' },
+  speedSlow: { fr: 'Lent', es: 'Lento' },
+  speedNormal: { fr: 'Normal', es: 'Normal' },
+  speedFast: { fr: 'Rapide', es: 'Rápido' },
+  // Preferences
+  themeColor: { fr: 'Thème de couleur', es: 'Tema de color' },
+  themeColorHelp: {
+    fr: 'L’apparence de l’app. Le vert (mémorisé) et le rouge (suppression) ne changent pas.',
+    es: 'El aspecto de la app. El verde (memorizado) y el rojo (eliminar) no cambian.',
+  },
+  spanishVariant: { fr: 'Variante d’espagnol', es: 'Variante de español' },
+  spanishVariantHelp: { fr: 'Espagne · Amérique latine', es: 'España · América Latina' },
+  discoveryThemes: { fr: 'Thèmes Discovery', es: 'Temas de Descubrir' },
+  discoveryThemesHelp: { fr: 'Centres d’intérêt pour la découverte.', es: 'Intereses para el descubrimiento.' },
+  // Notifications
+  dailyReminder: { fr: 'Rappel quotidien de révision', es: 'Recordatorio diario de repaso' },
+  dailyReminderHelp: { fr: 'Une notification à l’heure choisie.', es: 'Una notificación a la hora elegida.' },
+  // Account
+  email: { fr: 'E-mail', es: 'E-mail' },
+  changePassword: { fr: 'Changer le mot de passe', es: 'Cambiar la contraseña' },
+  changePasswordStay: { fr: 'Tu resteras connecté sur cet appareil.', es: 'Seguirás conectado en este dispositivo.' },
+  exportData: { fr: 'Exporter mes données', es: 'Exportar mis datos' },
+  exportDataHelp: { fr: 'Télécharger tes mots au format CSV.', es: 'Descarga tus palabras en formato CSV.' },
+  // About
+  sendFeedback: { fr: 'Envoyer un retour / signaler un bug', es: 'Enviar comentarios / reportar un error' },
+  privacyPolicy: { fr: 'Politique de confidentialité', es: 'Política de privacidad' },
+  terms: { fr: 'Conditions d’utilisation', es: 'Condiciones de uso' },
+  version: { fr: 'Version', es: 'Versión' },
+  preBeta: { fr: 'pré-bêta', es: 'pre-beta' },
+  footer: { fr: 'Paco · pré-bêta · juin 2026', es: 'Paco · pre-beta · junio 2026' },
+  statsMemorized: { fr: 'mots mémorisés', es: 'palabras memorizadas' },
+  statsReviews: { fr: 'révisions', es: 'repasos' },
+  // AccountClient (delete + sign out)
+  signOut: { fr: 'Se déconnecter', es: 'Cerrar sesión' },
+  deleteAccount: { fr: 'Supprimer mon compte', es: 'Eliminar mi cuenta' },
+  deleteTitle: { fr: 'Supprimer ton compte ?', es: '¿Eliminar tu cuenta?' },
+  deleting: { fr: 'Suppression…', es: 'Eliminando…' },
+  deletePermanently: { fr: 'Supprimer définitivement', es: 'Eliminar definitivamente' },
+  networkError: { fr: 'Erreur réseau. Réessayez.', es: 'Error de red. Inténtalo de nuevo.' },
+  errorOccurred: { fr: 'Une erreur est survenue.', es: 'Ha ocurrido un error.' },
+  typeToConfirm: { fr: 'Tape SUPPRIMER pour confirmer', es: 'Escribe ELIMINAR para confirmar' },
+  // The typed word the user must match to confirm — mode-aware so the ES instruction + the gate agree.
+  confirmToken: { fr: 'SUPPRIMER', es: 'ELIMINAR' },
+  // PasswordForm
+  pwdCurrent: { fr: 'Mot de passe actuel', es: 'Contraseña actual' },
+  pwdNew: { fr: 'Nouveau mot de passe', es: 'Nueva contraseña' },
+  pwdConfirm: { fr: 'Confirmer le nouveau mot de passe', es: 'Confirmar la nueva contraseña' },
+  pwdCurrentPh: { fr: 'Ton mot de passe actuel', es: 'Tu contraseña actual' },
+  pwdNewPh: { fr: 'Au moins 8 caractères', es: 'Al menos 8 caracteres' },
+  pwdConfirmPh: { fr: 'Retape le mot de passe', es: 'Vuelve a escribir la contraseña' },
+  pwdPolicy: { fr: 'Au moins 8 caractères, dont un chiffre.', es: 'Al menos 8 caracteres, con al menos un número.' },
+  pwdUpdating: { fr: 'Mise à jour…', es: 'Actualizando…' },
+  pwdUpdate: { fr: 'Mettre à jour le mot de passe', es: 'Actualizar la contraseña' },
+  pwdWrongCurrent: { fr: 'Le mot de passe actuel est incorrect.', es: 'La contraseña actual es incorrecta.' },
+  pwdUpdateFailed: { fr: 'Impossible de mettre à jour le mot de passe. Réessaye.', es: 'No se ha podido actualizar la contraseña. Inténtalo de nuevo.' },
+} as const satisfies Record<string, ChromePair>

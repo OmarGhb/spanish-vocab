@@ -6,14 +6,13 @@ import { displayNameFromEmail } from '@/lib/display-name'
 import { clampCardsPerSession } from '@/lib/session-cap'
 import { GroupHead, SettingsCard } from '@/components/form/SettingsCard'
 import { ActiveRow, SoonRow, DisplayRow, NavRow } from '@/components/form/Rows'
+import { coerceImmersionMode, resolveChrome, ACCOUNT_CHROME } from '@/lib/immersion'
 import SessionSizeStepper from './SessionSizeStepper'
 import { AutoplayToggle, SpeedSegmented } from './AudioControls'
 import ThemePicker from './ThemePicker'
 import ImmersionModePicker from './ImmersionModePicker'
 import AccountActions from './AccountClient'
 import pkg from '../../../package.json'
-
-const fr = (n: number) => n.toLocaleString('fr-FR') // 1320 → "1 320"
 
 export default async function AccountPage() {
   const supabase = await createClient()
@@ -27,7 +26,7 @@ export default async function AccountPage() {
   // getDictionaryState fetch — révisions = Σ review_cards.reps over the collection, since review_logs
   // is empty due to a separate insert bug) · TOTAL collection words (the delete-warning figure).
   const [{ data: profile }, dict, totalWordsRes] = await Promise.all([
-    supabase.from('profiles').select('cards_per_session, autoplay_audio, playback_speed').maybeSingle(),
+    supabase.from('profiles').select('cards_per_session, autoplay_audio, playback_speed, immersion_mode').maybeSingle(),
     getDictionaryState(supabase),
     supabase
       .from('words')
@@ -35,6 +34,8 @@ export default async function AccountPage() {
       .or('origin.eq.manual,discovery_status.eq.promoted'),
   ])
 
+  const mode = coerceImmersionMode(profile?.immersion_mode)
+  const num = (n: number) => n.toLocaleString(mode === 'fr_es' ? 'fr-FR' : 'es-ES') // 1320 → "1 320"
   const cardsPerSession = clampCardsPerSession(profile?.cards_per_session)
   const reviewCount = dict.totalReviews
   // Render falls back to 0, but surface a real read error instead of masking it as a silent 0.
@@ -59,94 +60,96 @@ export default async function AccountPage() {
         <div className="mt-4 flex bg-card border border-line rounded-[16px] shadow-card overflow-hidden">
           <div className="flex-1 px-[18px] py-[15px]">
             <div className="font-serif text-[27px] font-bold text-ok leading-none tracking-[-0.01em]">
-              {fr(dict.memorizedCount)}
+              {num(dict.memorizedCount)}
             </div>
-            <div className="font-sans text-[12.5px] text-muted mt-1.5">mots mémorisés</div>
+            <div className="font-sans text-[12.5px] text-muted mt-1.5">{resolveChrome(ACCOUNT_CHROME.statsMemorized, mode)}</div>
           </div>
           <div className="w-px bg-border-soft" />
           <div className="flex-1 px-[18px] py-[15px]">
             <div className="font-serif text-[27px] font-bold text-ink leading-none tracking-[-0.01em]">
-              {fr(reviewCount)}
+              {num(reviewCount)}
             </div>
-            <div className="font-sans text-[12.5px] text-muted mt-1.5">révisions</div>
+            <div className="font-sans text-[12.5px] text-muted mt-1.5">{resolveChrome(ACCOUNT_CHROME.statsReviews, mode)}</div>
           </div>
         </div>
       </div>
 
       {/* Apprentissage */}
       <div className="h-[22px]" />
-      <GroupHead>Apprentissage</GroupHead>
+      <GroupHead>{resolveChrome(ACCOUNT_CHROME.ghLearning, mode)}</GroupHead>
       <SettingsCard>
         <ActiveRow
           first
-          label="Cartes par session"
-          help="Nombre de cartes par révision."
+          label={resolveChrome(ACCOUNT_CHROME.cardsPerSession, mode)}
+          help={resolveChrome(ACCOUNT_CHROME.cardsPerSessionHelp, mode)}
           control={<SessionSizeStepper initialValue={cardsPerSession} />}
         />
-        <SoonRow label="Nouvelles cartes / jour" help="Limite d'introduction quotidienne." />
-        <SoonRow label="Objectif de rétention" help="Cible de mémorisation visée." />
-        <SoonRow label="Révisions d'entraînement" help="Réviser hors planning, sans impact." />
-        <SoonRow label="Mots difficiles" help="Séance ciblée sur les mots qui résistent." />
+        <SoonRow mode={mode} label={resolveChrome(ACCOUNT_CHROME.newCardsDay, mode)} help={resolveChrome(ACCOUNT_CHROME.newCardsDayHelp, mode)} />
+        <SoonRow mode={mode} label={resolveChrome(ACCOUNT_CHROME.retentionGoal, mode)} help={resolveChrome(ACCOUNT_CHROME.retentionGoalHelp, mode)} />
+        <SoonRow mode={mode} label={resolveChrome(ACCOUNT_CHROME.practiceReviews, mode)} help={resolveChrome(ACCOUNT_CHROME.practiceReviewsHelp, mode)} />
+        <SoonRow mode={mode} label={resolveChrome(ACCOUNT_CHROME.hardWords, mode)} help={resolveChrome(ACCOUNT_CHROME.hardWordsHelp, mode)} />
       </SettingsCard>
 
       {/* Audio */}
       <div className="h-[22px]" />
-      <GroupHead>Audio</GroupHead>
+      <GroupHead>{resolveChrome(ACCOUNT_CHROME.ghAudio, mode)}</GroupHead>
       <SettingsCard>
         <ActiveRow
           first
-          label="Lecture auto à la révélation"
-          help="Prononce le mot quand la réponse s'affiche."
+          label={resolveChrome(ACCOUNT_CHROME.autoplay, mode)}
+          help={resolveChrome(ACCOUNT_CHROME.autoplayHelp, mode)}
           control={<AutoplayToggle />}
         />
-        <ActiveRow label="Vitesse de lecture" control={<SpeedSegmented />} />
+        <ActiveRow label={resolveChrome(ACCOUNT_CHROME.playbackSpeed, mode)} control={<SpeedSegmented />} />
       </SettingsCard>
 
-      {/* Préférences — Mode d'immersion (M6.1a) + Thème actifs; the rest BIENTÔT. */}
+      {/* Préférences — Mode d'immersion (M6.1a) + Thème actifs; the rest BIENTÔT. The
+          ImmersionModePicker itself STAYS FRENCH by design (the meta-control about the FR/ES choice +
+          the escape hatch out of `totale`) — do not make it mode-aware. */}
       <div className="h-[22px]" />
-      <GroupHead>Préférences</GroupHead>
+      <GroupHead>{resolveChrome(ACCOUNT_CHROME.ghPreferences, mode)}</GroupHead>
       <SettingsCard>
         <ImmersionModePicker first />
-        <SoonRow label="Variante d'espagnol" help="Espagne · Amérique latine" />
+        <SoonRow mode={mode} label={resolveChrome(ACCOUNT_CHROME.spanishVariant, mode)} help={resolveChrome(ACCOUNT_CHROME.spanishVariantHelp, mode)} />
         <ThemePicker />
-        <SoonRow label="Thèmes Discovery" help="Centres d'intérêt pour la découverte." />
+        <SoonRow mode={mode} label={resolveChrome(ACCOUNT_CHROME.discoveryThemes, mode)} help={resolveChrome(ACCOUNT_CHROME.discoveryThemesHelp, mode)} />
       </SettingsCard>
 
       {/* Notifications (BIENTÔT) */}
       <div className="h-[22px]" />
-      <GroupHead>Notifications</GroupHead>
+      <GroupHead>{resolveChrome(ACCOUNT_CHROME.ghNotifications, mode)}</GroupHead>
       <SettingsCard>
-        <SoonRow first label="Rappel quotidien de révision" help="Une notification à l'heure choisie." />
+        <SoonRow first mode={mode} label={resolveChrome(ACCOUNT_CHROME.dailyReminder, mode)} help={resolveChrome(ACCOUNT_CHROME.dailyReminderHelp, mode)} />
       </SettingsCard>
 
       {/* Compte */}
       <div className="h-[22px]" />
-      <GroupHead>Compte</GroupHead>
+      <GroupHead>{resolveChrome(ACCOUNT_CHROME.ghAccount, mode)}</GroupHead>
       <SettingsCard>
-        <DisplayRow first icon={Mail} label="E-mail" value={email} />
-        <NavRow label="Changer le mot de passe" href="/account/password" />
-        <SoonRow label="Exporter mes données" help="Télécharger tes mots au format CSV." />
+        <DisplayRow first icon={Mail} label={resolveChrome(ACCOUNT_CHROME.email, mode)} value={email} />
+        <NavRow label={resolveChrome(ACCOUNT_CHROME.changePassword, mode)} href="/account/password" />
+        <SoonRow mode={mode} label={resolveChrome(ACCOUNT_CHROME.exportData, mode)} help={resolveChrome(ACCOUNT_CHROME.exportDataHelp, mode)} />
       </SettingsCard>
       {/* Se déconnecter (secondary) + Supprimer mon compte (destructive) — buttons below the card */}
       <AccountActions totalWords={totalWords} />
 
       {/* À propos / Support */}
       <div className="h-[22px]" />
-      <GroupHead>À propos / Support</GroupHead>
+      <GroupHead>{resolveChrome(ACCOUNT_CHROME.ghAbout, mode)}</GroupHead>
       <SettingsCard>
-        <NavRow first label="Envoyer un retour / signaler un bug" href="mailto:contact@paco.app?subject=Retour%20Paco" />
-        <DisplayRow label="Version" value={`${pkg.version} (pré-bêta)`} />
+        <NavRow first label={resolveChrome(ACCOUNT_CHROME.sendFeedback, mode)} href="mailto:contact@paco.app?subject=Retour%20Paco" />
+        <DisplayRow label={resolveChrome(ACCOUNT_CHROME.version, mode)} value={`${pkg.version} (${resolveChrome(ACCOUNT_CHROME.preBeta, mode)})`} />
         {/* F2: kept live (shipped /legal pages), re-skinned — NOT demoted to BIENTÔT. Both pages
             preserved as two rows rather than the mockup's single inert "Mentions légales". */}
-        <NavRow label="Politique de confidentialité" href="/legal/privacy" />
-        <NavRow label="Conditions d'utilisation" href="/legal/terms" />
+        <NavRow label={resolveChrome(ACCOUNT_CHROME.privacyPolicy, mode)} href="/legal/privacy" />
+        <NavRow label={resolveChrome(ACCOUNT_CHROME.terms, mode)} href="/legal/terms" />
       </SettingsCard>
 
       {/* Footer — sleeping Paco */}
       <div className="h-7" />
       <div className="flex flex-col items-center gap-1.5 px-[22px] pb-7 opacity-70">
         <Image src="/paco-durmiendo.png" alt="" width={90} height={90} className="object-contain" />
-        <div className="font-sans text-[11.5px] text-faint tracking-[0.04em]">Paco · pré-bêta · juin 2026</div>
+        <div className="font-sans text-[11.5px] text-faint tracking-[0.04em]">{resolveChrome(ACCOUNT_CHROME.footer, mode)}</div>
       </div>
     </div>
   )

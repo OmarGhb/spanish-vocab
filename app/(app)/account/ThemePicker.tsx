@@ -2,6 +2,7 @@
 
 import { Check } from 'lucide-react'
 import { useSettings } from '../SettingsProvider'
+import { resolveChrome, ACCOUNT_CHROME } from '@/lib/immersion'
 import { THEME_SWATCHES, themeName } from '@/lib/theme'
 
 // "Thème de couleur" — the ACTIVE Préférences row + swatch picker (theming milestone). A visual
@@ -10,16 +11,16 @@ import { THEME_SWATCHES, themeName } from '@/lib/theme'
 // from THEME_SWATCHES (a picker must paint every palette while another is live); the selected ring
 // uses the CURRENT theme's accent (var(--color-accent)).
 export default function ThemePicker() {
-  const { theme, setTheme } = useSettings()
+  const { theme, setTheme, immersionMode } = useSettings()
 
   return (
     <div className="flex flex-col gap-1.5 px-4 py-[15px] border-t border-border-soft">
       <div className="flex items-baseline justify-between gap-3">
-        <div className="font-serif text-[16.5px] font-semibold tracking-[-0.01em] text-ink">Thème de couleur</div>
+        <div className="font-serif text-[16.5px] font-semibold tracking-[-0.01em] text-ink">{resolveChrome(ACCOUNT_CHROME.themeColor, immersionMode)}</div>
         <div className="font-sans text-[13px] font-semibold text-accent">{themeName(theme)}</div>
       </div>
       <div className="font-sans text-[12.5px] text-muted mb-2">
-        L&apos;apparence de l&apos;app. Le vert (mémorisé) et le rouge (suppression) ne changent pas.
+        {resolveChrome(ACCOUNT_CHROME.themeColorHelp, immersionMode)}
       </div>
       <div className="flex gap-4">
         {THEME_SWATCHES.map((p) => {

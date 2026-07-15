@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { getDictionaryState } from '@/lib/dictionary'
+import { coerceImmersionMode } from '@/lib/immersion'
 import UnlockSync from '../UnlockSync'
 import DictionaryIndex from './DictionaryIndex'
 import LockedScreen from './LockedScreen'
@@ -9,15 +10,19 @@ import LockedScreen from './LockedScreen'
 // sticky flag (server action) if the threshold is reached while this page is open.
 export default async function DictionaryPage() {
   const supabase = await createClient()
-  const { unlocked, memorizedCount, entries } = await getDictionaryState(supabase)
+  const [{ unlocked, memorizedCount, entries }, { data: profile }] = await Promise.all([
+    getDictionaryState(supabase),
+    supabase.from('profiles').select('immersion_mode').maybeSingle(),
+  ])
+  const mode = coerceImmersionMode(profile?.immersion_mode)
 
   return (
     <>
       <UnlockSync />
       {unlocked ? (
-        <DictionaryIndex entries={entries} />
+        <DictionaryIndex entries={entries} mode={mode} />
       ) : (
-        <LockedScreen memorizedCount={memorizedCount} />
+        <LockedScreen memorizedCount={memorizedCount} mode={mode} />
       )}
     </>
   )

@@ -13,6 +13,8 @@ import ConjugationGrid from '../ConjugationGrid'
 import { buildConjugationGrid } from '@/lib/conjugation-grid'
 import { posAbbrev } from '@/lib/discovery'
 import type { WordCard } from '@/lib/word-status'
+import { useSettings } from '../SettingsProvider'
+import { glossVisibility, resolveChrome, ADD_CHROME, DETAIL_CHROME, WORDS_CHROME, DRILL_CHROME, DISCOVER_CHROME } from '@/lib/immersion'
 
 type Example = { es: string; fr: string }
 type WordResult = {
@@ -88,6 +90,8 @@ function highlightWord(sentence: string, word: string): React.ReactNode {
 }
 
 export default function AddPage() {
+  const { immersionMode: mode } = useSettings()
+  const gloss = glossVisibility(mode)
   const [word, setWord] = useState('')
   const [phase, setPhase] = useState<Phase>({ tag: 'idle' })
   const [inputError, setInputError] = useState<string | null>(null)
@@ -126,7 +130,7 @@ export default function AddPage() {
           setPhase({ tag: 'spellcheck_candidates', word: targetWord, candidates: data.candidates })
         } else if (data.error === 'SPELLCHECK_UNKNOWN') {
           setPhase({ tag: 'idle' })
-          setInputError("Ce mot n'existe pas en espagnol")
+          setInputError(resolveChrome(ADD_CHROME.notInSpanish, mode))
         } else {
           setPhase({ tag: 'error', word: targetWord })
           console.warn('[add] /api/words/enrich error:', data.error)
@@ -334,8 +338,8 @@ export default function AddPage() {
     return (
       <div className="flex flex-col pb-16">
         <div className="p-5">
-          <h1 className="font-serif text-[30px] font-bold tracking-[-0.02em] text-ink">Nouveau mot</h1>
-          <p className="text-[13.5px] text-muted mt-1">Entre un mot espagnol</p>
+          <h1 className="font-serif text-[30px] font-bold tracking-[-0.02em] text-ink">{resolveChrome(ADD_CHROME.newWord, mode)}</h1>
+          <p className="text-[13.5px] text-muted mt-1">{resolveChrome(ADD_CHROME.enterWord, mode)}</p>
         </div>
 
         <div className="px-5 flex flex-col gap-4">
@@ -348,7 +352,7 @@ export default function AddPage() {
           <div className="flex items-start gap-3">
             <Image src="/paco.png" alt="Paco" width={52} height={52} className="object-contain shrink-0" />
             <p className="text-[14px] text-muted leading-relaxed">
-              Paco va générer la définition, des exemples et des mots similaires pour enrichir ton apprentissage.
+              {resolveChrome(ADD_CHROME.helperParagraph, mode)}
             </p>
           </div>
           <Button
@@ -358,7 +362,7 @@ export default function AddPage() {
             disabled={!word.trim()}
             onClick={() => handleSubmit(word.trim())}
           >
-            Rechercher →
+            {resolveChrome(ADD_CHROME.search, mode)} →
           </Button>
         </div>
       </div>
@@ -376,11 +380,15 @@ export default function AddPage() {
           onClick={() => { setWord(originalWord); setPhase({ tag: 'idle' }) }}
           className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted self-start"
         >
-          ← Retour
+          ← {resolveChrome(DRILL_CHROME.back, mode)}
         </button>
         <div>
-          <h1 className="font-serif text-[28px] font-bold tracking-[-0.02em] text-ink">Voulais-tu dire…</h1>
-          <p className="text-[13.5px] text-muted mt-1.5">&laquo;&nbsp;{originalWord}&nbsp;&raquo; n&apos;a pas été reconnu</p>
+          <h1 className="font-serif text-[28px] font-bold tracking-[-0.02em] text-ink">{resolveChrome(ADD_CHROME.didYouMean, mode)}</h1>
+          <p className="text-[13.5px] text-muted mt-1.5">
+            {mode === 'fr_es'
+              ? <>&laquo;&nbsp;{originalWord}&nbsp;&raquo; n&apos;a pas été reconnu</>
+              : <>No se ha reconocido &laquo;{originalWord}&raquo;</>}
+          </p>
         </div>
         <div className="flex flex-col gap-3">
           {candidates.map((c) => (
@@ -400,7 +408,7 @@ export default function AddPage() {
           onClick={() => { setWord(originalWord); setPhase({ tag: 'idle' }) }}
           className="text-[14px] font-semibold text-muted underline underline-offset-[3px] self-start"
         >
-          Aucune de ces propositions
+          {resolveChrome(ADD_CHROME.noneOfThese, mode)}
         </button>
       </div>
     )
@@ -420,12 +428,14 @@ export default function AddPage() {
           onClick={() => { setWord(result.word); setPhase({ tag: 'idle' }); setSaveState('idle') }}
           className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted self-start"
         >
-          ← Retour
+          ← {resolveChrome(DRILL_CHROME.back, mode)}
         </button>
         <div>
-          <h1 className="font-serif text-[28px] font-bold tracking-[-0.02em] text-ink">Forme conjuguée</h1>
+          <h1 className="font-serif text-[28px] font-bold tracking-[-0.02em] text-ink">{resolveChrome(ADD_CHROME.conjugatedForm, mode)}</h1>
           <p className="text-[13.5px] text-muted mt-1.5">
-            &laquo;&nbsp;{result.word}&nbsp;&raquo; est une forme de{' '}
+            {mode === 'fr_es'
+              ? <>&laquo;&nbsp;{result.word}&nbsp;&raquo; est une forme de{' '}</>
+              : <>&laquo;{result.word}&raquo; es una forma de{' '}</>}
             <span className="font-serif font-bold text-ink">{lemma}</span>
           </p>
         </div>
@@ -435,7 +445,7 @@ export default function AddPage() {
         ) : (
           result.form_annotation && (
             <div className="bg-card border border-line rounded-[14px] shadow-card px-4 py-[14px]">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">Forme</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">{resolveChrome(DETAIL_CHROME.formEyebrow, mode)}</p>
               <p className="font-serif text-base text-ink leading-relaxed mt-2">{result.form_annotation}</p>
             </div>
           )
@@ -445,17 +455,21 @@ export default function AddPage() {
           <p className="flex items-center gap-2 font-serif text-[13.5px] italic text-muted leading-relaxed">
             <span className="w-[5px] h-[5px] rounded-full bg-accent shrink-0" aria-hidden />
             <span>
-              {lemma_reps !== undefined && lemma_reps > 0 && (
-                <>Tu as revu <span className="font-bold not-italic text-ink">{lemma}</span> {lemma_reps} fois</>
-              )}
+              {lemma_reps !== undefined && lemma_reps > 0 &&
+                (mode === 'fr_es'
+                  ? <>Tu as revu <span className="font-bold not-italic text-ink">{lemma}</span> {lemma_reps} fois</>
+                  : <>Has repasado <span className="font-bold not-italic text-ink">{lemma}</span> {lemma_reps} {lemma_reps > 1 ? 'veces' : 'vez'}</>)}
               {lemma_reps !== undefined && lemma_reps > 0 && dueDays !== null && ' · '}
               {dueDays !== null &&
                 (dueDays <= 0
-                  ? 'prochaine révision aujourd’hui'
-                  : `prochaine révision dans ${dueDays} jour${dueDays > 1 ? 's' : ''}`)}
-              {(lemma_reps === undefined || lemma_reps === 0) && dueDays === null && (
-                <><span className="font-bold not-italic text-ink">{lemma}</span> est déjà dans ta collection</>
-              )}
+                  ? resolveChrome(ADD_CHROME.nextReviewToday, mode)
+                  : mode === 'fr_es'
+                    ? `prochaine révision dans ${dueDays} jour${dueDays > 1 ? 's' : ''}`
+                    : `próximo repaso en ${dueDays} día${dueDays > 1 ? 's' : ''}`)}
+              {(lemma_reps === undefined || lemma_reps === 0) && dueDays === null &&
+                (mode === 'fr_es'
+                  ? <><span className="font-bold not-italic text-ink">{lemma}</span> est déjà dans ta collection</>
+                  : <><span className="font-bold not-italic text-ink">{lemma}</span> ya está en tu colección</>)}
             </span>
           </p>
         )}
@@ -474,9 +488,9 @@ export default function AddPage() {
             {saveState === 'saving' ? (
               <Loader2 size={16} className="animate-spin" />
             ) : saveState === 'error' ? (
-              'Erreur — réessayer'
+              resolveChrome(ADD_CHROME.errorRetry, mode)
             ) : (
-              <><Plus size={17} strokeWidth={2.2} /> Ajouter « {lemma} »</>
+              <><Plus size={17} strokeWidth={2.2} /> {mode === 'fr_es' ? `Ajouter « ${lemma} »` : `Añadir «${lemma}»`}</>
             )}
           </Button>
           {lemma_status === 'already_in_deck' && (
@@ -486,7 +500,7 @@ export default function AddPage() {
               href={`/words/${lemma_word_id ?? ''}`}
               onClick={() => logLemmaEvent('lemma_collision_open_existing', result.word, lemma)}
             >
-              <ExternalLink size={16} /> Ouvrir « {lemma} »
+              <ExternalLink size={16} /> {mode === 'fr_es' ? `Ouvrir « ${lemma} »` : `Abrir «${lemma}»`}
             </Button>
           )}
           <Button
@@ -500,7 +514,7 @@ export default function AddPage() {
               setPhase({ tag: 'revealed', result: { ...result, lemma } })
             }}
           >
-            Garder « {result.word} »
+            {mode === 'fr_es' ? `Garder « ${result.word} »` : `Conservar «${result.word}»`}
           </Button>
         </div>
       </div>
@@ -511,8 +525,10 @@ export default function AddPage() {
   if (phase.tag === 'exists') {
     const { word: w, defEs, wordId, card, dueNow, daysUntil } = phase
     const supportive = dueNow
-      ? 'Pas besoin de le re-créer — ouvre-le pour le réviser.'
-      : `Prochaine révision dans ${daysUntil} jour${daysUntil > 1 ? 's' : ''}. Pas besoin de le re-créer — ouvre-le quand tu veux.`
+      ? resolveChrome(ADD_CHROME.noNeedRecreateReview, mode)
+      : mode === 'fr_es'
+        ? `Prochaine révision dans ${daysUntil} jour${daysUntil > 1 ? 's' : ''}. Pas besoin de le re-créer — ouvre-le quand tu veux.`
+        : `Próximo repaso en ${daysUntil} día${daysUntil > 1 ? 's' : ''}. No hace falta volver a crearla — ábrela cuando quieras.`
     return (
       <div className="flex flex-col flex-1 p-5">
         <button
@@ -520,23 +536,25 @@ export default function AddPage() {
           onClick={handleAddAnother}
           className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted self-start"
         >
-          ← Retour
+          ← {resolveChrome(DRILL_CHROME.back, mode)}
         </button>
         <div className="flex-1 flex flex-col items-center justify-center text-center pb-8">
           <Image src="/paco.png" alt="Paco" width={96} height={96} className="object-contain mb-3" />
           <h1 className="font-serif text-2xl font-bold text-ink leading-tight max-w-[280px]">
-            &laquo;&nbsp;{w}&nbsp;&raquo; est déjà dans ta collection
+            {mode === 'fr_es'
+              ? <>&laquo;&nbsp;{w}&nbsp;&raquo; est déjà dans ta collection</>
+              : <>&laquo;{w}&raquo; ya está en tu colección</>}
           </h1>
           <p className="text-[14px] text-muted leading-relaxed mt-2.5 max-w-[270px]">{supportive}</p>
           <div className="w-full max-w-[320px] mt-[22px]">
-            <WordRow id={wordId} word={w} defEs={defEs} card={card} asListItem={false} />
+            <WordRow id={wordId} word={w} defEs={defEs} card={card} asListItem={false} mode={mode} />
           </div>
           <div className="w-full max-w-[320px] mt-[22px] flex flex-col gap-3 items-center">
             <Button variant="primary" full href={`/words/${wordId}`}>
-              Ouvrir « {w} » →
+              {mode === 'fr_es' ? `Ouvrir « ${w} » →` : `Abrir «${w}» →`}
             </Button>
             <Button variant="text" type="button" onClick={handleAddAnother}>
-              Chercher un autre mot
+              {resolveChrome(ADD_CHROME.searchAnother, mode)}
             </Button>
           </div>
         </div>
@@ -552,20 +570,22 @@ export default function AddPage() {
         <div className="flex-1 flex flex-col items-center justify-center text-center">
           <Image src="/paco-feliz.png" alt="Paco" width={92} height={92} className="object-contain mb-3" />
           <h1 className="font-serif text-2xl font-bold text-ink leading-tight">
-            &laquo;&nbsp;{w}&nbsp;&raquo; est dans ta collection
+            {mode === 'fr_es'
+              ? <>&laquo;&nbsp;{w}&nbsp;&raquo; est dans ta collection</>
+              : <>&laquo;{w}&raquo; está en tu colección</>}
           </h1>
           <p className="text-[14px] text-muted leading-relaxed mt-2 max-w-[260px]">
-            Paco te le ramènera demain pour ta première révision.
+            {resolveChrome(ADD_CHROME.bringTomorrow, mode)}
           </p>
           <div className="w-full max-w-[320px] mt-[22px]">
-            <WordRow id={id || undefined} word={w} defEs={defEs} card={null} asListItem={false} />
+            <WordRow id={id || undefined} word={w} defEs={defEs} card={null} asListItem={false} mode={mode} />
           </div>
           <div className="w-full max-w-[320px] mt-[22px] flex flex-col gap-3 items-center">
             <Button variant="primary" full type="button" onClick={handleAddAnother}>
-              <Plus size={17} strokeWidth={2.2} /> Ajouter un autre mot
+              <Plus size={17} strokeWidth={2.2} /> {resolveChrome(ADD_CHROME.addAnother, mode)}
             </Button>
             <Button variant="text" href="/words">
-              Voir mes mots
+              {resolveChrome(ADD_CHROME.viewMyWords, mode)}
             </Button>
           </div>
         </div>
@@ -581,25 +601,26 @@ export default function AddPage() {
         <div className="flex flex-col items-center text-center pt-3">
           <Image src="/paco-feliz.png" alt="Paco" width={84} height={84} className="object-contain mb-2.5" />
           <h1 className="font-serif text-[23px] font-bold text-ink leading-tight">
-            {words.length} mot{words.length > 1 ? 's' : ''} en route
+            {mode === 'fr_es'
+              ? `${words.length} mot${words.length > 1 ? 's' : ''} en route`
+              : `${words.length} palabra${words.length > 1 ? 's' : ''} en camino`}
           </h1>
           <p className="text-[14px] text-muted leading-relaxed mt-2 max-w-[290px]">
-            Tes mots sont en train d&apos;être ajoutés à ta bibliothèque — ça peut prendre jusqu&apos;à 20 secondes.
-            Tu peux continuer à naviguer.
+            {resolveChrome(ADD_CHROME.wordsEnRouteHelp, mode)}
           </p>
         </div>
         <div className="w-full max-w-[330px] mx-auto mt-5 flex flex-col gap-2.5">
           {/* Non-linking rows — the words are still being created in the background (no id yet). */}
           {words.map((w) => (
-            <WordRow key={w} word={w} defEs="" card={null} asListItem={false} />
+            <WordRow key={w} word={w} defEs="" card={null} asListItem={false} mode={mode} />
           ))}
         </div>
         <div className="w-full max-w-[330px] mx-auto mt-auto pt-6 flex flex-col gap-3 items-center">
           <Button variant="primary" full type="button" onClick={handleAddAnother}>
-            <Plus size={17} strokeWidth={2.2} /> Ajouter un autre mot
+            <Plus size={17} strokeWidth={2.2} /> {resolveChrome(ADD_CHROME.addAnother, mode)}
           </Button>
           <Button variant="text" href="/words">
-            Voir mes mots
+            {resolveChrome(ADD_CHROME.viewMyWords, mode)}
           </Button>
         </div>
       </div>
@@ -644,50 +665,51 @@ export default function AddPage() {
         {/* FORME — only for inflected words */}
         {result.form_annotation && (
           <div className="bg-card border border-line rounded-[14px] shadow-card p-5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted mb-3">Forme</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted mb-3">{resolveChrome(DETAIL_CHROME.formEyebrow, mode)}</p>
             <p className="font-serif text-sm text-ink leading-relaxed">{result.form_annotation}</p>
           </div>
         )}
 
-        {/* DÉFINITION */}
+        {/* DÉFINITION — FR gloss: shown (fr_es) · tap-to-reveal (immersion) · hidden (totale). */}
         <div className="bg-card border border-line rounded-[14px] shadow-card p-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted mb-3">Définition</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted mb-3">{resolveChrome(DETAIL_CHROME.definitionEyebrow, mode)}</p>
           <p className="font-serif text-sm text-ink leading-relaxed">{result.definition.es}</p>
-          {revealedDefFr ? (
+          {gloss !== 'hidden' && (revealedDefFr ? (
             <div className="mt-2">
               <p className="font-serif italic text-sm text-muted">{result.definition.fr}</p>
               <button type="button" onClick={() => setRevealedDefFr(false)} className="text-[13px] font-semibold text-accent underline underline-offset-[3px] mt-1.5">
-                Masquer le français
+                {resolveChrome(DETAIL_CHROME.hideDef, mode)}
               </button>
             </div>
           ) : (
             <button type="button" onClick={() => setRevealedDefFr(true)} className="text-[13px] font-semibold text-accent underline underline-offset-[3px] mt-2">
-              Voir en français
+              {resolveChrome(DETAIL_CHROME.revealDef, mode)}
             </button>
-          )}
+          ))}
         </div>
 
         {/* EXEMPLES */}
         <div className="bg-card border border-line rounded-[14px] shadow-card p-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted mb-4">Exemples</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted mb-4">{resolveChrome(DETAIL_CHROME.examplesEyebrow, mode)}</p>
           <ul className="flex flex-col divide-y divide-border-soft">
             {result.examples.map((ex, i) => (
               <li key={i} className={i > 0 ? 'pt-4' : ''}>
                 <p className="font-serif text-sm text-ink leading-relaxed">
                   {highlightWord(ex.es, result.word)}
                 </p>
-                {revealedFr[i] ? (
+                {/* Example FR gloss: shown (fr_es) · tap-to-reveal (immersion) · hidden (totale). */}
+                {gloss !== 'hidden' && (revealedFr[i] ? (
                   <div className="mt-1">
                     <p className="font-serif italic text-sm text-muted">{ex.fr}</p>
                     <button type="button" onClick={() => toggleFr(i)} className="text-[13px] font-semibold text-accent underline underline-offset-[3px] mt-1.5">
-                      Masquer
+                      {resolveChrome(ADD_CHROME.exampleHide, mode)}
                     </button>
                   </div>
                 ) : (
                   <button type="button" onClick={() => toggleFr(i)} className="text-[13px] font-semibold text-accent underline underline-offset-[3px] mt-2">
-                    Traduction
+                    {resolveChrome(DETAIL_CHROME.revealEx, mode)}
                   </button>
-                )}
+                ))}
               </li>
             ))}
           </ul>
@@ -698,20 +720,19 @@ export default function AddPage() {
           <div className="bg-surface-alt border border-tinted-border rounded-[14px] p-5">
             <div className="flex justify-between items-center mb-2">
               <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">
-                Mots similaires à ne pas confondre
+                {resolveChrome(ADD_CHROME.similarNotConfuse, mode)}
               </p>
               <button
                 type="button"
                 onClick={() => handleToggleAll(result.distractors)}
                 className="text-[13px] font-semibold text-accent shrink-0 ml-3 underline underline-offset-[3px]"
               >
-                {allSelected ? 'Tout désélectionner' : 'Tout sélectionner'}
+                {resolveChrome(allSelected ? ADD_CHROME.deselectAll : ADD_CHROME.selectAll, mode)}
               </button>
             </div>
 
             <p className="text-[12.5px] text-muted leading-relaxed mb-3">
-              Apprendre des mots de la même famille en parallèle aide ton cerveau à les distinguer
-              en contexte. Touche chaque mot pour l&apos;ajouter à ton vocabulaire.
+              {resolveChrome(ADD_CHROME.similarHelper, mode)}
             </p>
 
             <div className="flex flex-wrap gap-2">
@@ -742,10 +763,12 @@ export default function AddPage() {
         {selectionCount > 0 ? (
           <>
             <Button variant="secondary" full className="flex-1" type="button" onClick={() => setSelectedDistractors(new Set())}>
-              Annuler
+              {resolveChrome(WORDS_CHROME.undo, mode)}
             </Button>
             <Button variant="primary" full className="flex-[2]" type="button" onClick={handleAddDistractors}>
-              Ajouter {selectionCount} mot{selectionCount > 1 ? 's' : ''} →
+              {mode === 'fr_es'
+                ? `Ajouter ${selectionCount} mot${selectionCount > 1 ? 's' : ''} →`
+                : `Añadir ${selectionCount} palabra${selectionCount > 1 ? 's' : ''} →`}
             </Button>
           </>
         ) : (
@@ -753,7 +776,7 @@ export default function AddPage() {
             <button
               type="button"
               onClick={handleAddAnother}
-              aria-label="Nouveau mot"
+              aria-label={resolveChrome(ADD_CHROME.newWord, mode)}
               className="shrink-0 w-[52px] h-[52px] grid place-items-center bg-card border-[1.5px] border-line rounded-[14px] text-ink"
             >
               <ArrowLeft size={20} />
@@ -769,9 +792,9 @@ export default function AddPage() {
               {saveState === 'saving' ? (
                 <Loader2 size={16} className="animate-spin" />
               ) : saveState === 'error' ? (
-                'Erreur — réessayer'
+                resolveChrome(ADD_CHROME.errorRetry, mode)
               ) : (
-                <><Plus size={17} strokeWidth={2.2} /> Ajouter à ma collection</>
+                <><Plus size={17} strokeWidth={2.2} /> {resolveChrome(ADD_CHROME.addToCollection, mode)}</>
               )}
             </Button>
           </>

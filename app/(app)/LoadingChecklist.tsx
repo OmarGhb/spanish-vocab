@@ -4,6 +4,8 @@ import Image from 'next/image'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import IdiomCard from './IdiomCard'
 import { getRandomIdiom } from '@/lib/idioms'
+import { useSettings } from './SettingsProvider'
+import { resolveChrome, SHARED_CHROME } from '@/lib/immersion'
 
 // Shared loading choreography (the "Paco creuse / choisit" wait) — used by /add enrichment and
 // /discover generation. The MOTION-loading.md (canonical) phase-stepping: per-phase ring-pop +
@@ -95,6 +97,7 @@ export default function LoadingChecklist({
   phase4BeatMs = 550,
   shellDelayMs = 400,
 }: Props) {
+  const { immersionMode } = useSettings()
   const [idiom] = useState(() => getRandomIdiom())
   const [shellVisible, setShellVisible] = useState(false)
   const [doneCount, setDoneCount] = useState(0) // 0..phases.length; active = doneCount (or none once all done)
@@ -160,7 +163,7 @@ export default function LoadingChecklist({
 
       <div className="paco-enter flex items-center gap-3 py-0.5">
         <div className="flex-1 h-px bg-border-soft" />
-        <span className="text-[10.5px] uppercase tracking-[0.1em] text-faint font-sans">Pendant que tu attends</span>
+        <span className="text-[10.5px] uppercase tracking-[0.1em] text-faint font-sans">{resolveChrome(SHARED_CHROME.loadingWait, immersionMode)}</span>
         <div className="flex-1 h-px bg-border-soft" />
       </div>
       <div className="paco-enter-2">

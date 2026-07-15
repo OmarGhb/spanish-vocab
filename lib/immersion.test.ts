@@ -14,6 +14,10 @@ import {
   WORDS_CHROME,
   DETAIL_CHROME,
   DRILL_CHROME,
+  SHARED_CHROME,
+  DICT_CHROME,
+  ADD_CHROME,
+  ACCOUNT_CHROME,
 } from './immersion'
 
 describe('coerceImmersionMode / isImmersionMode', () => {
@@ -101,6 +105,21 @@ describe('resolveChrome', () => {
     }
     expect(resolveChrome(DRILL_CHROME.start, 'immersion')).toBe('Empezar')
     expect(resolveChrome(DRILL_CHROME.wasAnswer, 'totale')).toBe('Era')
+  })
+
+  it('has authored Spanish for every M6.1d-ii chrome pair (no French holes)', () => {
+    const maps = { SHARED_CHROME, DICT_CHROME, ADD_CHROME, ACCOUNT_CHROME }
+    for (const [name, map] of Object.entries(maps)) {
+      for (const [key, pair] of Object.entries(map)) {
+        expect(pair.es, `${name}.${key} missing es`).toBeTruthy()
+        expect(resolveChrome(pair, 'immersion')).toBe(pair.es)
+        expect(resolveChrome(pair, 'fr_es')).toBe(pair.fr)
+      }
+    }
+    expect(resolveChrome(SHARED_CHROME.audioAria, 'immersion')).toBe('Escuchar la pronunciación')
+    expect(resolveChrome(ACCOUNT_CHROME.confirmToken, 'totale')).toBe('ELIMINAR')
+    expect(resolveChrome(ADD_CHROME.selectAll, 'immersion')).toBe('Seleccionar todo')
+    expect(resolveChrome(DICT_CHROME.later, 'immersion')).toBe('Más tarde')
   })
 })
 

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { AZ_BUCKETS, groupAZ, type Bucket, type DictionaryEntry } from '@/lib/dictionary'
+import { resolveChrome, DICT_CHROME, NAV_CHROME, type ImmersionMode } from '@/lib/immersion'
 import AudioButton from '../AudioButton'
 
 // Offset for the sticky top nav (matches the sections' scroll-mt-28 ≈ 112px) — used both
@@ -14,7 +15,7 @@ const NAV_OFFSET = 112
 // reps / filters / sorts. The row gloss is the Spanish sense (definition.es): this is an
 // index of words the user has ALREADY memorized, so Spanish reinforces the learning frame;
 // the French stays available at the word fiche.
-export default function DictionaryIndex({ entries }: { entries: DictionaryEntry[] }) {
+export default function DictionaryIndex({ entries, mode = 'fr_es' }: { entries: DictionaryEntry[]; mode?: ImmersionMode }) {
   const sections = groupAZ(entries)
   const present = new Set<Bucket>(sections.map((s) => s.letter))
   const sectionRefs = useRef<Map<Bucket, HTMLElement | null>>(new Map())
@@ -103,12 +104,14 @@ export default function DictionaryIndex({ entries }: { entries: DictionaryEntry[
       <div className="pl-[22px] pr-[30px] pt-1.5 pb-10 flex flex-col">
         {/* Masthead — no back chevron (top-level pill destination) */}
         <div className="pb-3">
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-accent">Lexique personnel</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-accent">{resolveChrome(DICT_CHROME.personalLexicon, mode)}</p>
           <h1 className="font-serif text-[34px] font-bold text-ink leading-none tracking-[-0.025em] mt-1.5">
-            Dictionnaire
+            {resolveChrome(NAV_CHROME.dictionary, mode)}
           </h1>
           <p className="text-[13.5px] text-muted mt-[7px]">
-            {count} mot{count !== 1 ? 's' : ''} dans ton dictionnaire
+            {mode === 'fr_es'
+              ? `${count} mot${count !== 1 ? 's' : ''} dans ton dictionnaire`
+              : `${count} palabra${count !== 1 ? 's' : ''} en tu diccionario`}
           </p>
         </div>
         <div className="h-px bg-hair" />

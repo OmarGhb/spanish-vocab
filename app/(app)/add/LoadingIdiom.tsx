@@ -8,6 +8,8 @@ import Display from '../Display'
 import StickyActions from '../StickyActions'
 import LoadingChecklist from '../LoadingChecklist'
 import { posAbbrev } from '@/lib/discovery'
+import { useSettings } from '../SettingsProvider'
+import { resolveChrome, ADD_CHROME, DETAIL_CHROME, DISCOVER_CHROME, SHARED_CHROME } from '@/lib/immersion'
 
 type PreviewData = {
   word: string
@@ -22,11 +24,18 @@ type Props = {
   onRetry: () => void
 }
 
-const PHASES = ['Définition', 'Exemples', 'Mots de la même famille', 'Phonétique'] as const
-
 export default function LoadingIdiom({ status, word, result, onReveal, onRetry }: Props) {
   // The loading choreography (phase-stepping + floor + reveal gate) lives in the shared
   // LoadingChecklist; this component owns only the ¡Listo! reveal + error + the CTA.
+  const { immersionMode: mode } = useSettings()
+  // Phase labels — mode-aware, reused by the LoadingChecklist + the ¡Listo! recap. Reuses the
+  // detail eyebrows + discovery's Phonétique/Fonética.
+  const phases = [
+    resolveChrome(DETAIL_CHROME.definitionEyebrow, mode),
+    resolveChrome(DETAIL_CHROME.examplesEyebrow, mode),
+    resolveChrome(ADD_CHROME.familyWords, mode),
+    resolveChrome(DISCOVER_CHROME.genPhasePhon, mode),
+  ]
   const [showListo, setShowListo] = useState(false)
 
   // ── ERROR ──
@@ -36,11 +45,11 @@ export default function LoadingIdiom({ status, word, result, onReveal, onRetry }
         <div className="flex items-center gap-3">
           <Image src="/paco-sad.png" alt="Paco" width={44} height={44} className="object-contain shrink-0" />
           <p className="text-sm text-err font-serif">
-            Une erreur s&apos;est produite — veuillez réessayer.
+            {resolveChrome(ADD_CHROME.errorOccurred, mode)}
           </p>
         </div>
         <Button variant="secondary" full type="button" onClick={onRetry}>
-          Réessayer
+          {resolveChrome(DISCOVER_CHROME.retry, mode)}
         </Button>
       </div>
     )
@@ -56,7 +65,7 @@ export default function LoadingIdiom({ status, word, result, onReveal, onRetry }
             <div>
               {/* The SOLE Fraunces usage in the add flow — the allowlist Display primitive. */}
               <Display kind="listo" className="text-[34px] leading-none text-ink">¡Listo!</Display>
-              <p className="text-[13.5px] text-muted mt-2">Voici ce que Paco a trouvé.</p>
+              <p className="text-[13.5px] text-muted mt-2">{resolveChrome(ADD_CHROME.listoSub, mode)}</p>
             </div>
           </div>
 
@@ -71,7 +80,7 @@ export default function LoadingIdiom({ status, word, result, onReveal, onRetry }
               <p className="font-serif text-[14.5px] italic text-muted mt-1 line-clamp-1">{result.definition.es}</p>
               <div className="border-t border-border-soft mt-4 pt-4">
                 <ul className="flex flex-col gap-2.5">
-                  {PHASES.map((phase) => (
+                  {phases.map((phase) => (
                     <li key={phase} className="flex items-center gap-2.5">
                       <Check size={15} strokeWidth={2.4} className="text-ok shrink-0" />
                       <span className="font-serif text-[15.5px] text-ink">{phase}</span>
@@ -86,7 +95,7 @@ export default function LoadingIdiom({ status, word, result, onReveal, onRetry }
             same proven pattern as the fiche; replaces the brittle min-h column that clipped it. */}
         <StickyActions>
           <Button variant="primary" full type="button" onClick={onReveal}>
-            Voir la fiche →
+            {resolveChrome(ADD_CHROME.seeCard, mode)} →
           </Button>
         </StickyActions>
       </>
@@ -96,8 +105,8 @@ export default function LoadingIdiom({ status, word, result, onReveal, onRetry }
   // ── LOADING (shared choreography) ──
   return (
     <LoadingChecklist
-      title={<>Paco creuse pour <span className="text-accent">{word}</span></>}
-      phases={PHASES}
+      title={<>{resolveChrome(SHARED_CHROME.genFor, mode)} <span className="text-accent">{word}</span></>}
+      phases={phases}
       ready={status === 'ready'}
       onReveal={() => setShowListo(true)}
     />

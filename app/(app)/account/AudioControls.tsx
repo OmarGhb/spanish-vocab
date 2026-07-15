@@ -2,6 +2,7 @@
 
 import { Toggle, Segmented } from '@/components/form/Controls'
 import { useSettings } from '../SettingsProvider'
+import { resolveChrome, ACCOUNT_CHROME } from '@/lib/immersion'
 import type { PlaybackSpeed } from '@/lib/playback-speed'
 
 // Audio controls read/write the SettingsProvider context (server-seeded from profiles), so a change
@@ -13,13 +14,12 @@ export function AutoplayToggle() {
   return <Toggle on={autoplayAudio} onChange={setAutoplayAudio} />
 }
 
-const SPEED_OPTIONS: readonly { value: PlaybackSpeed; label: string }[] = [
-  { value: 'lent', label: 'Lent' },
-  { value: 'normal', label: 'Normal' },
-  { value: 'rapide', label: 'Rapide' },
-]
-
 export function SpeedSegmented() {
-  const { playbackSpeed, setPlaybackSpeed } = useSettings()
-  return <Segmented options={SPEED_OPTIONS} value={playbackSpeed} onChange={setPlaybackSpeed} />
+  const { playbackSpeed, setPlaybackSpeed, immersionMode } = useSettings()
+  const options: readonly { value: PlaybackSpeed; label: string }[] = [
+    { value: 'lent', label: resolveChrome(ACCOUNT_CHROME.speedSlow, immersionMode) },
+    { value: 'normal', label: resolveChrome(ACCOUNT_CHROME.speedNormal, immersionMode) },
+    { value: 'rapide', label: resolveChrome(ACCOUNT_CHROME.speedFast, immersionMode) },
+  ]
+  return <Segmented options={options} value={playbackSpeed} onChange={setPlaybackSpeed} />
 }

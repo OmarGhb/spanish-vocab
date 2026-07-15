@@ -3,6 +3,7 @@
 import { Volume2 } from 'lucide-react'
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { useSettings } from './SettingsProvider'
+import { resolveChrome, SHARED_CHROME } from '@/lib/immersion'
 
 // `variant` controls chrome only (same playback logic): 'inline' (default) is the bare
 // icon used across fiches; 'circle' is the dictionary row's 36px bordered speaker button
@@ -21,7 +22,8 @@ export default function AudioButton({ word, audioUrl, variant = 'inline' }: Prop
   // "Vitesse de lecture" — applied as playbackRate over the cached MP3 (which is baked at 0.9×;
   // the rate is perceivedTarget ÷ 0.9, see lib/playback-speed.ts). The Web-Speech fallback below
   // is a SEPARATE engine (no cached file) and stays at its fixed 0.9 — out of this control's scope.
-  const { playbackRate } = useSettings()
+  const { playbackRate, immersionMode } = useSettings()
+  const audioAria = resolveChrome(SHARED_CHROME.audioAria, immersionMode)
 
   useEffect(() => {
     return () => { audioRef.current?.pause() }
@@ -82,7 +84,7 @@ export default function AudioButton({ word, audioUrl, variant = 'inline' }: Prop
       <button
         type="button"
         onClick={audioUrl ? playUrl : speakWord}
-        aria-label="Écouter la prononciation"
+        aria-label={audioAria}
         className={`press-icon shrink-0 w-9 h-9 rounded-full grid place-items-center border border-line bg-card text-accent transition-colors ${speaking ? 'animate-pulse' : ''}`}
       >
         <Volume2 size={17} strokeWidth={1.8} />
@@ -94,7 +96,7 @@ export default function AudioButton({ word, audioUrl, variant = 'inline' }: Prop
     <button
       type="button"
       onClick={audioUrl ? playUrl : speakWord}
-      aria-label="Écouter la prononciation"
+      aria-label={audioAria}
       className={`p-1 text-muted transition-colors hover:text-accent ${speaking ? 'animate-pulse text-accent' : ''}`}
     >
       <Volume2 size={18} />

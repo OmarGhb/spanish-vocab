@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { resolveChrome, DISCOVER_CHROME, type ImmersionMode } from '@/lib/immersion'
 import { RowWrap } from './SettingsCard'
 
 // The row system has TWO core states (locked contract): ACTIVE (a live control) vs BIENTÔT
@@ -48,19 +49,19 @@ export function ActiveRow({
 
 // (b) BIENTÔT — inert, on-brand, unmistakable: faint label + dashed-border ghost pill.
 // Distinct from the system's SOLID status pills. No tap target, not focusable.
-function SoonBadge() {
+function SoonBadge({ mode }: { mode: ImmersionMode }) {
   return (
     <span className="inline-flex items-center rounded-full border-[1.5px] border-dashed border-line px-3 py-[5px] font-sans text-[10.5px] font-bold tracking-[0.08em] uppercase text-faint whitespace-nowrap">
-      Bientôt
+      {resolveChrome(DISCOVER_CHROME.soon, mode)}
     </span>
   )
 }
-export function SoonRow({ label, help, first }: { label: string; help?: string; first?: boolean }) {
+export function SoonRow({ label, help, first, mode = 'fr_es' }: { label: string; help?: string; first?: boolean; mode?: ImmersionMode }) {
   return (
     <RowWrap first={first}>
       <RowText label={label} help={help} muted />
       <div className="shrink-0">
-        <SoonBadge />
+        <SoonBadge mode={mode} />
       </div>
     </RowWrap>
   )
