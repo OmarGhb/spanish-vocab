@@ -13,6 +13,7 @@ import {
   STATUS_CHROME,
   WORDS_CHROME,
   DETAIL_CHROME,
+  DRILL_CHROME,
 } from './immersion'
 
 describe('coerceImmersionMode / isImmersionMode', () => {
@@ -91,6 +92,15 @@ describe('resolveChrome', () => {
     expect(resolveChrome(NAV_CHROME.review, 'immersion')).toBe('Repaso')
     expect(resolveChrome(STATUS_CHROME.memorise, 'totale')).toBe('Memorizado')
     expect(resolveChrome(DETAIL_CHROME.relearn, 'immersion')).toBe('Volver a repasar')
+  })
+
+  it('has authored Spanish for every Drill chrome pair (M6.1d-i)', () => {
+    for (const pair of Object.values(DRILL_CHROME)) {
+      expect(pair.es).toBeTruthy()
+      expect(resolveChrome(pair, 'fr_es')).toBe(pair.fr)
+    }
+    expect(resolveChrome(DRILL_CHROME.start, 'immersion')).toBe('Empezar')
+    expect(resolveChrome(DRILL_CHROME.wasAnswer, 'totale')).toBe('Era')
   })
 })
 

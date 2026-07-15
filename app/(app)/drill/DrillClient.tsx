@@ -10,6 +10,7 @@ import {
   type DrillVerb,
 } from '@/lib/drill'
 import { useFocusMode } from '../FocusMode'
+import { useSettings } from '../SettingsProvider'
 import type { DrillPrefs } from './page'
 import DrillSetup from './DrillSetup'
 import DrillPrompt from './DrillPrompt'
@@ -32,6 +33,7 @@ export default function DrillClient({
 }) {
   const router = useRouter()
   const { setFocus } = useFocusMode()
+  const { immersionMode: mode } = useSettings()
   useEffect(() => {
     setFocus(true)
     return () => setFocus(false)
@@ -86,17 +88,17 @@ export default function DrillClient({
   }
 
   if (phase === 'setup') {
-    return <DrillSetup prefs={prefs} onStart={start} onExit={exit} />
+    return <DrillSetup prefs={prefs} onStart={start} onExit={exit} mode={mode} />
   }
 
   if (phase === 'recap') {
-    return <DrillRecap outcomes={outcomes} displayName={displayName} onReplay={() => begin(used)} onFinish={exit} />
+    return <DrillRecap outcomes={outcomes} displayName={displayName} onReplay={() => begin(used)} onFinish={exit} mode={mode} />
   }
 
   // playing — input then result, per prompt
   const count = index + 1
   return current ? (
-    <DrillResult outcome={current} count={count} total={prompts.length} onNext={next} onExit={exit} />
+    <DrillResult outcome={current} count={count} total={prompts.length} onNext={next} onExit={exit} mode={mode} />
   ) : (
     <DrillPrompt
       key={index}
@@ -105,6 +107,7 @@ export default function DrillClient({
       total={prompts.length}
       onSubmit={submit}
       onExit={exit}
+      mode={mode}
     />
   )
 }

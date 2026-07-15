@@ -1,5 +1,7 @@
 'use client'
 
+import { resolveChrome, DRILL_CHROME, type ImmersionMode } from '@/lib/immersion'
+
 // Focus-mode header shared by the drill prompt + result: close (×) · "i / N" · tense label, over a
 // thin progress bar. The app TopNav is suppressed in focus mode, so this carries the notch inset.
 type Tone = 'accent' | 'ok' | 'warm' | 'err'
@@ -23,12 +25,14 @@ export default function DrillHeader({
   tenseLabel,
   tone = 'accent',
   onExit,
+  mode,
 }: {
   count: number // 1-based
   total: number
   tenseLabel: string
   tone?: Tone
   onExit: () => void
+  mode: ImmersionMode
 }) {
   const pct = (count / total) * 100
   return (
@@ -37,7 +41,7 @@ export default function DrillHeader({
         <button
           type="button"
           onClick={onExit}
-          aria-label="Quitter l'entraînement"
+          aria-label={resolveChrome(DRILL_CHROME.quit, mode)}
           className="-ml-1 flex h-8 w-8 shrink-0 items-center justify-center text-2xl leading-none text-muted hover:text-ink"
         >
           ×

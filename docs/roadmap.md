@@ -309,11 +309,19 @@ Small patch, single commit. Suite 298 → 316.
 - **Fixes:** `MasteryGauge` aria "Maîtrise…" → progress-framed "Mémorisation : {n} / 4" / "Memorización : {n} / 4" (drops the Mémorisé-not-Maîtrisé violation). `deleteToastMessage` + `DeferredDelete` undo toast mode-aware (fem. agreement: "«w» eliminada" / "{n} palabras eliminadas").
 - **`AudioButton` parked** (shared across dictionary/review/add/account/detail) → shared-components-pending list. All ES vetted by Omar; **CC authored no Spanish**. Suite 467→469; tsc + lint + build clean. **Smoke-test all 3 modes across TopNav/Home/Words/detail on the 4 palettes (`/add` stays French); tag v0.9.4 on the final post-polish commit.**
 
-### M6.1d+ — remaining immersion surfaces (not yet built)
-- **M6.1d — Drill immersion** (make `/drill` mode-aware; folds in the deferred `AnswerBlank` aria-label).
-- **Shared-components-pending (make mode-aware when their last French consumer joins):** `AudioButton` ("Écouter la prononciation", shared 6 surfaces) · `LoadingChecklist` ("Pendant que tu attends", shared with `/add`) · `AnswerBlank` aria (shared with `/drill`).
+### M6.1d — the final wiring slice (sub-sliced; after 1d-ii the app is Spanish end-to-end)
+#### M6.1d-i — Drill + AnswerBlank ✅ (v0.9.5)
+- **Drill (`/drill`) made mode-aware** (chrome-only — confirmed no `.fr` gloss sites). New `DRILL_CHROME` (French + vetted ES) across all 7 drill files: `page.tsx` (server, locked screen — reads `immersion_mode`, threads `mode`), `DrillClient` (client, reads `useSettings` once → threads `mode` to the 4 phase components), `DrillSetup`/`DrillPrompt`/`DrillResult`/`DrillRecap`/`DrillHeader`. Dynamic/plural lines (setup summary, recap score) build per-language at the render site. `fr_es` byte-identical.
+- **Reuses:** `HOME_CHROME.conjTitle`/`conjUnit` (Conjugaison/verbes), `NAV_CHROME.home` (← Accueil), `DISCOVER_CHROME.close` (Fermer), `REVIEW_CHROME.submit`/`noteFirstTry`/`yourAnswer` (Valider/du premier coup/Ta réponse), `WORDS_CHROME.filterReview` (the recap **"À revoir" CATEGORY** label → Por repasar, NOT the SRS "Otra vez"). Spanish-already left untouched (¡Muy bien!, ¡Eso es!/¡Casi!/¡Uy!, yo·tú·él pronouns, Singular/Singular+plural).
+- **`AnswerBlank` unlocked** (shared with review + drill) — reads `useSettings` → aria via `REVIEW_CHROME.yourAnswer`; one change, both consumers correct. Clears it from shared-components-pending.
+- Suite 469→470 (`DRILL_CHROME` case); tsc + lint + build clean. **Smoke-test 3 modes on `/drill` + the 4 palettes; tag v0.9.5 on the final post-polish commit.**
+
+#### M6.1d-ii — Account + Add + Dictionary + AudioButton + LoadingChecklist (v0.9.6, next)
+- Chrome-swap on account/dictionary + chrome + **gloss-gating** on add (definition.fr + per-example .fr, same toggle pattern as word detail). Flips the last 2 shared components (`AudioButton`, `LoadingChecklist`) whose remaining French consumers are add/dictionary → **clears shared-components-pending entirely**.
+- **`ImmersionModePicker` stays FRENCH — intentional** (the meta-control *about* the FR/ES choice + the escape hatch out of `totale`; documented so a future pass doesn't "fix" it). **`PASSWORD_POLICY_TEXT`** resolved mode-aware in the account context only (the constant stays FR for signup — same shared-string discipline).
+
+### M6.1d follow-ups
 - **`deck` anglicism — finish the app-wide drop** (deferred internal identifiers: `DeckVerbInput`/`deckVerbs`, the `already_in_deck` wire value + comments/tests).
-- ~~Copy fill-in for Review~~ **DONE in M6.1a** (vetted ES folded in v0.9.2).
 - **Never mode-aware:** onboarding scaffolding is always French (instructional; not built yet) — the reason the resolver is per-surface opt-in, not a global lang lock.
 
 - App's first opening should trigger an onboarding with interactive steps showing how the app works.

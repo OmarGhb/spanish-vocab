@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import type { RefObject } from 'react'
+import { useSettings } from '../SettingsProvider'
+import { resolveChrome, REVIEW_CHROME } from '@/lib/immersion'
 
 type Props = {
   value: string
@@ -24,6 +26,9 @@ export default function AnswerBlank({ value, onChange, inputRef, onFocus, ghost 
   // The faux caret only blinks while the input actually holds focus — otherwise an idle blank reads
   // as editable when it isn't (the user thinks they can type but the field is blurred).
   const [focused, setFocused] = useState(false)
+  // Aria-label follows the mode (shared by review écriture + drill; both immersion-aware). Reuses the
+  // Review "Ta réponse" pair.
+  const { immersionMode } = useSettings()
   return (
     <span className="relative inline-block min-w-[64px] border-b-2 border-accent px-1.5 pb-px text-center font-serif font-bold text-accent">
       {/* Visible value + faux caret (clicks fall through to the input on top). */}
@@ -38,7 +43,7 @@ export default function AnswerBlank({ value, onChange, inputRef, onFocus, ghost 
         autoCorrect="off"
         autoComplete="off"
         spellCheck={false}
-        aria-label="Ta réponse"
+        aria-label={resolveChrome(REVIEW_CHROME.yourAnswer, immersionMode)}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onFocus={() => {

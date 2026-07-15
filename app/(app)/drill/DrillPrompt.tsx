@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import type React from 'react'
 import { buildConjugationGridForTense, PERSON_LABELS } from '@/lib/conjugation-grid'
 import { tenseLabel, type DrillPromptItem } from '@/lib/drill'
+import { resolveChrome, DRILL_CHROME, REVIEW_CHROME, DISCOVER_CHROME, type ImmersionMode } from '@/lib/immersion'
 import Button from '../Button'
 import ConjugationGrid from '../ConjugationGrid'
 import AnswerBlank from '../review/AnswerBlank'
@@ -19,12 +20,14 @@ export default function DrillPrompt({
   total,
   onSubmit,
   onExit,
+  mode,
 }: {
   prompt: DrillPromptItem
   count: number
   total: number
   onSubmit: (answer: string) => void
   onExit: () => void
+  mode: ImmersionMode
 }) {
   const [answer, setAnswer] = useState('')
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -51,11 +54,11 @@ export default function DrillPrompt({
 
   return (
     <div className="flex-1 min-h-0 flex flex-col">
-      <DrillHeader count={count} total={total} tenseLabel={tenseLabel(prompt.tense)} onExit={onExit} />
+      <DrillHeader count={count} total={total} tenseLabel={tenseLabel(prompt.tense)} onExit={onExit} mode={mode} />
 
       <form onSubmit={handleSubmit} className="flex-1 min-h-0 flex flex-col px-5 pt-7">
         <p className="text-center text-[10px] font-bold uppercase tracking-[0.14em] text-muted opacity-80">
-          Complète la phrase
+          {resolveChrome(DRILL_CHROME.instruction, mode)}
         </p>
 
         <div ref={cardRef} className="mt-6 bg-card border border-line rounded-card p-5 shadow-card scroll-mt-24">
@@ -86,7 +89,7 @@ export default function DrillPrompt({
               <line x1="8" y1="6" x2="8" y2="11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
               <line x1="5" y1="8.5" x2="11" y2="8.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
             </svg>
-            <span className="border-b border-tint pb-px">Voir la conjugaison</span>
+            <span className="border-b border-tint pb-px">{resolveChrome(DRILL_CHROME.seeConjugation, mode)}</span>
           </button>
         )}
 
@@ -96,7 +99,7 @@ export default function DrillPrompt({
         <div className="flex flex-col gap-3 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
           <AccentBar inputRef={inputRef} value={answer} onChange={setAnswer} />
           <Button variant="primary" full type="submit" disabled={!answer.trim()}>
-            Valider
+            {resolveChrome(REVIEW_CHROME.submit, mode)}
           </Button>
         </div>
       </form>
@@ -113,14 +116,14 @@ export default function DrillPrompt({
                 onClick={() => setSheetOpen(false)}
                 className="text-[13px] font-semibold text-muted underline underline-offset-2"
               >
-                Fermer
+                {resolveChrome(DISCOVER_CHROME.close, mode)}
               </button>
             </div>
             {/* Before answering, the asked cell is BLANKED (pattern-completion, like the réviser
                 Indice) — the sheet helps you find the form, it never hands it to you. */}
             <ConjugationGrid grid={grid} blankTarget />
             <p className="mt-3.5 text-[12.5px] leading-relaxed text-muted">
-              La case à compléter correspond à la personne demandée —{' '}
+              {resolveChrome(DRILL_CHROME.promptHint, mode)}{' '}
               <strong className="font-semibold text-ink">{PERSON_LABELS[prompt.person]}</strong>.
             </p>
           </div>

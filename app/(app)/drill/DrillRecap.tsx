@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import { PERSON_LABELS } from '@/lib/conjugation-grid'
 import { tenseLabel } from '@/lib/drill'
+import { resolveChrome, DRILL_CHROME, WORDS_CHROME, type ImmersionMode } from '@/lib/immersion'
 import Button from '../Button'
 import type { DrillOutcome } from './DrillResult'
 
@@ -13,11 +14,13 @@ export default function DrillRecap({
   displayName,
   onReplay,
   onFinish,
+  mode,
 }: {
   outcomes: DrillOutcome[]
   displayName: string | null
   onReplay: () => void
   onFinish: () => void
+  mode: ImmersionMode
 }) {
   const total = outcomes.length
   const correct = outcomes.filter((o) => o.verdict === 'correct').length
@@ -28,7 +31,7 @@ export default function DrillRecap({
     <div className="flex-1 min-h-0 flex flex-col">
       <div className="px-6 pt-[max(0.875rem,env(safe-area-inset-top))] text-center">
         <Image src="/paco-feliz.png" alt="Paco" width={88} height={88} className="mx-auto object-contain" />
-        <p className="mt-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-accent">Entraînement terminé</p>
+        <p className="mt-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-accent">{resolveChrome(DRILL_CHROME.finishedEyebrow, mode)}</p>
         <h1 className="mt-2.5 font-serif text-[26px] font-bold tracking-[-0.02em] text-ink">
           {displayName ? `¡Muy bien, ${displayName}!` : '¡Muy bien!'}
         </h1>
@@ -43,13 +46,17 @@ export default function DrillRecap({
           </div>
           <div className="flex-1">
             <p className="text-sm font-semibold text-ink">
-              {correct} bonne{correct !== 1 ? 's' : ''} réponse{correct !== 1 ? 's' : ''}
+              {mode === 'fr_es'
+                ? `${correct} bonne${correct !== 1 ? 's' : ''} réponse${correct !== 1 ? 's' : ''}`
+                : `${correct} respuesta${correct !== 1 ? 's' : ''} correcta${correct !== 1 ? 's' : ''}`}
             </p>
             <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-alt">
               <div className="h-full rounded-full bg-ok" style={{ width: `${pct}%` }} />
             </div>
             {missed.length > 0 && (
-              <p className="mt-2 text-[12.5px] text-muted">{missed.length} à revoir ci-dessous</p>
+              <p className="mt-2 text-[12.5px] text-muted">
+                {mode === 'fr_es' ? `${missed.length} à revoir ci-dessous` : `${missed.length} por repasar abajo`}
+              </p>
             )}
           </div>
         </div>
@@ -59,7 +66,7 @@ export default function DrillRecap({
       <div className="flex-1 min-h-0 overflow-y-auto px-6 pt-5">
         {missed.length > 0 && (
           <>
-            <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.14em] text-muted">À revoir</p>
+            <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.14em] text-muted">{resolveChrome(WORDS_CHROME.filterReview, mode)}</p>
             <ul className="flex flex-col gap-2.5">
               {missed.map((o, i) => (
                 <li key={i} className="bg-card border border-line rounded-card px-4 py-3.5">
@@ -91,12 +98,12 @@ export default function DrillRecap({
         {/* Canonical CTA pair (board §03), Rejouer weighted 1.4× as in the review bilan. */}
         <div className="flex-1">
           <Button variant="secondary" full type="button" onClick={onFinish}>
-            Terminer
+            {resolveChrome(DRILL_CHROME.finish, mode)}
           </Button>
         </div>
         <div className="flex-[1.4]">
           <Button variant="primary" full type="button" onClick={onReplay}>
-            Rejouer
+            {resolveChrome(DRILL_CHROME.replay, mode)}
           </Button>
         </div>
       </div>

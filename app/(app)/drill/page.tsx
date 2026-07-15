@@ -10,6 +10,7 @@ import {
   type PersonScope,
 } from '@/lib/drill'
 import { displayNameFromEmail } from '@/lib/display-name'
+import { coerceImmersionMode, resolveChrome, HOME_CHROME, NAV_CHROME } from '@/lib/immersion'
 import HubCardLocked from '../HubCardLocked'
 import DrillClient from './DrillClient'
 
@@ -35,9 +36,11 @@ export default async function DrillPage() {
       .from('words')
       .select('word, lemma, definition')
       .or('origin.eq.manual,discovery_status.eq.promoted'),
-    supabase.from('profiles').select('drill_tenses, drill_person_scope').maybeSingle(),
+    supabase.from('profiles').select('drill_tenses, drill_person_scope, immersion_mode').maybeSingle(),
     supabase.auth.getUser(),
   ])
+
+  const mode = coerceImmersionMode(profile?.immersion_mode)
 
   // Placeholder display name from the email local-part (M6 onboarding replaces the source).
   const displayName = displayNameFromEmail(auth.user?.email)
@@ -56,14 +59,14 @@ export default async function DrillPage() {
         <div className="w-full max-w-[260px]">
           <HubCardLocked
             icon={<Rows3 size={19} strokeWidth={1.7} />}
-            title="Conjugaison"
+            title={resolveChrome(HOME_CHROME.conjTitle, mode)}
             have={pool.length}
             need={DRILL_UNLOCK_THRESHOLD}
-            unit="verbes"
+            unit={resolveChrome(HOME_CHROME.conjUnit, mode)}
           />
         </div>
         <Link href="/" className="text-center text-sm text-accent">
-          ← Accueil
+          ← {resolveChrome(NAV_CHROME.home, mode)}
         </Link>
       </div>
     )

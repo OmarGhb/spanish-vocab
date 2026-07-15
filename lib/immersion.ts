@@ -271,3 +271,34 @@ export const DETAIL_CHROME = {
   delete: { fr: 'Supprimer', es: 'Eliminar' },
   notReviewedYet: { fr: 'Pas encore révisé', es: 'Aún sin repasar' },
 } as const satisfies Record<string, ChromePair>
+
+// Drill chrome (M6.1d-i). French + vetted ES. Reuses elsewhere: "Conjugaison"/"verbes" (HOME_CHROME),
+// "← Accueil" (NAV_CHROME.home), "Fermer" (DISCOVER_CHROME.close), "Valider" (REVIEW_CHROME.submit),
+// "du premier coup" (REVIEW_CHROME.noteFirstTry), "Ta réponse" (REVIEW_CHROME.yourAnswer), the recap
+// "À revoir" CATEGORY label (WORDS_CHROME.filterReview → Por repasar). Dynamic/plural lines build
+// per-language at the render site. The drill instruction is the tú form (≠ Review's vous form).
+export const DRILL_CHROME = {
+  quit: { fr: "Quitter l'entraînement", es: 'Salir del entrenamiento' },
+  back: { fr: 'Retour', es: 'Volver' },
+  eyebrow: { fr: 'Entraînement', es: 'Entrenamiento' },
+  finishedEyebrow: { fr: 'Entraînement terminé', es: 'Entrenamiento terminado' },
+  time: { fr: 'Temps', es: 'Tiempo' },
+  severalPossible: { fr: 'plusieurs possibles', es: 'varias posibles' },
+  persons: { fr: 'Personnes', es: 'Personas' },
+  start: { fr: 'Commencer', es: 'Empezar' },
+  instruction: { fr: 'Complète la phrase', es: 'Completa la frase' },
+  seeConjugation: { fr: 'Voir la conjugaison', es: 'Ver la conjugación' },
+  theConjugation: { fr: 'La conjugaison', es: 'La conjugación' },
+  promptHint: {
+    fr: 'La case à compléter correspond à la personne demandée —',
+    es: 'La casilla a completar corresponde a la persona indicada —',
+  },
+  almost: { fr: 'presque', es: 'casi' },
+  notQuite: { fr: 'pas tout à fait', es: 'no del todo' },
+  theAnswer: { fr: 'La réponse', es: 'La respuesta' },
+  wasAnswer: { fr: "C'était", es: 'Era' },
+  next: { fr: 'Suivant', es: 'Siguiente' },
+  seeSummary: { fr: 'Voir le bilan', es: 'Ver el resumen' },
+  finish: { fr: 'Terminer', es: 'Terminar' },
+  replay: { fr: 'Rejouer', es: 'Jugar de nuevo' },
+} as const satisfies Record<string, ChromePair>
