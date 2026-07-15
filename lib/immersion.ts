@@ -177,7 +177,7 @@ export const NAV_CHROME = {
 export const HOME_CHROME = {
   continueWithPaco: { fr: 'Continuer avec Paco', es: 'Sigue con Paco' },
   addTitle: { fr: 'Ajouter', es: 'Añadir' },
-  addDesc: { fr: 'Un mot, une expression.', es: 'Una palabra, una expresión.' },
+  addDesc: { fr: 'Un nouveau mot.', es: 'Una nueva palabra.' },
   discoverTitle: { fr: 'Découvrir', es: 'Descubrir' },
   discoverDesc: { fr: 'Des mots par thème.', es: 'Palabras por tema.' },
   conjTitle: { fr: 'Conjugaison', es: 'Conjugación' },
