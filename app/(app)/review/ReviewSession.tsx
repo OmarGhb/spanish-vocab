@@ -12,6 +12,8 @@ import MultipleChoice from './MultipleChoice'
 import Display from '../Display'
 import { mapReviewRow } from './mapCard'
 import { useFocusMode } from '../FocusMode'
+import { useSettings } from '../SettingsProvider'
+import { resolveChrome, REVIEW_CHROME } from '@/lib/immersion'
 import { evaluateDictionaryUnlock } from '../dictionary/actions'
 import UnlockTakeover from '../dictionary/UnlockTakeover'
 
@@ -47,6 +49,7 @@ async function fetchDueCards(limit: number): Promise<ReviewCard[]> {
 
 export default function ReviewSession({ cards: initialCards, dictionaryUnlocked, cardsPerSession }: Props) {
   const router = useRouter()
+  const { immersionMode } = useSettings()
   // Card deck is stateful so "Encore N" can swap in the next due batch in place.
   const [cards, setCards] = useState<ReviewCard[]>(initialCards)
   const [index, setIndex] = useState(0)
@@ -200,7 +203,7 @@ export default function ReviewSession({ cards: initialCards, dictionaryUnlocked,
           <Image src="/paco-feliz.png" alt="Paco" width={56} height={56} className="object-contain shrink-0" />
           <div>
             <Display kind="buenTrabajo" className="text-[30px] leading-none text-ink">¡Buen trabajo!</Display>
-            <p className="text-[13.5px] text-muted mt-[5px]">Session terminée</p>
+            <p className="text-[13.5px] text-muted mt-[5px]">{resolveChrome(REVIEW_CHROME.sessionDone, immersionMode)}</p>
           </div>
         </div>
 
@@ -208,9 +211,9 @@ export default function ReviewSession({ cards: initialCards, dictionaryUnlocked,
         <div className="px-[18px] shrink-0">
           <div className="flex bg-card border border-line rounded-2xl py-3.5">
             {[
-              { label: 'Révisés', value: String(total) },
-              { label: 'Sus du 1er coup', value: String(firstTry) },
-              { label: 'Temps', value: timeLabel },
+              { label: resolveChrome(REVIEW_CHROME.statReviewed, immersionMode), value: String(total) },
+              { label: resolveChrome(REVIEW_CHROME.statFirstTry, immersionMode), value: String(firstTry) },
+              { label: resolveChrome(REVIEW_CHROME.statTime, immersionMode), value: timeLabel },
             ].map((s, i) => (
               <div key={s.label} className={`flex-1 text-center ${i > 0 ? 'border-l border-hair/60' : ''}`}>
                 <p className="font-serif text-[23px] font-bold tracking-[-0.02em] text-ink">{s.value}</p>
@@ -269,10 +272,12 @@ export default function ReviewSession({ cards: initialCards, dictionaryUnlocked,
               style={{ boxShadow: '0 2px 6px rgba(154,90,28,0.28)' }}
             >
               {continuing ? (
-                'Chargement…'
+                resolveChrome(REVIEW_CHROME.loading, immersionMode)
               ) : (
                 <>
-                  Encore {dueRemaining} mot{dueRemaining !== 1 ? 's' : ''} à revoir
+                  {immersionMode === 'fr_es'
+                    ? `Encore ${dueRemaining} mot${dueRemaining !== 1 ? 's' : ''} à revoir`
+                    : `Aún ${dueRemaining} palabra${dueRemaining !== 1 ? 's' : ''} por repasar`}
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.1} strokeLinecap="round" strokeLinejoin="round">
                     <path d="M5 12h14M13 6l6 6-6 6" />
                   </svg>
@@ -285,7 +290,7 @@ export default function ReviewSession({ cards: initialCards, dictionaryUnlocked,
             onClick={() => attemptExit('home')}
             className="w-full rounded-card border border-line bg-card py-[14px] text-center font-serif text-base font-semibold text-ink"
           >
-            ← Accueil
+            ← {resolveChrome(REVIEW_CHROME.home, immersionMode)}
           </button>
         </div>
 
@@ -322,7 +327,7 @@ export default function ReviewSession({ cards: initialCards, dictionaryUnlocked,
           {index + 1} / {cards.length}
         </span>
         <span className={`text-xs font-semibold uppercase tracking-widest transition-colors ${correct ? 'text-ok' : 'text-accent'}`}>
-          {mode === 'blank' ? 'Écriture' : 'QCM'}
+          {resolveChrome(mode === 'blank' ? REVIEW_CHROME.modeWriting : REVIEW_CHROME.modeMcq, immersionMode)}
         </span>
       </div>
 

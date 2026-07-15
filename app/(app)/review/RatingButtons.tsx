@@ -3,17 +3,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { Clock, Pause } from 'lucide-react'
 import type { RatingResult } from '@/lib/rating'
+import { useSettings } from '../SettingsProvider'
+import { resolveChrome, REVIEW_CHROME, RATING_LABELS } from '@/lib/immersion'
 
 type Props = {
   result: RatingResult
   onRate: (r: 1 | 2 | 3 | 4) => void
-}
-
-const LABELS: Record<1 | 2 | 3 | 4, string> = {
-  1: 'À revoir',
-  2: 'Difficile',
-  3: 'Bien',
-  4: 'Facile',
 }
 
 // Single-hue amber gradation = effort intensity (darkest = most work). NO dots — the 4-dot atom
@@ -44,6 +39,7 @@ function usePrefersReducedMotion(): boolean {
 }
 
 export default function RatingButtons({ result, onRate }: Props) {
+  const { immersionMode } = useSettings()
   const reduced = usePrefersReducedMotion()
   const [phase, setPhase] = useState<Phase>('counting')
   const [progress, setProgress] = useState(0) // 0..1 bar fill
@@ -100,7 +96,7 @@ export default function RatingButtons({ result, onRate }: Props) {
 
   return (
     <div>
-      <p className="font-serif text-[17px] text-ink mb-3">Comment tu as trouvé ce mot ?</p>
+      <p className="font-serif text-[17px] text-ink mb-3">{resolveChrome(REVIEW_CHROME.ratingQuestion, immersionMode)}</p>
 
       <div className="grid grid-cols-4 gap-[9px]">
         {([1, 2, 3, 4] as const).map((r) => {
@@ -115,7 +111,7 @@ export default function RatingButtons({ result, onRate }: Props) {
               onClick={() => onPillClick(r)}
               className={`rounded-full border-[1.5px] py-[7px] text-center font-sans text-[13.5px] font-semibold leading-tight transition-colors ${cls}`}
             >
-              {LABELS[r]}
+              {resolveChrome(RATING_LABELS[r], immersionMode)}
             </button>
           )
         })}
@@ -128,12 +124,12 @@ export default function RatingButtons({ result, onRate }: Props) {
           <div className="flex items-center justify-between mb-2">
             <span className="flex items-center gap-1.5 text-[13px] font-semibold text-muted">
               <Clock size={14} />
-              Prochaine question…
+              {resolveChrome(REVIEW_CHROME.nextQuestion, immersionMode)}
             </span>
             <button
               type="button"
               onClick={() => setPhase('stopped')}
-              aria-label="Arrêter le minuteur"
+              aria-label={resolveChrome(REVIEW_CHROME.stopTimer, immersionMode)}
               className="w-[30px] h-[30px] rounded-[9px] grid place-items-center text-faint active:bg-amber-tint"
             >
               <Pause size={15} />

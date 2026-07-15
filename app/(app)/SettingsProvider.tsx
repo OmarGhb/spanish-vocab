@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { playbackRateFor, DEFAULT_PLAYBACK_SPEED, type PlaybackSpeed } from '@/lib/playback-speed'
 import { DEFAULT_THEME, THEME_COOKIE, type ThemeId } from '@/lib/theme'
+import { DEFAULT_IMMERSION_MODE, type ImmersionMode } from '@/lib/immersion'
 
 // App-wide AUDIO settings, server-seeded from `profiles` in app/(app)/layout.tsx and consumed by
 // every cached-audio surface (AudioButton + the review-reveal autoplay). profiles is the single
@@ -15,9 +16,11 @@ type SettingsValue = {
   playbackSpeed: PlaybackSpeed
   playbackRate: number // derived from playbackSpeed via the tested helper (÷ baked 0.9)
   theme: ThemeId
+  immersionMode: ImmersionMode
   setAutoplayAudio: (v: boolean) => void
   setPlaybackSpeed: (v: PlaybackSpeed) => void
   setTheme: (v: ThemeId) => void
+  setImmersionMode: (v: ImmersionMode) => void
 }
 
 // Defaults match the column defaults — used when a consumer renders outside the provider
@@ -26,6 +29,7 @@ const DEFAULTS = {
   autoplayAudio: true,
   playbackSpeed: DEFAULT_PLAYBACK_SPEED,
   theme: DEFAULT_THEME,
+  immersionMode: DEFAULT_IMMERSION_MODE,
 }
 
 // One-year theme cookie — read by the root layout to set <html data-theme> server-side (FOUC-free).
@@ -40,15 +44,18 @@ export function SettingsProvider({
   initialAutoplayAudio,
   initialPlaybackSpeed,
   initialTheme,
+  initialImmersionMode,
 }: {
   children: ReactNode
   initialAutoplayAudio: boolean
   initialPlaybackSpeed: PlaybackSpeed
   initialTheme: ThemeId
+  initialImmersionMode: ImmersionMode
 }) {
   const [autoplayAudio, setAutoplay] = useState(initialAutoplayAudio)
   const [playbackSpeed, setSpeed] = useState<PlaybackSpeed>(initialPlaybackSpeed)
   const [theme, setThemeState] = useState<ThemeId>(initialTheme)
+  const [immersionMode, setImmersionModeState] = useState<ImmersionMode>(initialImmersionMode)
 
   // profiles is canonical: reconcile the <html data-theme> + cookie to the server-seeded theme on
   // mount (covers a missing/stale cookie, e.g. first load on a new device after login). Common case
@@ -95,6 +102,16 @@ export function SettingsProvider({
     },
     [patch],
   )
+  // Immersion mode drives React (the chrome resolver + gloss gate), not CSS — so unlike theme it
+  // needs NO <html> attribute and NO cookie (it's consumed only under app/(app)/, which server-seeds
+  // this provider from profiles → already FOUC-free). Optimistic local state + persist to profiles.
+  const setImmersionMode = useCallback(
+    (v: ImmersionMode) => {
+      setImmersionModeState(v)
+      patch({ immersion_mode: v })
+    },
+    [patch],
+  )
 
   const value = useMemo<SettingsValue>(
     () => ({
@@ -102,11 +119,13 @@ export function SettingsProvider({
       playbackSpeed,
       playbackRate: playbackRateFor(playbackSpeed),
       theme,
+      immersionMode,
       setAutoplayAudio,
       setPlaybackSpeed,
       setTheme,
+      setImmersionMode,
     }),
-    [autoplayAudio, playbackSpeed, theme, setAutoplayAudio, setPlaybackSpeed, setTheme],
+    [autoplayAudio, playbackSpeed, theme, immersionMode, setAutoplayAudio, setPlaybackSpeed, setTheme, setImmersionMode],
   )
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>
@@ -122,5 +141,6 @@ export function useSettings(): SettingsValue {
     setAutoplayAudio: () => {},
     setPlaybackSpeed: () => {},
     setTheme: () => {},
+    setImmersionMode: () => {},
   }
 }

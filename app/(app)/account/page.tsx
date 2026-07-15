@@ -9,6 +9,7 @@ import { ActiveRow, SoonRow, DisplayRow, NavRow } from '@/components/form/Rows'
 import SessionSizeStepper from './SessionSizeStepper'
 import { AutoplayToggle, SpeedSegmented } from './AudioControls'
 import ThemePicker from './ThemePicker'
+import ImmersionModePicker from './ImmersionModePicker'
 import AccountActions from './AccountClient'
 import pkg from '../../../package.json'
 
@@ -101,11 +102,11 @@ export default async function AccountPage() {
         <ActiveRow label="Vitesse de lecture" control={<SpeedSegmented />} />
       </SettingsCard>
 
-      {/* Préférences (all BIENTÔT) */}
+      {/* Préférences — Mode d'immersion (M6.1a) + Thème actifs; the rest BIENTÔT. */}
       <div className="h-[22px]" />
       <GroupHead>Préférences</GroupHead>
       <SettingsCard>
-        <SoonRow first label="Langue de l'interface" help="Français · Español" />
+        <ImmersionModePicker first />
         <SoonRow label="Variante d'espagnol" help="Espagne · Amérique latine" />
         <ThemePicker />
         <SoonRow label="Thèmes Discovery" help="Centres d'intérêt pour la découverte." />

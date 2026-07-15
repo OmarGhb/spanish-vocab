@@ -7,6 +7,9 @@ import { pickClozeExample, isVerbPos, chooseQcmCue } from '@/lib/review-cloze'
 import type { ReviewCard } from './page'
 import RatingButtons from './RatingButtons'
 import ResultReveal from './ResultReveal'
+import TapReveal from '../TapReveal'
+import { useSettings } from '../SettingsProvider'
+import { glossVisibility, resolveChrome, REVIEW_CHROME } from '@/lib/immersion'
 
 type Props = {
   card: ReviewCard
@@ -35,6 +38,10 @@ function seedFromId(id: string): number {
 
 export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
   const { word, definition, examples, distractors } = card
+  // Immersion mode gates the French gloss: visible (fr_es) · tap-to-reveal (immersion) · hidden
+  // (totale). Chrome strings without authored ES stay French (resolveChrome falls back).
+  const { immersionMode } = useSettings()
+  const gloss = glossVisibility(immersionMode)
 
   // Deterministic seed — stable across SSR and hydration.
   const seed = useMemo(() => seedFromId(card.id), [card.id])
@@ -115,7 +122,11 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
       {result && (
         <ResultReveal
           verdict={chosen === word ? 'correct' : 'wrong'}
-          note={chosen === word ? (hintUsed ? 'avec un indice' : 'du premier coup') : null}
+          note={
+            chosen === word
+              ? resolveChrome(hintUsed ? REVIEW_CHROME.noteWithHint : REVIEW_CHROME.noteFirstTry, immersionMode)
+              : null
+          }
           audioUrl={card.audioUrl}
         />
       )}
@@ -123,29 +134,39 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
       <div>
         {/* Instruction eyebrow — pairs with écriture's "Complétez la phrase" (M5.5f). */}
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted mb-3">
-          Choisissez la bonne réponse
+          {resolveChrome(REVIEW_CHROME.mcInstruction, immersionMode)}
         </p>
         {prompt.type === 'definition' ? (
           <>
             <p className="font-serif text-sm text-ink leading-relaxed">{prompt.es}</p>
-            {hintUsed ? (
-              <p className="font-serif italic text-sm text-muted mt-1">{prompt.fr}</p>
-            ) : (
-              !result && (
-                <button
-                  type="button"
-                  onClick={() => setHintUsed(true)}
-                  className="text-xs text-accent mt-2"
-                >
-                  ↓ Voir en français
-                </button>
-              )
-            )}
+            {/* FR gloss behind the hint button (revealing it costs a hint). Suppressed in totale. */}
+            {gloss !== 'hidden' &&
+              (hintUsed ? (
+                <p className="font-serif italic text-sm text-muted mt-1">{prompt.fr}</p>
+              ) : (
+                !result && (
+                  <button
+                    type="button"
+                    onClick={() => setHintUsed(true)}
+                    className="text-xs text-accent mt-2"
+                  >
+                    ↓ {resolveChrome(REVIEW_CHROME.revealGloss, immersionMode)}
+                  </button>
+                )
+              ))}
           </>
         ) : (
           <>
             <p className="font-serif text-base text-ink leading-relaxed">{prompt.es}</p>
-            <p className="font-serif text-sm text-muted mt-1">{prompt.fr}</p>
+            {/* Example gloss: shown (fr_es) · tap-to-reveal, free (immersion) · hidden (totale). */}
+            {gloss === 'visible' && <p className="font-serif text-sm text-muted mt-1">{prompt.fr}</p>}
+            {gloss === 'tap' && (
+              <div className="mt-1.5">
+                <TapReveal label={resolveChrome(REVIEW_CHROME.revealGloss, immersionMode)}>
+                  <p className="font-serif text-sm text-muted">{prompt.fr}</p>
+                </TapReveal>
+              </div>
+            )}
           </>
         )}
       </div>
