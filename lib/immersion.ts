@@ -96,3 +96,66 @@ export const RATING_LABELS: Record<1 | 2 | 3 | 4, ChromePair> = {
   3: { fr: 'Bien', es: 'Bien' },
   4: { fr: 'Facile', es: 'Fácil' },
 }
+
+// Discover chrome — French + vetted Spanish (register: tú, es-ES). Same rules as REVIEW_CHROME:
+// fr_es renders fr (byte-identical to today), immersion/totale render es. Decorative glyphs (→, «»)
+// stay in JSX. The card gloss reveal uses the CARD register "Toca para traducir" (≠ Review's "Ver
+// traducción"). Pluralized / topic-interpolated lines (bilan add-line, "N palabras déjà connu",
+// exhausted heading, topic-tile count) build per-language at the render site.
+export const DISCOVER_CHROME = {
+  // Grid
+  title: { fr: 'Découvrir', es: 'Descubrir' },
+  subtitle: { fr: 'Des sélections pour toi, ou explore par thème', es: 'Selecciones para ti, o explora por tema' },
+  forYou: { fr: 'Pour toi', es: 'Para ti' },
+  byTheme: { fr: 'Par thème', es: 'Por tema' },
+  soon: { fr: 'Bientôt', es: 'Pronto' },
+  close: { fr: 'Fermer', es: 'Cerrar' },
+  wordsPlural: { fr: 'mots', es: 'palabras' },
+  featured1Title: { fr: 'Dans le prolongement de tes mots', es: 'A partir de tus palabras' },
+  featured1Sub: {
+    fr: 'Des mots choisis tout près de ce que tu apprends en ce moment.',
+    es: 'Palabras elegidas muy cerca de lo que estás aprendiendo ahora.',
+  },
+  featured2Title: { fr: "L'essentiel A2–B1", es: 'Lo esencial A2–B1' },
+  featured2Sub: {
+    fr: 'Le socle de vocabulaire pour passer le cap intermédiaire.',
+    es: 'La base de vocabulario para dar el salto al nivel intermedio.',
+  },
+  toastAdjacency: {
+    fr: 'Des mots tout près de ce que tu apprends — Paco prépare ça, bientôt !',
+    es: 'Palabras muy cerca de lo que aprendes — Paco lo está preparando, ¡pronto!',
+  },
+  toastLevel: {
+    fr: '« L’essentiel A2–B1 » arrive bientôt — Paco la prépare avec soin.',
+    es: '«Lo esencial A2–B1» llega pronto — Paco lo está preparando con cuidado.',
+  },
+  // Generation
+  genTitle: { fr: 'Paco choisit des mots de', es: 'Paco elige palabras de' },
+  genPhaseSelect: { fr: 'Sélection des mots du thème', es: 'Selección de palabras del tema' },
+  genPhaseDefs: { fr: 'Définitions & exemples', es: 'Definiciones y ejemplos' },
+  genPhaseConfuse: { fr: 'Mots à ne pas confondre', es: 'Palabras que no confundir' },
+  genPhasePhon: { fr: 'Phonétique', es: 'Fonética' },
+  errorMsg: { fr: "Une erreur s'est produite.", es: 'Ha ocurrido un error.' },
+  retry: { fr: 'Réessayer', es: 'Reintentar' },
+  // Card
+  cardReveal: { fr: 'Afficher en français', es: 'Toca para traducir' },
+  learnStamp: { fr: 'À apprendre', es: 'Por aprender' },
+  knowStamp: { fr: 'Je connais', es: 'Ya la sé' },
+  swipeLeft: { fr: '← glisse à gauche', es: '← desliza a la izq.' },
+  swipeRight: { fr: 'glisse à droite →', es: 'desliza a la der. →' },
+  // Bilan
+  themeDone: { fr: 'Thème terminé', es: 'Tema terminado' },
+  arrivalLine: {
+    fr: 'Tes nouveaux mots arrivent dans « Mes mots » — ça peut prendre jusqu’à 30 s.',
+    es: 'Tus nuevas palabras llegan a «Mis palabras» — puede tardar hasta 30 s.',
+  },
+  reviewNow: { fr: 'Réviser maintenant', es: 'Repasar ahora' },
+  backHome: { fr: "Retour à l'accueil", es: 'Volver al inicio' },
+  discoverAnother: { fr: 'Découvrir un autre thème', es: 'Descubrir otro tema' },
+  // Exhausted
+  exhaustedBody: {
+    fr: 'Plus de nouveaux mots pour ce thème. Paco se repose — explore un autre thème.',
+    es: 'No hay más palabras nuevas para este tema. Paco descansa — explora otro tema.',
+  },
+  chooseAnother: { fr: 'Choisir un autre thème', es: 'Elegir otro tema' },
+} as const satisfies Record<string, ChromePair>

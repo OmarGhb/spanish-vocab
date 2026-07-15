@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getDiscoveryBatch } from '@/lib/anthropic'
 import { getTopic } from '@/lib/discovery-topics'
-import type { DeckCard, Gender } from '@/lib/discovery'
+import type { CollectionCard, Gender } from '@/lib/discovery'
 
 export const maxDuration = 60
 
@@ -12,7 +12,7 @@ type WordRow = {
   examples: Array<{ es: string; fr: string }> | null
 }
 
-function rowToCard(row: WordRow): DeckCard {
+function rowToCard(row: WordRow): CollectionCard {
   const def = row.definition ?? {}
   const example = row.examples?.[0] ?? { es: '', fr: '' }
   return {
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
 
   if (pendingError) {
     console.error('[discovery/generate] pending fetch error:', pendingError)
-    return Response.json({ error: 'Failed to load deck.' }, { status: 500 })
+    return Response.json({ error: 'Failed to load collection.' }, { status: 500 })
   }
   if (pending && pending.length > 0) {
     return Response.json({ cards: (pending as WordRow[]).map(rowToCard) })
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
   const { data: existing, error: existingError } = await supabase.from('words').select('word')
   if (existingError) {
     console.error('[discovery/generate] exclude fetch error:', existingError)
-    return Response.json({ error: 'Failed to load deck.' }, { status: 500 })
+    return Response.json({ error: 'Failed to load collection.' }, { status: 500 })
   }
   const exclude = (existing ?? []).map((r) => (r.word as string))
   const excludeSet = new Set(exclude.map((w) => w.toLowerCase()))
@@ -122,7 +122,7 @@ export async function POST(request: Request) {
 
   if (insertError || !inserted) {
     console.error('[discovery/generate] insert error:', insertError)
-    return Response.json({ error: 'Failed to save deck.' }, { status: 500 })
+    return Response.json({ error: 'Failed to save collection.' }, { status: 500 })
   }
 
   return Response.json({ cards: (inserted as WordRow[]).map(rowToCard) })

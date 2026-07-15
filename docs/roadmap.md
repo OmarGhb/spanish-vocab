@@ -295,10 +295,18 @@ Small patch, single commit. Suite 298 → 316.
 - **Copy:** the vetted ES (register tú / es-ES) was authored by Omar and folded in the same commit (v0.9.2) — Review ships immersion-complete, not mechanism-only. **One a11y gap deferred to M6.1d** (`backlog.md`): the shared `AnswerBlank` aria-label (French because `AnswerBlank` is shared with the still-French `/drill`). CC did not author any Spanish.
 - Suite 458→466 (`lib/immersion` cases); tsc + lint + build clean. **Migration apply-on-deploy. Smoke-test all 3 modes on Review across Sépia · Ardoise · Indigo · Nuit (incl. tap-reveal + mode-c suppression); tag v0.9.2 on the final post-polish commit.**
 
-### M6.1b+ — remaining immersion surfaces (not yet built)
-- **M6.1b — Discover:** card-content flip (ES headword + FR tap-to-reveal via the same `TapReveal`) + Discover chrome; consumes the mock's `cardTransLabel` "Toca para traducir".
+### M6.1b — Discover immersion-awareness ✅ (v0.9.3)
+- **Second surface onto the M6.1a substrate** (same two moves as Review): FR-gloss gating + chrome resolve on `/discover` (`DiscoverClient.tsx`), reusing `resolveChrome`/`glossVisibility`/`TapReveal`/`useSettings`. `fr_es` byte-identical.
+- **`DISCOVER_CHROME`** (`lib/immersion.ts`) — full Discover chrome, French + vetted ES (Omar): grid (title/subtitle/Pour toi/Par thème/Bientôt/featured cards + toasts/close), generation (title + the 4 phase labels + error/retry), card (stamps + swipe hints), bilan, exhausted. Dynamic/plural lines (bilan add-line + "déjà connu", exhausted heading, topic-tile count) build per-language at the render site. **No French holes** — the one exception is the shared `LoadingChecklist` "Pendant que tu attends" (see backlog).
+- **Card gloss gating** (2 sites — headword gloss + example FR) via `glossVisibility` + `TapReveal` labelled **"Toca para traducir"** (card register, ≠ Review's "Ver traducción"): `visible` unchanged · `tap` reveal · `hidden` suppressed (incl. the "·" separator). Spanish content (headword/article/pos/example.es) always shown.
+- **`deck` → `collection` rename (narrow):** `DeckCard→CollectionCard`, `deckArticle→collectionArticle` (`lib/discovery.ts` + `DiscoverClient` + `api/discovery/generate`), phase `'deck'→'collection'`, the flow's internal comments + the 3 API error bodies; **user-facing `/add`** "dans ton deck" → "dans ta collection" (×2). Broad internal `deck` identifiers (drill `DeckVerbInput`, the `already_in_deck` wire value, home `deckVerbs`) **deferred** (`backlog.md`).
+- Suite 466→467 (`DISCOVER_CHROME` case); tsc + lint + build clean. **Smoke-test all 3 modes on `/discover` across the 4 palettes (fr_es unchanged; immersion = ES chrome + tap-reveal card gloss; totale = FR suppressed); tag v0.9.3 on the final post-polish commit.**
+
+### M6.1c+ — remaining immersion surfaces (not yet built)
 - **M6.1c — TopNav / Home / remaining product chrome.**
 - **M6.1d — Drill immersion** (make `/drill` mode-aware; folds in the deferred `AnswerBlank` aria-label).
+- **`LoadingChecklist` immersion** — the shared loader's "Pendant que tu attends" line stays French until this (it's shared with the still-French `/add`).
+- **`deck` anglicism — finish the app-wide drop** (deferred internal identifiers: `DeckVerbInput`/`deckVerbs`, the `already_in_deck` wire value + comments/tests).
 - ~~Copy fill-in for Review~~ **DONE in M6.1a** (vetted ES folded in v0.9.2).
 - **Never mode-aware:** onboarding scaffolding is always French (instructional; not built yet) — the reason the resolver is per-surface opt-in, not a global lang lock.
 

@@ -525,7 +525,7 @@ export default function AddPage() {
         <div className="flex-1 flex flex-col items-center justify-center text-center pb-8">
           <Image src="/paco.png" alt="Paco" width={96} height={96} className="object-contain mb-3" />
           <h1 className="font-serif text-2xl font-bold text-ink leading-tight max-w-[280px]">
-            &laquo;&nbsp;{w}&nbsp;&raquo; est déjà dans ton deck
+            &laquo;&nbsp;{w}&nbsp;&raquo; est déjà dans ta collection
           </h1>
           <p className="text-[14px] text-muted leading-relaxed mt-2.5 max-w-[270px]">{supportive}</p>
           <div className="w-full max-w-[320px] mt-[22px]">
@@ -552,7 +552,7 @@ export default function AddPage() {
         <div className="flex-1 flex flex-col items-center justify-center text-center">
           <Image src="/paco-feliz.png" alt="Paco" width={92} height={92} className="object-contain mb-3" />
           <h1 className="font-serif text-2xl font-bold text-ink leading-tight">
-            &laquo;&nbsp;{w}&nbsp;&raquo; est dans ton deck
+            &laquo;&nbsp;{w}&nbsp;&raquo; est dans ta collection
           </h1>
           <p className="text-[14px] text-muted leading-relaxed mt-2 max-w-[260px]">
             Paco te le ramènera demain pour ta première révision.

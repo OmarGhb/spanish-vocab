@@ -5,21 +5,25 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, ArrowRight, Compass, Share2, BarChart3, Sparkles, type LucideIcon } from 'lucide-react'
 import { DISCOVERY_TOPICS, type DiscoveryTopic } from '@/lib/discovery-topics'
-import { posAbbrev, deckArticle, type DeckCard } from '@/lib/discovery'
+import { posAbbrev, collectionArticle, type CollectionCard } from '@/lib/discovery'
 import SwipeCard from '../SwipeCard'
 import LoadingChecklist from '../LoadingChecklist'
 import Button from '../Button'
+import TapReveal from '../TapReveal'
+import { useSettings } from '../SettingsProvider'
+import { glossVisibility, resolveChrome, DISCOVER_CHROME } from '@/lib/immersion'
 
-type Phase = 'grid' | 'generating' | 'deck' | 'bilan' | 'exhausted'
+type Phase = 'grid' | 'generating' | 'collection' | 'bilan' | 'exhausted'
 type Featured = 'adjacency' | 'level'
 
 // Discovery generation phase labels (board ②) — the loading choreography is the shared
-// /add one (LoadingChecklist), only the labels + a longer dwell differ.
-const GEN_PHASES = [
-  'Sélection des mots du thème',
-  'Définitions & exemples',
-  'Mots à ne pas confondre',
-  'Phonétique',
+// /add one (LoadingChecklist), only the labels + a longer dwell differ. Immersion-aware:
+// resolved to FR/ES per mode in-component.
+const GEN_PHASE_PAIRS = [
+  DISCOVER_CHROME.genPhaseSelect,
+  DISCOVER_CHROME.genPhaseDefs,
+  DISCOVER_CHROME.genPhaseConfuse,
+  DISCOVER_CHROME.genPhasePhon,
 ] as const
 
 // Background enrichment of kept words. Fired on grid mount (catch-up for any stranded
@@ -37,13 +41,15 @@ function FocusedOverlay({ children }: { children: ReactNode }) {
   )
 }
 
-// 38px outline circle close (board chrome) — in-flow at the top-left of each modal.
+// 38px outline circle close (board chrome) — in-flow at the top-left of each modal. Reads the mode
+// itself (rendered under the provider) so its aria-label follows immersion without prop threading.
 function CircleClose({ onClose }: { onClose: () => void }) {
+  const { immersionMode } = useSettings()
   return (
     <button
       type="button"
       onClick={onClose}
-      aria-label="Fermer"
+      aria-label={resolveChrome(DISCOVER_CHROME.close, immersionMode)}
       className="press-icon w-[38px] h-[38px] rounded-full border border-line bg-card grid place-items-center text-muted shrink-0"
     >
       <X size={19} strokeWidth={2} />
@@ -76,6 +82,7 @@ function boldTarget(sentence: string, word: string): ReactNode {
 function FeaturedCard({
   Icon, title, sub, onTap,
 }: { Icon: LucideIcon; title: string; sub: string; onTap: () => void }) {
+  const { immersionMode } = useSettings()
   return (
     <button
       type="button"
@@ -90,34 +97,31 @@ function FeaturedCard({
         <div className="text-[12.5px] text-muted leading-snug mt-1">{sub}</div>
       </div>
       <span className="shrink-0 text-[9.5px] font-bold uppercase tracking-[0.1em] text-faint border border-border-soft rounded-full px-2 py-1">
-        Bientôt
+        {resolveChrome(DISCOVER_CHROME.soon, immersionMode)}
       </span>
     </button>
   )
 }
 
-// Shown in the dark bottom toast (same treatment as the delete "« … » supprimé" toast).
-// Warm Paco-voice, concise to fit a single toast line; never an error.
-const COMING_SOON_COPY: Record<Featured, string> = {
-  adjacency: 'Des mots tout près de ce que tu apprends — Paco prépare ça, bientôt !',
-  level: '« L’essentiel A2–B1 » arrive bientôt — Paco la prépare avec soin.',
-}
 const COMING_SOON_MS = 4000
 
 export default function DiscoverClient() {
   const router = useRouter()
+  // Immersion mode gates the card French gloss + resolves all Discover chrome.
+  const { immersionMode } = useSettings()
+  const gloss = glossVisibility(immersionMode)
   const [phase, setPhase] = useState<Phase>('grid')
   const [topic, setTopic] = useState<DiscoveryTopic | null>(null)
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
   const [comingSoon, setComingSoon] = useState<Featured | null>(null)
-  const [cards, setCards] = useState<DeckCard[]>([])
+  const [cards, setCards] = useState<CollectionCard[]>([])
   const [index, setIndex] = useState(0)
   const [kept, setKept] = useState(0)
   const [known, setKnown] = useState(0)
   const [genReady, setGenReady] = useState(false)
   const [genError, setGenError] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
-  const genResultRef = useRef<DeckCard[] | null>(null)
+  const genResultRef = useRef<CollectionCard[] | null>(null)
 
   useEffect(() => {
     triggerEnrich()
@@ -156,12 +160,12 @@ export default function DiscoverClient() {
         setGenError(true)
         return
       }
-      const data = (await res.json()) as { cards: DeckCard[] }
+      const data = (await res.json()) as { cards: CollectionCard[] }
       const list = data.cards ?? []
       genResultRef.current = list
       setCards(list)
       // The choreography (LoadingChecklist) holds the screen until max(dataReady, floor);
-      // onReveal then routes to deck or exhausted.
+      // onReveal then routes to the collection cards or exhausted.
       setGenReady(true)
     } catch (e) {
       if (e instanceof DOMException && e.name === 'AbortError') return
@@ -172,7 +176,7 @@ export default function DiscoverClient() {
   // Called by LoadingChecklist after the min-floor + settle beat.
   function onGenReveal() {
     const list = genResultRef.current ?? []
-    setPhase(list.length > 0 ? 'deck' : 'exhausted')
+    setPhase(list.length > 0 ? 'collection' : 'exhausted')
   }
 
   function cancelGenerating() {
@@ -214,28 +218,28 @@ export default function DiscoverClient() {
         <div className="px-5 pt-1.5 pb-3 flex items-center gap-3.5">
           <Image src="/paco.png" alt="Paco" width={50} height={50} className="object-contain shrink-0" />
           <div>
-            <h1 className="font-serif text-[30px] font-bold tracking-[-0.02em] text-ink leading-none">Découvrir</h1>
-            <p className="text-[13px] text-muted mt-1.5">Des sélections pour toi, ou explore par thème</p>
+            <h1 className="font-serif text-[30px] font-bold tracking-[-0.02em] text-ink leading-none">{resolveChrome(DISCOVER_CHROME.title, immersionMode)}</h1>
+            <p className="text-[13px] text-muted mt-1.5">{resolveChrome(DISCOVER_CHROME.subtitle, immersionMode)}</p>
           </div>
         </div>
 
         <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 flex flex-col gap-3">
           {/* POUR TOI — non-functional placeholders (adjacency = M5.1b, A2–B1 = content gate) */}
-          <SectionLabel>Pour toi</SectionLabel>
+          <SectionLabel>{resolveChrome(DISCOVER_CHROME.forYou, immersionMode)}</SectionLabel>
           <FeaturedCard
             Icon={Share2}
-            title="Dans le prolongement de tes mots"
-            sub="Des mots choisis tout près de ce que tu apprends en ce moment."
+            title={resolveChrome(DISCOVER_CHROME.featured1Title, immersionMode)}
+            sub={resolveChrome(DISCOVER_CHROME.featured1Sub, immersionMode)}
             onTap={() => setComingSoon('adjacency')}
           />
           <FeaturedCard
             Icon={BarChart3}
-            title="L'essentiel A2–B1"
-            sub="Le socle de vocabulaire pour passer le cap intermédiaire."
+            title={resolveChrome(DISCOVER_CHROME.featured2Title, immersionMode)}
+            sub={resolveChrome(DISCOVER_CHROME.featured2Sub, immersionMode)}
             onTap={() => setComingSoon('level')}
           />
           <div className="mt-1">
-            <SectionLabel>Par thème</SectionLabel>
+            <SectionLabel>{resolveChrome(DISCOVER_CHROME.byTheme, immersionMode)}</SectionLabel>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {DISCOVERY_TOPICS.map((t) => {
@@ -261,7 +265,7 @@ export default function DiscoverClient() {
                     <span className="block font-serif italic text-[13px] text-muted mt-[3px]">{t.fr}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[10.5px] font-bold uppercase tracking-[0.08em] text-faint">{t.count} mots</span>
+                    <span className="text-[10.5px] font-bold uppercase tracking-[0.08em] text-faint">{t.count} {resolveChrome(DISCOVER_CHROME.wordsPlural, immersionMode)}</span>
                     {sel && <ArrowRight size={16} className="text-accent" />}
                   </div>
                 </button>
@@ -278,11 +282,13 @@ export default function DiscoverClient() {
               className="max-w-[430px] mx-auto rounded-card px-4 py-3.5 shadow-menu pointer-events-auto flex items-center gap-3.5 bg-ink select-none"
             >
               <Sparkles size={16} className="text-amber-light shrink-0" />
-              <p className="text-[14.5px] font-serif text-ivory flex-1">{COMING_SOON_COPY[comingSoon]}</p>
+              <p className="text-[14.5px] font-serif text-ivory flex-1">
+                {resolveChrome(comingSoon === 'adjacency' ? DISCOVER_CHROME.toastAdjacency : DISCOVER_CHROME.toastLevel, immersionMode)}
+              </p>
               <button
                 type="button"
                 onClick={() => setComingSoon(null)}
-                aria-label="Fermer"
+                aria-label={resolveChrome(DISCOVER_CHROME.close, immersionMode)}
                 className="text-ivory/70 shrink-0 -mr-1 p-1"
               >
                 <X size={16} />
@@ -304,16 +310,16 @@ export default function DiscoverClient() {
         {genError ? (
           <div className="flex-1 min-h-0 flex flex-col items-center justify-center text-center px-8 pb-10 gap-4">
             <Image src="/paco-sad.png" alt="Paco" width={72} height={72} className="object-contain" />
-            <p className="text-sm text-err font-serif">Une erreur s&apos;est produite.</p>
+            <p className="text-sm text-err font-serif">{resolveChrome(DISCOVER_CHROME.errorMsg, immersionMode)}</p>
             <Button variant="primary" type="button" onClick={() => topic && void startTopic(topic)}>
-              Réessayer
+              {resolveChrome(DISCOVER_CHROME.retry, immersionMode)}
             </Button>
           </div>
         ) : (
           <div className="flex-1 min-h-0 overflow-y-auto pt-1">
             <LoadingChecklist
-              title={<>Paco choisit des mots de <span className="text-accent">«&nbsp;{topic?.es}&nbsp;»</span></>}
-              phases={GEN_PHASES}
+              title={<>{resolveChrome(DISCOVER_CHROME.genTitle, immersionMode)} <span className="text-accent">«&nbsp;{topic?.es}&nbsp;»</span></>}
+              phases={GEN_PHASE_PAIRS.map((p) => resolveChrome(p, immersionMode))}
               ready={genReady}
               onReveal={onGenReveal}
               phaseDwellMs={950}
@@ -335,18 +341,26 @@ export default function DiscoverClient() {
         </div>
         <div className="flex-1 min-h-0 flex flex-col items-center justify-center text-center px-9 pb-6">
           <Image src="/paco-feliz.png" alt="Paco" width={104} height={104} className="object-contain mb-2.5" />
-          <h1 className="font-serif text-[28px] font-bold tracking-[-0.02em] text-ink">Thème terminé</h1>
+          <h1 className="font-serif text-[28px] font-bold tracking-[-0.02em] text-ink">{resolveChrome(DISCOVER_CHROME.themeDone, immersionMode)}</h1>
           <p className="text-base text-ink leading-relaxed mt-3.5 max-w-[280px]">
-            Tu as ajouté <span className="font-bold text-amber-deep">{kept}&nbsp;mot{kept !== 1 ? 's' : ''}</span> à ta collection.
+            {immersionMode === 'fr_es' ? (
+              <>Tu as ajouté <span className="font-bold text-amber-deep">{kept}&nbsp;mot{kept !== 1 ? 's' : ''}</span> à ta collection.</>
+            ) : (
+              <>Has añadido <span className="font-bold text-amber-deep">{kept}&nbsp;palabra{kept !== 1 ? 's' : ''}</span> a tu colección.</>
+            )}
           </p>
           {known > 0 && (
             <p className="text-[13.5px] text-faint mt-1.5">
-              {known}&nbsp;mot{known !== 1 ? 's' : ''} déjà connu{known !== 1 ? 's' : ''}.
+              {immersionMode === 'fr_es' ? (
+                <>{known}&nbsp;mot{known !== 1 ? 's' : ''} déjà connu{known !== 1 ? 's' : ''}.</>
+              ) : (
+                <>{known}&nbsp;palabra{known !== 1 ? 's' : ''} ya conocida{known !== 1 ? 's' : ''}.</>
+              )}
             </p>
           )}
           {kept > 0 && (
             <p className="text-[12.5px] text-muted leading-relaxed mt-3.5 max-w-[280px]">
-              Tes nouveaux mots arrivent dans «&nbsp;Mes mots&nbsp;» — ça peut prendre jusqu&apos;à 30&nbsp;s.
+              {resolveChrome(DISCOVER_CHROME.arrivalLine, immersionMode)}
             </p>
           )}
           <div
@@ -354,13 +368,13 @@ export default function DiscoverClient() {
             style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
           >
             <Button variant="primary" full type="button" onClick={() => router.push('/review')}>
-              Réviser maintenant →
+              {resolveChrome(DISCOVER_CHROME.reviewNow, immersionMode)} →
             </Button>
             <Button variant="secondary" full type="button" onClick={() => router.push('/')}>
-              Retour à l&apos;accueil
+              {resolveChrome(DISCOVER_CHROME.backHome, immersionMode)}
             </Button>
             <Button variant="text" type="button" onClick={backToGrid}>
-              Découvrir un autre thème →
+              {resolveChrome(DISCOVER_CHROME.discoverAnother, immersionMode)} →
             </Button>
           </div>
         </div>
@@ -378,14 +392,18 @@ export default function DiscoverClient() {
         <div className="flex-1 min-h-0 flex flex-col items-center justify-center text-center px-10 pb-12">
           <Image src="/paco-durmiendo.png" alt="Paco" width={196} height={196} className="object-contain mb-0.5" />
           <h1 className="font-serif text-[23px] font-bold tracking-[-0.01em] text-ink leading-snug">
-            Tu as fait le tour de «&nbsp;{topic?.es}&nbsp;»
+            {immersionMode === 'fr_es' ? (
+              <>Tu as fait le tour de «&nbsp;{topic?.es}&nbsp;»</>
+            ) : (
+              <>Has recorrido todo «{topic?.es}»</>
+            )}
           </h1>
           <p className="text-[14.5px] text-muted leading-relaxed mt-2.5 max-w-[264px]">
-            Plus de nouveaux mots pour ce thème. Paco se repose — explore un autre thème.
+            {resolveChrome(DISCOVER_CHROME.exhaustedBody, immersionMode)}
           </p>
           <div className="mt-6">
             <Button variant="secondary" type="button" onClick={backToGrid}>
-              <Compass size={17} strokeWidth={1.9} /> Choisir un autre thème
+              <Compass size={17} strokeWidth={1.9} /> {resolveChrome(DISCOVER_CHROME.chooseAnother, immersionMode)}
             </Button>
           </div>
         </div>
@@ -393,10 +411,10 @@ export default function DiscoverClient() {
     )
   }
 
-  // ── DECK (fling-commit) ─────────────────────────────────────────────────────
+  // ── COLLECTION (fling-commit) ───────────────────────────────────────────────
   const card = cards[index]
   const progress = cards.length > 0 ? ((index + 1) / cards.length) * 100 : 0
-  const article = card ? deckArticle(card.gender) : null
+  const article = card ? collectionArticle(card.gender) : null
 
   return (
     <FocusedOverlay>
@@ -431,12 +449,12 @@ export default function DiscoverClient() {
               leftWash="color-mix(in srgb, var(--color-ok) 15%, transparent)"
               rightStamp={
                 <span className="font-sans text-[21px] font-extrabold uppercase tracking-[0.04em] text-amber-deep border-[3px] border-amber-deep rounded-[11px] px-3.5 py-1.5 bg-[color-mix(in_srgb,var(--color-card)_72%,transparent)]">
-                  À apprendre
+                  {resolveChrome(DISCOVER_CHROME.learnStamp, immersionMode)}
                 </span>
               }
               leftStamp={
                 <span className="font-sans text-[21px] font-extrabold uppercase tracking-[0.04em] text-sage-ink border-[3px] border-ok rounded-[11px] px-3.5 py-1.5 bg-[color-mix(in_srgb,var(--color-card)_72%,transparent)]">
-                  Je connais
+                  {resolveChrome(DISCOVER_CHROME.knowStamp, immersionMode)}
                 </span>
               }
             >
@@ -447,15 +465,31 @@ export default function DiscoverClient() {
                   <p className="font-serif text-[42px] font-bold tracking-[-0.02em] leading-[1.05] text-ink whitespace-nowrap">
                     {article ? `${article} ` : ''}{card.word}
                   </p>
+                  {/* posAbbrev stays; the FR gloss is gated: shown (fr_es) · tap (immersion) · hidden (totale). */}
                   <div className="mt-[11px] inline-flex items-baseline gap-2">
                     <span className="text-[15px] font-medium text-muted">{posAbbrev(card.pos)}</span>
-                    <span className="text-faint">·</span>
-                    <span className="font-serif italic text-[17px] text-muted">{card.fr}</span>
+                    {gloss !== 'hidden' && <span className="text-faint">·</span>}
+                    {gloss === 'visible' && <span className="font-serif italic text-[17px] text-muted">{card.fr}</span>}
+                    {gloss === 'tap' && (
+                      <TapReveal label={resolveChrome(DISCOVER_CHROME.cardReveal, immersionMode)}>
+                        <span className="font-serif italic text-[17px] text-muted">{card.fr}</span>
+                      </TapReveal>
+                    )}
                   </div>
                 </div>
                 <div className="pt-4 border-t border-border-soft">
                   <p className="font-serif text-base text-ink leading-relaxed">{boldTarget(card.example.es, card.word)}</p>
-                  <p className="font-serif italic text-[13.5px] text-muted mt-1.5 leading-relaxed">{card.example.fr}</p>
+                  {/* Example FR gloss: shown (fr_es) · tap (immersion) · hidden (totale). */}
+                  {gloss === 'visible' && (
+                    <p className="font-serif italic text-[13.5px] text-muted mt-1.5 leading-relaxed">{card.example.fr}</p>
+                  )}
+                  {gloss === 'tap' && (
+                    <div className="mt-1.5">
+                      <TapReveal label={resolveChrome(DISCOVER_CHROME.cardReveal, immersionMode)}>
+                        <p className="font-serif italic text-[13.5px] text-muted leading-relaxed">{card.example.fr}</p>
+                      </TapReveal>
+                    </div>
+                  )}
                 </div>
               </div>
             </SwipeCard>
@@ -473,16 +507,16 @@ export default function DiscoverClient() {
           onClick={() => decide('known')}
           className="flex-1 py-[13px] rounded-[14px] bg-card border-[1.5px] border-sage-border text-sage-ink flex flex-col items-center gap-[3px] font-sans font-bold text-[15px]"
         >
-          Je connais
-          <span className="text-[10.5px] font-medium opacity-80 whitespace-nowrap">← glisse à gauche</span>
+          {resolveChrome(DISCOVER_CHROME.knowStamp, immersionMode)}
+          <span className="text-[10.5px] font-medium opacity-80 whitespace-nowrap">{resolveChrome(DISCOVER_CHROME.swipeLeft, immersionMode)}</span>
         </button>
         <button
           type="button"
           onClick={() => decide('kept')}
           className="flex-1 py-[13px] rounded-[14px] bg-accent border-[1.5px] border-accent text-ivory shadow-amber-sm flex flex-col items-center gap-[3px] font-sans font-bold text-[15px]"
         >
-          À apprendre
-          <span className="text-[10.5px] font-medium opacity-90 whitespace-nowrap">glisse à droite →</span>
+          {resolveChrome(DISCOVER_CHROME.learnStamp, immersionMode)}
+          <span className="text-[10.5px] font-medium opacity-90 whitespace-nowrap">{resolveChrome(DISCOVER_CHROME.swipeRight, immersionMode)}</span>
         </button>
       </div>
     </FocusedOverlay>

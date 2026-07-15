@@ -2,7 +2,7 @@
 
 export type Gender = 'm' | 'f' | null
 
-export type DeckCard = {
+export type CollectionCard = {
   id: string
   word: string
   fr: string
@@ -11,7 +11,7 @@ export type DeckCard = {
   example: { es: string; fr: string }
 }
 
-// French POS eyebrow shown above the discovery DECK word, e.g. "NOM · MASCULIN", "VERBE".
+// French POS eyebrow shown above the discovery collection word, e.g. "NOM · MASCULIN", "VERBE".
 // Gender drives the noun suffix; non-nouns fall back to a POS label with no suffix.
 // (The /words detail + /add cards use the inline abbreviated `posAbbrev` instead — board
 // §3 reconciliation — so they keep gender in the n.m./n.f. abbreviation.)
@@ -34,7 +34,7 @@ export function posEyebrow(pos: string, gender: Gender): string {
 }
 
 // Display-only definite article. Bare word stored in the DB; article never persisted.
-export function deckArticle(gender: Gender): string | null {
+export function collectionArticle(gender: Gender): string | null {
   return gender === 'm' ? 'el' : gender === 'f' ? 'la' : null
 }
 

@@ -7,6 +7,7 @@ import {
   DEFAULT_IMMERSION_MODE,
   REVIEW_CHROME,
   RATING_LABELS,
+  DISCOVER_CHROME,
 } from './immersion'
 
 describe('coerceImmersionMode / isImmersionMode', () => {
@@ -61,6 +62,16 @@ describe('resolveChrome', () => {
     expect(resolveChrome(RATING_LABELS[1], 'immersion')).toBe('Otra vez')
     expect(resolveChrome(RATING_LABELS[4], 'immersion')).toBe('Fácil')
     expect(resolveChrome(RATING_LABELS[3], 'totale')).toBe('Bien')
+  })
+
+  it('has authored Spanish for every Discover chrome pair (no French holes)', () => {
+    for (const pair of Object.values(DISCOVER_CHROME)) {
+      expect(pair.es).toBeTruthy()
+      expect(resolveChrome(pair, 'immersion')).toBe(pair.es)
+    }
+    expect(resolveChrome(DISCOVER_CHROME.title, 'fr_es')).toBe('Découvrir')
+    expect(resolveChrome(DISCOVER_CHROME.cardReveal, 'immersion')).toBe('Toca para traducir')
+    expect(resolveChrome(DISCOVER_CHROME.knowStamp, 'totale')).toBe('Ya la sé')
   })
 })
 
