@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useRouter } from 'next/navigation'
 import { playbackRateFor, DEFAULT_PLAYBACK_SPEED, type PlaybackSpeed } from '@/lib/playback-speed'
 import { DEFAULT_THEME, THEME_COOKIE, type ThemeId } from '@/lib/theme'
 import { DEFAULT_IMMERSION_MODE, type ImmersionMode } from '@/lib/immersion'
@@ -56,6 +57,7 @@ export function SettingsProvider({
   const [playbackSpeed, setSpeed] = useState<PlaybackSpeed>(initialPlaybackSpeed)
   const [theme, setThemeState] = useState<ThemeId>(initialTheme)
   const [immersionMode, setImmersionModeState] = useState<ImmersionMode>(initialImmersionMode)
+  const router = useRouter()
 
   // profiles is canonical: reconcile the <html data-theme> + cookie to the server-seeded theme on
   // mount (covers a missing/stale cookie, e.g. first load on a new device after login). Common case
@@ -104,13 +106,28 @@ export function SettingsProvider({
   )
   // Immersion mode drives React (the chrome resolver + gloss gate), not CSS — so unlike theme it
   // needs NO <html> attribute and NO cookie (it's consumed only under app/(app)/, which server-seeds
-  // this provider from profiles → already FOUC-free). Optimistic local state + persist to profiles.
+  // this provider from profiles → already FOUC-free).
+  //
+  // Optimistic local state flips CLIENT consumers (the picker, AccountClient, PasswordForm…) at once.
+  // But SERVER components under (app) — the /account "Apprentissage" labels, dictionary, etc. — read
+  // immersion_mode at request time and prop-thread it, so they only reflect the new mode after a
+  // router.refresh() re-runs them. Refresh AFTER the PATCH resolves, else the re-render re-reads the
+  // stale row; on a failed write we skip the refresh (the optimistic client state self-heals on the
+  // next load, same as the other settings).
   const setImmersionMode = useCallback(
     (v: ImmersionMode) => {
       setImmersionModeState(v)
-      patch({ immersion_mode: v })
+      fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ immersion_mode: v }),
+      })
+        .then((res) => {
+          if (res.ok) router.refresh()
+        })
+        .catch(() => {})
     },
-    [patch],
+    [router],
   )
 
   const value = useMemo<SettingsValue>(
