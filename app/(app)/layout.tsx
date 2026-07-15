@@ -6,6 +6,7 @@ import { DeferredDeleteProvider } from './DeferredDelete'
 import { SettingsProvider } from './SettingsProvider'
 import { DEFAULT_PLAYBACK_SPEED, type PlaybackSpeed } from '@/lib/playback-speed'
 import { coerceTheme } from '@/lib/theme'
+import { displayNameFromEmail } from '@/lib/display-name'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -33,7 +34,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           initialTheme={coerceTheme(profile?.theme)}
         >
           <div className="w-full max-w-[430px] mx-auto min-h-screen flex flex-col">
-            <TopNav dictionaryUnlocked={profile?.dictionary_unlocked === true} />
+            <TopNav
+              dictionaryUnlocked={profile?.dictionary_unlocked === true}
+              displayName={displayNameFromEmail(user.email)}
+            />
             {children}
           </div>
         </SettingsProvider>

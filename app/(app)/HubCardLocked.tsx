@@ -12,16 +12,19 @@ export default function HubCardLocked({
   have,
   need,
   unit,
+  className = '',
 }: {
   icon: ReactNode
   title: string
   have: number
   need: number
   unit: string
+  // Rail sizing (Accueil v2): the Home rail passes h-[132px] so all cards share one height.
+  className?: string
 }) {
   const pct = need > 0 ? Math.max(0, Math.min(1, have / need)) : 0
   return (
-    <div className="flex flex-col rounded-2xl p-3.5 min-h-[118px] bg-page border border-dashed border-line">
+    <div className={`flex flex-col rounded-2xl p-3.5 min-h-[118px] bg-page border border-dashed border-line ${className}`}>
       <div className="flex items-center justify-between">
         <span className="w-[38px] h-[38px] rounded-xl flex items-center justify-center shrink-0 bg-page text-faint border border-border-soft">
           {icon}

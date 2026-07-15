@@ -8,9 +8,11 @@ import { House, Library, Plus, Book, Compass, UserRound, BookA, Lock } from 'luc
 import { useFocusMode } from './FocusMode'
 import { SELECTION_ACTIVE } from './selection'
 
-// Five always-on pills + a flag-gated Dictionnaire pill (rendered after the map below).
-// Accueil also exists as the top-left home circle (both link to /); Compte (the avatar)
-// stays a corner button, never a pill — see the header below.
+// "Header allégé" (Accueil v2) — the single global app header, mounted once by app/(app)/layout.tsx.
+// Row 1: Paco lockup (→ /) on the left + profile avatar (→ /account) on the right (the old top-left
+// home-circle is retired — the lockup is now the / link). Home-only greeting. Row 2: the
+// horizontally-scrollable PILL menu (unchanged format + items: Accueil · Mes mots · Ajouter · Réviser
+// · Découvrir + flag-gated Dictionnaire); Conjugaison stays a Home rail card, not a nav pill.
 const PILLS = [
   { href: '/',         label: 'Accueil',   Icon: House    },
   { href: '/words',    label: 'Mes mots',  Icon: Library  },
@@ -19,7 +21,21 @@ const PILLS = [
   { href: '/discover', label: 'Découvrir', Icon: Compass  },
 ] as const
 
-export default function TopNav({ dictionaryUnlocked }: { dictionaryUnlocked: boolean }) {
+// Exact match for '/', prefix-aware for the rest (lights the parent pill on child routes).
+function routeActive(path: string, href: string) {
+  return href === '/' ? path === '/' : path === href || path.startsWith(href + '/')
+}
+
+const PILL_BASE =
+  'flex items-center gap-1.5 rounded-full px-5 py-1.5 text-sm font-serif font-bold whitespace-nowrap shrink-0 border'
+
+export default function TopNav({
+  dictionaryUnlocked,
+  displayName,
+}: {
+  dictionaryUnlocked: boolean
+  displayName?: string | null
+}) {
   const path = usePathname()
   const { focus } = useFocusMode()
   const activeRef = useRef<HTMLAnchorElement>(null)
@@ -28,36 +44,28 @@ export default function TopNav({ dictionaryUnlocked }: { dictionaryUnlocked: boo
   // Account avatar lights amber on the Profil surface (nav-icon accent, not a card fill).
   const accountActive = path === '/account' || path.startsWith('/account/')
 
-  // If the active pill is off-screen in the scroll row, bring it into view on mount.
+  // Bring the active pill into view on route change (it can start off-screen in the scroll row).
   useEffect(() => {
     activeRef.current?.scrollIntoView({ inline: 'center', block: 'nearest' })
   }, [path])
 
-  // Full-focus screens (e.g. an active /review session) suppress the nav entirely.
+  // Full-focus screens (e.g. an active /review session) suppress the header entirely.
   if (focus) return null
 
   return (
     <header
-      className="sticky top-0 z-30 bg-page"
-      style={{ paddingTop: 'calc(0.75rem + env(safe-area-inset-top))' }}
+      className="sticky top-0 z-30 bg-page px-5"
+      style={{ paddingTop: 'calc(1.25rem + env(safe-area-inset-top))' }}
     >
-      {/* Row 1 — home circle (far left) · centered Paco lockup (→ /) · account avatar (far right).
-          Equal-width flanking circles let the lockup center cleanly. */}
-      <div className="px-5 flex items-center gap-2.5">
-        <Link
-          href="/"
-          aria-label="Accueil"
-          className="press-icon w-9 h-9 rounded-full bg-tint text-accent flex items-center justify-center shrink-0"
-        >
-          <House size={20} strokeWidth={1.8} />
-        </Link>
-        <Link href="/" className="press-row flex-1 flex items-center justify-center gap-2 min-w-0">
-          {/* Nav avatar (Animando). SWAP POINT (M5.5a): replace with the 32px head-shoulders
-              Animando crop (@1×/2×/3×) once that asset lands — paco.png is already Animando, so
-              this is asset-gated only; do not block on it. */}
-          <Image src="/paco.png" alt="" width={40} height={40} className="object-contain shrink-0" />
-          <span className="flex flex-col leading-none">
-            <span className="font-serif text-2xl font-bold text-ink leading-none tracking-[-0.03em]">Paco</span>
+      {/* Row 1 — Paco lockup (→ /) · profile avatar (→ /account). */}
+      <div className="flex items-center justify-between gap-2.5">
+        <Link href="/" className="press-row flex items-center gap-[11px] min-w-0">
+          {/* Circle-cropped Animando lockup (object-cover top-center per the handoff). */}
+          <span className="w-10 h-10 rounded-full overflow-hidden shrink-0">
+            <Image src="/paco.png" alt="" width={40} height={40} className="w-10 h-10 object-cover object-top" />
+          </span>
+          <span className="flex flex-col leading-none min-w-0">
+            <span className="font-serif text-[22px] font-bold text-ink leading-none">Paco</span>
             <span className="text-[8px] font-bold tracking-[0.16em] uppercase text-accent mt-1">
               APRENDE · RECUERDA · HABLA
             </span>
@@ -67,27 +75,33 @@ export default function TopNav({ dictionaryUnlocked }: { dictionaryUnlocked: boo
           href="/account"
           aria-label="Compte"
           aria-current={accountActive ? 'page' : undefined}
-          className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
+          className={`w-[42px] h-[42px] rounded-full flex items-center justify-center shrink-0 ${
             accountActive ? 'press-pill-amber bg-accent text-ivory shadow-amber-sm' : 'press-icon bg-tint text-accent'
           }`}
         >
-          <UserRound size={20} strokeWidth={1.8} />
+          <UserRound size={19} strokeWidth={1.8} />
         </Link>
       </div>
 
-      {/* Row 2 — horizontally-scrollable pill row */}
-      <div className="mt-3 px-5 pb-3 flex gap-2 overflow-x-auto no-scrollbar">
+      {/* Greeting — Home only. "¡Hola, {prénom}!" (Spanish greeting, French name). The name is the
+          shared email-derived placeholder (lib/display-name.ts) until M6 onboarding stores a real one. */}
+      {path === '/' && displayName && (
+        <h1 className="mt-3.5 font-serif text-[26px] font-bold text-ink tracking-[-0.01em]">
+          ¡Hola, {displayName}!
+        </h1>
+      )}
+
+      {/* Row 2 — horizontally-scrollable pill menu. */}
+      <div className="mt-3 pb-3 flex gap-2 overflow-x-auto no-scrollbar">
         {PILLS.map(({ href, label, Icon }) => {
-          // `href + '/'` guard lights the parent pill on child routes (e.g. /words/[id])
-          // without false positives; childless routes degrade to exact match.
-          const active = path === href || path.startsWith(href + '/')
+          const active = routeActive(path, href)
           return (
             <Link
               key={href}
               href={href}
               ref={active ? activeRef : undefined}
               aria-current={active ? 'page' : undefined}
-              className={`flex items-center gap-1.5 rounded-full px-5 py-1.5 text-sm font-serif font-bold whitespace-nowrap shrink-0 border ${
+              className={`${PILL_BASE} ${
                 active ? `press-pill-amber border-transparent ${SELECTION_ACTIVE}` : 'press-pill bg-card text-ink border-accent/60'
               }`}
             >
@@ -97,21 +111,17 @@ export default function TopNav({ dictionaryUnlocked }: { dictionaryUnlocked: boo
           )
         })}
 
-        {/* Dictionnaire — flag-gated. Both states link to /dictionary (which renders the
-            locked screen when still locked). Locked = dashed border + lock glyph, never active. */}
+        {/* Dictionnaire — flag-gated. Both states link to /dictionary (locked screen renders there).
+            Locked = dashed border + lock glyph, never active. */}
         {dictionaryUnlocked ? (
           <Link
             href="/dictionary"
             ref={dictActive ? activeRef : undefined}
             aria-current={dictActive ? 'page' : undefined}
-            className={`flex items-center gap-1.5 rounded-full px-5 py-1.5 text-sm font-serif font-bold whitespace-nowrap shrink-0 border ${
+            className={`${PILL_BASE} ${
               dictActive ? `press-pill-amber border-transparent ${SELECTION_ACTIVE}` : 'press-pill bg-card text-ink border-accent/60'
             }`}
           >
-            {/* Vector BookA (not the raster handover glyph): at 16px beside five vector pill
-                icons the PNG read darker/softer and inconsistent. The real book artwork lives
-                on the Home card tile; the nav pill stays vector + accent/60 like its siblings
-                until the Accueil pass gives the nav a single tintable icon system. */}
             <BookA size={16} strokeWidth={dictActive ? 2.2 : 1.8} className={dictActive ? undefined : 'text-accent/60'} />
             Dictionnaire
           </Link>
@@ -119,7 +129,7 @@ export default function TopNav({ dictionaryUnlocked }: { dictionaryUnlocked: boo
           <Link
             href="/dictionary"
             aria-label="Dictionnaire (verrouillé)"
-            className="press-pill flex items-center gap-1.5 rounded-full px-5 py-1.5 text-sm font-serif font-bold whitespace-nowrap shrink-0 border border-dashed border-tinted-border bg-card text-faint opacity-85"
+            className={`${PILL_BASE} press-pill border-dashed border-tinted-border bg-card text-faint opacity-85`}
           >
             <Lock size={16} strokeWidth={1.8} className="text-faint" />
             Dictionnaire

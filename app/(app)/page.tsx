@@ -84,61 +84,74 @@ export default async function HomePage() {
     <div className="flex flex-col flex-1">
       {/* Flips the sticky dictionary-unlock flag on app load once ≥10 words are memorized. */}
       <UnlockSync />
-      <div className="flex-1 px-4 pb-[22px] pt-1.5 flex flex-col gap-[14px]">
+      <div className="flex-1 px-5 pb-[22px] pt-1.5 flex flex-col gap-[14px]">
         {/* Review hero — the loudest element; a crème+ SURFACE, never amber-filled. */}
         <ReviewHero state={hero} count={due} minutes={minutes} />
 
-        {/* "Continuer avec Paco" — the function hub. 2×2 grid; Ajouter is the feature card, the two
-            gated functions render their existing-gate locked variant below threshold. */}
+        {/* "Continuer avec Paco" — the function rail. Horizontally-scrollable, equal-height (132px)
+            cards; Ajouter is the feature card, the two gated functions render their existing-gate
+            locked variant below threshold. Full-bleed (-mx-5) with a right-edge fade. */}
         <p className="px-0.5 pt-1 text-[11px] font-bold uppercase tracking-[0.14em] text-muted">
           Continuer avec Paco
         </p>
-        <div className="grid grid-cols-2 gap-[11px]">
-          <HubCard
-            feature
-            href="/add"
-            icon={<Plus size={19} strokeWidth={1.9} />}
-            title="Ajouter"
-            desc="Un mot, une expression."
-          />
-          <HubCard
-            href="/discover"
-            icon={<Compass size={19} strokeWidth={1.9} />}
-            title="Découvrir"
-            desc="Des mots par thème."
-          />
-          {drillUnlocked ? (
+        <div className="-mx-5 relative">
+          <div className="flex gap-[11px] overflow-x-auto no-scrollbar px-5 pb-[14px]">
             <HubCard
-              href="/drill"
-              icon={<Rows3 size={19} strokeWidth={1.9} />}
-              title="Conjugaison"
-              desc="Tes verbes en contexte."
+              feature
+              href="/add"
+              icon={<Plus size={19} strokeWidth={1.9} />}
+              title="Ajouter"
+              desc="Un mot, une expression."
+              className="w-[182px] h-[132px] shrink-0"
             />
-          ) : (
-            <HubCardLocked
-              icon={<Rows3 size={19} strokeWidth={1.7} />}
-              title="Conjugaison"
-              have={trustedVerbCount}
-              need={DRILL_UNLOCK_THRESHOLD}
-              unit="verbes"
-            />
-          )}
-          {dictUnlocked ? (
             <HubCard
-              href="/dictionary"
-              icon={<BookA size={19} strokeWidth={1.9} />}
-              title="Dictionnaire"
-              desc="Ton dico personnel."
+              href="/discover"
+              icon={<Compass size={19} strokeWidth={1.9} />}
+              title="Découvrir"
+              desc="Des mots par thème."
+              className="w-[182px] h-[132px] shrink-0"
             />
-          ) : (
-            <HubCardLocked
-              icon={<BookA size={19} strokeWidth={1.7} />}
-              title="Dictionnaire"
-              have={memorizedCount}
-              need={DICTIONARY_UNLOCK_THRESHOLD}
-              unit="mémorisés"
-            />
-          )}
+            {drillUnlocked ? (
+              <HubCard
+                href="/drill"
+                icon={<Rows3 size={19} strokeWidth={1.9} />}
+                title="Conjugaison"
+                desc="Tes verbes en contexte."
+                className="w-[182px] h-[132px] shrink-0"
+              />
+            ) : (
+              <HubCardLocked
+                icon={<Rows3 size={19} strokeWidth={1.7} />}
+                title="Conjugaison"
+                have={trustedVerbCount}
+                need={DRILL_UNLOCK_THRESHOLD}
+                unit="verbes"
+                className="w-[182px] h-[132px] shrink-0"
+              />
+            )}
+            {dictUnlocked ? (
+              <HubCard
+                href="/dictionary"
+                icon={<BookA size={19} strokeWidth={1.9} />}
+                title="Dictionnaire"
+                desc="Ton dico personnel."
+                className="w-[182px] h-[132px] shrink-0"
+              />
+            ) : (
+              <HubCardLocked
+                icon={<BookA size={19} strokeWidth={1.7} />}
+                title="Dictionnaire"
+                have={memorizedCount}
+                need={DICTIONARY_UNLOCK_THRESHOLD}
+                unit="mémorisés"
+                className="w-[182px] h-[132px] shrink-0"
+              />
+            )}
+          </div>
+          <div
+            aria-hidden
+            className="pointer-events-none absolute top-0 bottom-[14px] right-0 w-10 bg-[linear-gradient(90deg,transparent,var(--color-page))]"
+          />
         </div>
 
         {/* Ta collection — header + recent preview, joined by an amber accent rail. */}

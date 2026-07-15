@@ -15,12 +15,15 @@ export default function HubCard({
   desc,
   href,
   feature = false,
+  className = '',
 }: {
   icon: ReactNode
   title: string
   desc: string
   href: string
   feature?: boolean
+  // Rail sizing (Accueil v2): the Home rail passes h-[132px] so all cards share one height.
+  className?: string
 }) {
   return (
     <Link
@@ -29,7 +32,7 @@ export default function HubCard({
         feature
           ? 'press-card-feature bg-surface-alt border border-tinted-border border-l-[3px] border-l-accent shadow-card'
           : 'press-card bg-card border border-line shadow-card-sm'
-      }`}
+      } ${className}`}
     >
       <div className="flex items-center justify-between">
         <span
