@@ -23,8 +23,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // memorized scan). Missing row → column defaults via the fallbacks below.
   const { data: profile } = await supabase
     .from('profiles')
-    .select('dictionary_unlocked, autoplay_audio, playback_speed, theme, immersion_mode')
+    .select('dictionary_unlocked, autoplay_audio, playback_speed, theme, immersion_mode, onboarding_completed')
     .maybeSingle()
+
+  // First-run gate (M6.2a): a logged-in user who hasn't finished (or skipped) onboarding is bounced
+  // into the flow. A brand-new user has no profiles row yet → `undefined` → treated as not-onboarded.
+  // /onboarding lives OUTSIDE this (app) group, so there is no redirect loop. Existing users were
+  // backfilled to true by the migration, so this never re-triggers for them.
+  if (profile?.onboarding_completed !== true) {
+    redirect('/onboarding')
+  }
 
   return (
     <FocusModeProvider>

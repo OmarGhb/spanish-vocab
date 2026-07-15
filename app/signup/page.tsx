@@ -10,9 +10,9 @@ import Button from '@/app/(app)/Button'
 
 // First-run gate (Inscription). Mirrors Login's restraint + a confirm field. The password rule and
 // its on-screen helper both come from lib/password-policy.ts so they can't drift. Email verification
-// is disabled in Supabase for this slice → signUp returns a live session and we land on Home.
-// FORWARD NOTE: when the onboarding flow ships (slice 2), first-run signup must route into
-// onboarding, not straight to '/'. Left as push('/') deliberately for now.
+// is disabled in Supabase for this slice → signUp returns a live session. First-run signup routes
+// into /onboarding (M6.2a); the (app) layout gate would send them there anyway, but routing directly
+// avoids a Home flash.
 export default function SignupPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
@@ -46,7 +46,7 @@ export default function SignupPage() {
       return
     }
 
-    router.push('/')
+    router.push('/onboarding')
   }
 
   return (

@@ -1,0 +1,41 @@
+/* Onboarding slide transitions. Scoped to the flow (a CSS module, not globals.css) so it stays
+   isolated. The incoming panel flies in + fades; keyed remount on step change replays it. Forward
+   navigation enters from the right, Back from the left. Motion is suppressed under
+   prefers-reduced-motion (a plain instant swap), matching the app's press-state discipline. */
+
+.forward {
+  animation: onb-fly-in-right 2000ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.back {
+  animation: onb-fly-in-left 2000ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes onb-fly-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes onb-fly-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .forward,
+  .back {
+    animation: none;
+  }
+}

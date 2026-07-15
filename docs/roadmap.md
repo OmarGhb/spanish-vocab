@@ -324,11 +324,19 @@ Small patch, single commit. Suite 298 → 316.
 
 ### M6.1d follow-ups
 - **`deck` anglicism — finish the app-wide drop** (deferred internal identifiers: `DeckVerbInput`/`deckVerbs`, the `already_in_deck` wire value + comments/tests).
-- **Never mode-aware:** onboarding scaffolding is always French (instructional; not built yet) — the reason the resolver is per-surface opt-in, not a global lang lock.
+- **Never mode-aware:** onboarding scaffolding is always French (instructional) — the reason the resolver is per-surface opt-in, not a global lang lock. (Now built as of M6.2a — see the M6.2 cluster below.)
 
-- App's first opening should trigger an onboarding with interactive steps showing how the app works.
+- ~~App's first opening should trigger an onboarding with interactive steps~~ **STARTED — M6.2a (v0.9.7)** ships the Welcome + tour; capture steps (slice 2) + first-swipe (slice 3) remain.
 - Login screen should be reworked to have Paco's branded content, to actually allow to login or to create a new account.
 - **Collect a real display name → replace the placeholder.** The drill recap ("¡Muy bien, {name}!") currently derives the name from the email local-part via `displayNameFromEmail` (`lib/display-name.ts`) as a placeholder. Onboarding should capture a real name, store it on `profiles`, and swap **only that helper's source** (read the stored name, fall back to the email derivation) — every name surface already reads through the helper, so no call sites to chase. (Detail in `backlog.md` → Onboarding.)
+
+## M6.2 — Onboarding cluster (the flow between signup and Home; built in parallel with the discovery-pool work)
+#### M6.2a — scaffold + routing + Welcome + tour ✅ (v0.9.7)
+- **A complete minimal onboarding:** signup → Welcome → 5-step tour (Ajouter · Découvrir · Réviser + the ¡Uy! mistake reveal · Mémoriser · Construire) → Home. No immersion/content dependency (all French scaffolding + static real-surface previews) — buildable now. New route `app/onboarding/` lives **OUTSIDE** the `(app)` group (own full-screen chrome: dots · back · Passer; no TopNav; no `SettingsProvider`).
+- **Gate:** new `profiles.onboarding_completed` (migration `20260716000000_onboarding_completed.sql`, default false, **backfills existing rows → true** so current users aren't forced in; **apply-on-deploy**). `(app)/layout.tsx` redirects any un-onboarded user (`!== true`, incl. no-row) into `/onboarding`; `/onboarding` being outside `(app)` means no loop. Completion **and** "Passer" both `await PATCH /api/profile { onboarding_completed: true }` then route Home (await-then-navigate so the layout reads the committed flag). Signup reroutes to `/onboarding` (resolves the M6.0a forward-note).
+- **4b mistake reveal mounts the REAL `ConjugationGrid`** (`buildConjugationGridForTense('beber','subjPresente','vosotros')`, `bebáis` highlighted) — never a redrawn table. The other four surfaces are static faithful reproductions on real tokens. Every headline **Lora** (Fraunces stays allowlist-only). Runs in default Sépia (theme step is slice 2).
+- **Dev/replay affordance:** a "Revoir l'introduction" row in `/account` (À propos) flips the flag false + routes into `/onboarding` — intentionally FR (launches the French-only flow), so no ACCOUNT_CHROME pair. Suite 471 (UI slice — the 4b grid is covered by `conjugation-grid.test.ts`); tsc + lint + build clean. **Smoke-test signup→Welcome→tour→Home + Passer at each step + gate blocks re-entry + the account replay; tag v0.9.7 on the final post-polish commit.**
+- **Slice 2 (later):** prénom · immersion selector · thème · niveau · thème de départ — inserted BETWEEN the tour and Home. **Slice 3 (later):** première session / first-swipe (needs the discovery pool) + the real M5.5j Home handoff banner.
 
 ## M7 — Companion character
 - Visual/voice half shipped in v0.3.3. Remaining: non-pushy, opt-in personalized AI check-ins (small Anthropic call per check-in).

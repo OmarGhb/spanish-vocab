@@ -11,6 +11,7 @@ import SessionSizeStepper from './SessionSizeStepper'
 import { AutoplayToggle, SpeedSegmented } from './AudioControls'
 import ThemePicker from './ThemePicker'
 import ImmersionModePicker from './ImmersionModePicker'
+import ReplayIntroRow from './ReplayIntroRow'
 import AccountActions from './AccountClient'
 import pkg from '../../../package.json'
 
@@ -138,6 +139,8 @@ export default async function AccountPage() {
       <GroupHead>{resolveChrome(ACCOUNT_CHROME.ghAbout, mode)}</GroupHead>
       <SettingsCard>
         <NavRow first label={resolveChrome(ACCOUNT_CHROME.sendFeedback, mode)} href="mailto:contact@paco.app?subject=Retour%20Paco" />
+        {/* Replay the first-run onboarding (M6.2a). Intentionally FR (launches the French-only flow). */}
+        <ReplayIntroRow />
         <DisplayRow label={resolveChrome(ACCOUNT_CHROME.version, mode)} value={`${pkg.version} (${resolveChrome(ACCOUNT_CHROME.preBeta, mode)})`} />
         {/* F2: kept live (shipped /legal pages), re-skinned — NOT demoted to BIENTÔT. Both pages
             preserved as two rows rather than the mockup's single inert "Mentions légales". */}
