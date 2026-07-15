@@ -150,7 +150,9 @@ export default function DiscoverClient() {
     setKnown(0)
     setPhase('generating')
     try {
-      const res = await fetch('/api/discovery/generate', {
+      // Pool-first (M8): /session draws from the shared pool (instant, no AI) and only falls back to
+      // live generation when the user has drained a theme's pool. Same response shape as before.
+      const res = await fetch('/api/discovery/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ topic: t.key }),

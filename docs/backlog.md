@@ -228,12 +228,16 @@
   120 words is large — selecting it may need a sub-pick by *palier* rather than batching one deck.
   When each lands, wire its `FeaturedCard` to start its flow (replace the coming-soon gate) — the
   shell + the §04 featured-card treatment are already in `DiscoverClient.tsx`.
+  **UPDATE (M8, v0.10.0):** the **shared `discovery_pool` + seeding path now exist** — "L'essentiel A2–B1"
+  is populated by `POST /api/admin/discovery-fill` `mode:'curate'` (a vetted word list → `getWordData`
+  enrichment → `theme_key='esencial'`). What remains for (b) is Omar's **word selection** (the judgment) +
+  wiring the `FeaturedCard` to draw the `esencial` pool. The palier sub-pick maps to the `band` column.
 - **Generation latency on the Génération screen** (multi-second wait). The delay is
   the live Anthropic call in `/api/discovery/generate` — inherent to generating a batch
   on demand, not a regression. Future fix: prefetch the next topic's batch (warm on grid
   idle / on press-in) and/or a short-lived server-side per-topic cache of generated
   batches, so the deck opens instantly on the common path. Keep the cache-before-API
-  resume path; this is purely about cold-generation perceived speed. **Cross-ref:** the PRE-BETA **content gate**'s discovery pre-seeding (≥100 words/theme, `roadmap.md`) would address this directly by serving pre-generated words instead of a live call — **not retired here (not shipped).**
+  resume path; this is purely about cold-generation perceived speed. **LARGELY RESOLVED (M8, v0.10.0):** the shared `discovery_pool` serves pre-generated words on the common path (`/api/discovery/session` draw = no live call), so the multi-second wait only remains on the rare **exhaustion fallback**. Fully closing it = keeping each theme's pool topped up via `/api/admin/discovery-fill`.
 
   _(The desktop / wide-viewport + content↔nav edge-alignment item was **resolved by M5.2** —
   the top nav lives inside the `max-w-[430px]` column so nav and content share edges by

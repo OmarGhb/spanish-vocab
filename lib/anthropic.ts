@@ -53,6 +53,9 @@ const DiscoveryEntrySchema = z.object({
   fr: z.string().min(1),
   pos: z.string().min(1),
   gender: z.enum(['m', 'f']).nullable(),
+  // Coarse frequency band (M8) — drives the pool's level→band read ordering. Classified at
+  // generation because the pool is seeded once; defaulting to 'core' would make the ordering inert.
+  band: z.enum(['core', 'extended']),
   example: z.object({ es: z.string().min(1), fr: z.string().min(1) }),
 })
 
@@ -69,6 +72,7 @@ Return ONLY a valid JSON array — no markdown, no code blocks, no explanation. 
   "fr": "le marché",
   "pos": "n.m.",
   "gender": "m",
+  "band": "core",
   "example": { "es": "...", "fr": "..." }
 }
 
@@ -78,6 +82,7 @@ Rules:
 - "fr": a short French gloss (1–4 words), the kind you'd see in a bilingual dictionary. For nouns include the French article (e.g. "le marché", "la casa" → "la maison").
 - "pos": part of speech in standard notation. Use exactly one of: "v." (verb), "v.pron." (pronominal verb), "n.m." (masculine noun), "n.f." (feminine noun), "adj.", "adv.", "prep.", "conj.", "pron.", "interj.".
 - "gender": "m" or "f" for nouns; null for anything that is not a gendered noun.
+- "band": coarse frequency tier. "core" = high-frequency A2 essentials a beginner meets first; "extended" = less common or more B1-level words for the theme. Bias toward "core" for the most common words and "extended" for the rest.
 - "example": one natural A2–B1 Spanish sentence using the word verbatim, with a fluent French translation.
 - Do not include any word from the EXCLUDE list (case-insensitive), nor obvious inflections of those words.`
 }
