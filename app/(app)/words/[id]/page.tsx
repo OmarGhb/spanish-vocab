@@ -4,20 +4,25 @@ import { ChevronLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { oneEmbed } from '@/lib/word-status'
 import { posAbbrev } from '@/lib/discovery'
+import { coerceImmersionMode, resolveChrome, DETAIL_CHROME, type ImmersionMode } from '@/lib/immersion'
 import AudioButton from '../../AudioButton'
 import StatusPill from '../../StatusPill'
 import MasteryGauge from '../../MasteryGauge'
 import WordDetailContent from './WordDetailContent'
 import WordDetailActions from './WordDetailActions'
 
-function statsLine(reps: number, lastReview: string | null): string {
-  if (reps === 0 || !lastReview) return 'Pas encore révisé'
+function statsLine(reps: number, lastReview: string | null, mode: ImmersionMode): string {
+  if (reps === 0 || !lastReview) return resolveChrome(DETAIL_CHROME.notReviewedYet, mode)
   const todayMs = new Date(new Date().toDateString()).getTime()
   const lastMs = new Date(new Date(lastReview).toDateString()).getTime()
   const days = Math.round((todayMs - lastMs) / 86_400_000)
-  const when =
-    days === 0 ? "aujourd'hui" : days === 1 ? 'hier' : `il y a ${days} jour${days > 1 ? 's' : ''}`
-  return `Révisé ${reps} fois — dernière révision ${when}`
+  if (mode === 'fr_es') {
+    const when =
+      days === 0 ? "aujourd'hui" : days === 1 ? 'hier' : `il y a ${days} jour${days > 1 ? 's' : ''}`
+    return `Révisé ${reps} fois — dernière révision ${when}`
+  }
+  const when = days === 0 ? 'hoy' : days === 1 ? 'ayer' : `hace ${days} día${days > 1 ? 's' : ''}`
+  return `Repasada ${reps} ${reps > 1 ? 'veces' : 'vez'} — último repaso ${when}`
 }
 
 type CardRow = { state: number; due: string; stability: number; reps: number; last_review: string | null }
@@ -26,13 +31,18 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
   const { id } = await params
   const supabase = await createClient()
 
-  const { data } = await supabase
-    .from('words')
-    .select('id, word, definition, examples, distractors, form_annotation, lemma, audio_urls, origin, discovery_status, review_cards(state, due, stability, reps, last_review)')
-    .eq('id', id)
-    .maybeSingle()
+  const [{ data }, { data: profile }] = await Promise.all([
+    supabase
+      .from('words')
+      .select('id, word, definition, examples, distractors, form_annotation, lemma, audio_urls, origin, discovery_status, review_cards(state, due, stability, reps, last_review)')
+      .eq('id', id)
+      .maybeSingle(),
+    supabase.from('profiles').select('immersion_mode').maybeSingle(),
+  ])
 
   if (!data) notFound()
+
+  const mode = coerceImmersionMode(profile?.immersion_mode)
 
   // A discovery word that isn't promoted yet is partial (no es definition, no distractors,
   // no review card) — never render it as a real collection word.
@@ -41,7 +51,7 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
   // to-one embed (UNIQUE word_id) → object; normalize for the stats/status read.
   const card = oneEmbed(data.review_cards as unknown as CardRow | CardRow[] | null)
 
-  const stats = card ? statsLine(card.reps, card.last_review) : 'Pas encore révisé'
+  const stats = statsLine(card?.reps ?? 0, card?.last_review ?? null, mode)
 
   const def = data.definition as Record<string, unknown> | null
   const defEs = typeof def?.es === 'string' ? def.es : ''
@@ -66,15 +76,15 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
             className="inline-flex items-center gap-1 -ml-1 text-sm font-semibold text-muted"
           >
             <ChevronLeft size={18} />
-            Mes mots
+            {resolveChrome(DETAIL_CHROME.myWordsBack, mode)}
           </Link>
-          <WordDetailActions wordId={data.id as string} word={data.word as string} />
+          <WordDetailActions wordId={data.id as string} word={data.word as string} mode={mode} />
         </div>
 
         {/* Status pill + 4-dot mastery gauge (same components as the rows). */}
         <div className="flex items-center gap-3">
-          <StatusPill card={card ?? null} />
-          <MasteryGauge card={card ?? null} />
+          <StatusPill card={card ?? null} mode={mode} />
+          <MasteryGauge card={card ?? null} mode={mode} />
         </div>
 
         {/* Word heading + inline abbreviated POS (baseline) + audio. */}
@@ -97,6 +107,7 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
           formAnnotation={formAnnotation}
           examples={examples}
           distractors={distractors}
+          mode={mode}
         />
 
         {/* Stats line */}

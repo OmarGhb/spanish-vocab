@@ -5,6 +5,7 @@ import { DICTIONARY_UNLOCK_THRESHOLD, getDictionaryState } from '@/lib/dictionar
 import { buildDrillPool, DRILL_UNLOCK_THRESHOLD } from '@/lib/drill'
 import { estimateMinutes, RECENT_LOGS_WINDOW } from '@/lib/review-estimate'
 import { resolveHomeState } from '@/lib/home-state'
+import { coerceImmersionMode, resolveChrome, HOME_CHROME } from '@/lib/immersion'
 import ReviewHero from './ReviewHero'
 import HubCard from './HubCard'
 import HubCardLocked from './HubCardLocked'
@@ -18,7 +19,7 @@ export default async function HomePage() {
   const supabase = await createClient()
   const nowIso = new Date().toISOString()
 
-  const [{ count: wordCount }, { count: dueCount }, { data: recent }, { data: logs }, { data: deckVerbs }] =
+  const [{ count: wordCount }, { count: dueCount }, { data: recent }, { data: logs }, { data: deckVerbs }, { data: profile }] =
     await Promise.all([
       // Only real collection words count: manual, or discovery rows fully promoted.
       supabase
@@ -43,7 +44,11 @@ export default async function HomePage() {
         .from('words')
         .select('word, lemma, definition')
         .or('origin.eq.manual,discovery_status.eq.promoted'),
+      // Immersion mode (M6.1c) — threaded into the server-rendered Home chrome (no client hook here).
+      supabase.from('profiles').select('immersion_mode').maybeSingle(),
     ])
+
+  const mode = coerceImmersionMode(profile?.immersion_mode)
 
   const totalWords = wordCount ?? 0
   const due = dueCount ?? 0
@@ -86,13 +91,13 @@ export default async function HomePage() {
       <UnlockSync />
       <div className="flex-1 px-5 pb-[22px] pt-1.5 flex flex-col gap-[14px]">
         {/* Review hero — the loudest element; a crème+ SURFACE, never amber-filled. */}
-        <ReviewHero state={hero} count={due} minutes={minutes} />
+        <ReviewHero state={hero} count={due} minutes={minutes} mode={mode} />
 
         {/* "Continuer avec Paco" — the function rail. Horizontally-scrollable, equal-height (132px)
             cards; Ajouter is the feature card, the two gated functions render their existing-gate
             locked variant below threshold. Full-bleed (-mx-5) with a right-edge fade. */}
         <p className="px-0.5 pt-1 text-[11px] font-bold uppercase tracking-[0.14em] text-muted">
-          Continuer avec Paco
+          {resolveChrome(HOME_CHROME.continueWithPaco, mode)}
         </p>
         <div className="-mx-5 relative">
           <div className="flex gap-[11px] overflow-x-auto no-scrollbar px-5 pb-[14px]">
@@ -100,32 +105,32 @@ export default async function HomePage() {
               feature
               href="/add"
               icon={<Plus size={19} strokeWidth={1.9} />}
-              title="Ajouter"
-              desc="Un mot, une expression."
+              title={resolveChrome(HOME_CHROME.addTitle, mode)}
+              desc={resolveChrome(HOME_CHROME.addDesc, mode)}
               className="w-[182px] h-[132px] shrink-0"
             />
             <HubCard
               href="/discover"
               icon={<Compass size={19} strokeWidth={1.9} />}
-              title="Découvrir"
-              desc="Des mots par thème."
+              title={resolveChrome(HOME_CHROME.discoverTitle, mode)}
+              desc={resolveChrome(HOME_CHROME.discoverDesc, mode)}
               className="w-[182px] h-[132px] shrink-0"
             />
             {drillUnlocked ? (
               <HubCard
                 href="/drill"
                 icon={<Rows3 size={19} strokeWidth={1.9} />}
-                title="Conjugaison"
-                desc="Tes verbes en contexte."
+                title={resolveChrome(HOME_CHROME.conjTitle, mode)}
+                desc={resolveChrome(HOME_CHROME.conjDesc, mode)}
                 className="w-[182px] h-[132px] shrink-0"
               />
             ) : (
               <HubCardLocked
                 icon={<Rows3 size={19} strokeWidth={1.7} />}
-                title="Conjugaison"
+                title={resolveChrome(HOME_CHROME.conjTitle, mode)}
                 have={trustedVerbCount}
                 need={DRILL_UNLOCK_THRESHOLD}
-                unit="verbes"
+                unit={resolveChrome(HOME_CHROME.conjUnit, mode)}
                 className="w-[182px] h-[132px] shrink-0"
               />
             )}
@@ -133,17 +138,17 @@ export default async function HomePage() {
               <HubCard
                 href="/dictionary"
                 icon={<BookA size={19} strokeWidth={1.9} />}
-                title="Dictionnaire"
-                desc="Ton dico personnel."
+                title={resolveChrome(HOME_CHROME.dictTitle, mode)}
+                desc={resolveChrome(HOME_CHROME.dictDesc, mode)}
                 className="w-[182px] h-[132px] shrink-0"
               />
             ) : (
               <HubCardLocked
                 icon={<BookA size={19} strokeWidth={1.7} />}
-                title="Dictionnaire"
+                title={resolveChrome(HOME_CHROME.dictTitle, mode)}
                 have={memorizedCount}
                 need={DICTIONARY_UNLOCK_THRESHOLD}
-                unit="mémorisés"
+                unit={resolveChrome(HOME_CHROME.dictUnit, mode)}
                 className="w-[182px] h-[132px] shrink-0"
               />
             )}
@@ -156,7 +161,7 @@ export default async function HomePage() {
 
         {/* Ta collection — header + recent preview, joined by an amber accent rail. */}
         <div className="pt-1" />
-        <CollectionSection state={collection} previews={previews} totalCount={totalWords} />
+        <CollectionSection state={collection} previews={previews} totalCount={totalWords} mode={mode} />
       </div>
     </div>
   )

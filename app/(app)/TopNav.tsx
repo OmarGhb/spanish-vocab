@@ -6,6 +6,8 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useRef } from 'react'
 import { House, Library, Plus, Book, Compass, UserRound, BookA, Lock } from 'lucide-react'
 import { useFocusMode } from './FocusMode'
+import { useSettings } from './SettingsProvider'
+import { resolveChrome, NAV_CHROME } from '@/lib/immersion'
 import { SELECTION_ACTIVE } from './selection'
 
 // "Header allégé" (Accueil v2) — the single global app header, mounted once by app/(app)/layout.tsx.
@@ -14,11 +16,11 @@ import { SELECTION_ACTIVE } from './selection'
 // horizontally-scrollable PILL menu (unchanged format + items: Accueil · Mes mots · Ajouter · Réviser
 // · Découvrir + flag-gated Dictionnaire); Conjugaison stays a Home rail card, not a nav pill.
 const PILLS = [
-  { href: '/',         label: 'Accueil',   Icon: House    },
-  { href: '/words',    label: 'Mes mots',  Icon: Library  },
-  { href: '/add',      label: 'Ajouter',   Icon: Plus     },
-  { href: '/review',   label: 'Réviser',   Icon: Book     },
-  { href: '/discover', label: 'Découvrir', Icon: Compass  },
+  { href: '/',         chrome: NAV_CHROME.home,     Icon: House    },
+  { href: '/words',    chrome: NAV_CHROME.myWords,  Icon: Library  },
+  { href: '/add',      chrome: NAV_CHROME.add,      Icon: Plus     },
+  { href: '/review',   chrome: NAV_CHROME.review,   Icon: Book     },
+  { href: '/discover', chrome: NAV_CHROME.discover, Icon: Compass  },
 ] as const
 
 // Exact match for '/', prefix-aware for the rest (lights the parent pill on child routes).
@@ -38,6 +40,7 @@ export default function TopNav({
 }) {
   const path = usePathname()
   const { focus } = useFocusMode()
+  const { immersionMode } = useSettings()
   const activeRef = useRef<HTMLAnchorElement>(null)
   // The locked pill never shows active styling; only the unlocked pill lights on /dictionary*.
   const dictActive = dictionaryUnlocked && (path === '/dictionary' || path.startsWith('/dictionary/'))
@@ -73,7 +76,7 @@ export default function TopNav({
         </Link>
         <Link
           href="/account"
-          aria-label="Compte"
+          aria-label={resolveChrome(NAV_CHROME.account, immersionMode)}
           aria-current={accountActive ? 'page' : undefined}
           className={`w-[42px] h-[42px] rounded-full flex items-center justify-center shrink-0 ${
             accountActive ? 'press-pill-amber bg-accent text-ivory shadow-amber-sm' : 'press-icon bg-tint text-accent'
@@ -93,7 +96,7 @@ export default function TopNav({
 
       {/* Row 2 — horizontally-scrollable pill menu. */}
       <div className="mt-3 pb-3 flex gap-2 overflow-x-auto no-scrollbar">
-        {PILLS.map(({ href, label, Icon }) => {
+        {PILLS.map(({ href, chrome, Icon }) => {
           const active = routeActive(path, href)
           return (
             <Link
@@ -106,7 +109,7 @@ export default function TopNav({
               }`}
             >
               <Icon size={16} strokeWidth={active ? 2.2 : 1.8} className={active ? undefined : 'text-accent/60'} />
-              {label}
+              {resolveChrome(chrome, immersionMode)}
             </Link>
           )
         })}
@@ -123,16 +126,16 @@ export default function TopNav({
             }`}
           >
             <BookA size={16} strokeWidth={dictActive ? 2.2 : 1.8} className={dictActive ? undefined : 'text-accent/60'} />
-            Dictionnaire
+            {resolveChrome(NAV_CHROME.dictionary, immersionMode)}
           </Link>
         ) : (
           <Link
             href="/dictionary"
-            aria-label="Dictionnaire (verrouillé)"
+            aria-label={resolveChrome(NAV_CHROME.dictionaryLocked, immersionMode)}
             className={`${PILL_BASE} press-pill border-dashed border-tinted-border bg-card text-faint opacity-85`}
           >
             <Lock size={16} strokeWidth={1.8} className="text-faint" />
-            Dictionnaire
+            {resolveChrome(NAV_CHROME.dictionary, immersionMode)}
           </Link>
         )}
       </div>

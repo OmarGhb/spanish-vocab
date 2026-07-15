@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ChevronRight, Compass, Library } from 'lucide-react'
 import type { WordCard } from '@/lib/word-status'
 import type { CollectionState } from '@/lib/home-state'
+import { resolveChrome, HOME_CHROME, type ImmersionMode } from '@/lib/immersion'
 import WordRow from './WordRow'
 import Button from './Button'
 
@@ -23,14 +24,16 @@ export default function CollectionSection({
   state,
   previews,
   totalCount,
+  mode = 'fr_es',
 }: {
   state: CollectionState
   previews: CollectionPreview[]
   totalCount: number
+  mode?: ImmersionMode
 }) {
   const discover = state !== 'established'
   const headerHref = discover ? '/discover' : '/words'
-  const label = state === 'young' ? 'Tes premiers mots' : 'Ta collection'
+  const label = resolveChrome(state === 'young' ? HOME_CHROME.firstWords : HOME_CHROME.taCollection, mode)
 
   return (
     <div className="flex">
@@ -41,11 +44,11 @@ export default function CollectionSection({
           <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-amber-deep bg-amber-tint border border-amber-light rounded-full px-2.5 py-1.5 shrink-0">
             {discover ? (
               <>
-                <Compass size={14} strokeWidth={2} /> Découvrir
+                <Compass size={14} strokeWidth={2} /> {resolveChrome(HOME_CHROME.discoverTitle, mode)}
               </>
             ) : (
               <>
-                Tout voir <ChevronRight size={13} strokeWidth={2.2} />
+                {resolveChrome(HOME_CHROME.seeAll, mode)} <ChevronRight size={13} strokeWidth={2.2} />
               </>
             )}
           </span>
@@ -56,16 +59,16 @@ export default function CollectionSection({
             <span className="w-[46px] h-[46px] rounded-[13px] bg-page border border-line text-faint flex items-center justify-center">
               <Library size={22} strokeWidth={1.7} />
             </span>
-            <p className="mt-0.5 font-serif text-[18px] font-bold text-ink">Ta collection est vide</p>
+            <p className="mt-0.5 font-serif text-[18px] font-bold text-ink">{resolveChrome(HOME_CHROME.collectionEmpty, mode)}</p>
             <p className="text-[12.5px] leading-[1.5] text-muted max-w-[250px]">
-              Ajoute ton premier mot — ou laisse Paco t&apos;en proposer par thème.
+              {resolveChrome(HOME_CHROME.emptyCopy, mode)}
             </p>
             <div className="flex gap-[9px] mt-1.5">
               <Button variant="primary" href="/add" className="!px-[18px] !py-3 !text-[15px]">
-                + Ajouter un mot
+                {resolveChrome(HOME_CHROME.addWordBtn, mode)}
               </Button>
               <Button variant="secondary" href="/discover" className="!px-4 !py-3 !text-[14.5px]">
-                <Compass size={16} strokeWidth={1.9} className="text-accent" /> Découvrir
+                <Compass size={16} strokeWidth={1.9} className="text-accent" /> {resolveChrome(HOME_CHROME.discoverTitle, mode)}
               </Button>
             </div>
           </div>
@@ -73,7 +76,7 @@ export default function CollectionSection({
           <>
             <ul className="flex flex-col gap-[9px]">
               {previews.map((p) => (
-                <WordRow key={p.id} id={p.id} word={p.word} defEs={p.defEs} card={p.card} />
+                <WordRow key={p.id} id={p.id} word={p.word} defEs={p.defEs} card={p.card} mode={mode} />
               ))}
             </ul>
             {state === 'established' && (
@@ -81,7 +84,7 @@ export default function CollectionSection({
                 href="/words"
                 className="press-row mt-3 self-center inline-flex items-center justify-center gap-1.5 w-full text-[14px] font-semibold text-accent underline underline-offset-[3px]"
               >
-                Voir les {totalCount} mots <ChevronRight size={14} strokeWidth={2.2} />
+                {mode === 'fr_es' ? `Voir les ${totalCount} mots` : `Ver las ${totalCount} palabras`} <ChevronRight size={14} strokeWidth={2.2} />
               </Link>
             )}
           </>

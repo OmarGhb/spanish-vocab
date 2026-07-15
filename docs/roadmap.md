@@ -302,10 +302,16 @@ Small patch, single commit. Suite 298 → 316.
 - **`deck` → `collection` rename (narrow):** `DeckCard→CollectionCard`, `deckArticle→collectionArticle` (`lib/discovery.ts` + `DiscoverClient` + `api/discovery/generate`), phase `'deck'→'collection'`, the flow's internal comments + the 3 API error bodies; **user-facing `/add`** "dans ton deck" → "dans ta collection" (×2). Broad internal `deck` identifiers (drill `DeckVerbInput`, the `already_in_deck` wire value, home `deckVerbs`) **deferred** (`backlog.md`).
 - Suite 466→467 (`DISCOVER_CHROME` case); tsc + lint + build clean. **Smoke-test all 3 modes on `/discover` across the 4 palettes (fr_es unchanged; immersion = ES chrome + tap-reveal card gloss; totale = FR suppressed); tag v0.9.3 on the final post-polish commit.**
 
-### M6.1c+ — remaining immersion surfaces (not yet built)
-- **M6.1c — TopNav / Home / remaining product chrome.**
+### M6.1c — TopNav · Home · Status · Words immersion ✅ (v0.9.4)
+- **Third surface group onto the M6.1a substrate** — mostly chrome-swap; ONE gloss-gating spot (word detail). New per-surface maps in `lib/immersion.ts`: `NAV_CHROME`, `HOME_CHROME`, `STATUS_CHROME`, `WORDS_CHROME`, `DETAIL_CHROME` (French + vetted ES, register tú/es-ES). `fr_es` byte-identical.
+- **TWO mechanisms (the architecture):** the Home surface + shared rows are **server components** and `WordRow` is consumed by the French-only `/add` → so the mode is **prop-threaded with a `fr_es` default** (`StatusPill`/`MasteryGauge`/`WordRow` take `mode?='fr_es'`; `ReviewHero`/`CollectionSection` take `mode`; Home `page.tsx` + `words/[id]/page.tsx` read `immersion_mode` server-side and thread it) — **`/add` passes nothing → stays French, no leak.** Client surfaces (`TopNav`, `WordList`, `SwipeRow`, `DeferredDelete` via `scheduleDelete({mode})` since it sits above `SettingsProvider`, `WordDetailContent`, `WordDetailActions`) read `useSettings()` / the threaded mode.
+- **Word-detail gloss gating** (definition + each example) reuses the page's **existing `TextLink` toggle** (no `TapReveal`): `visible` keep today's toggle byte-identical · `tap` same toggle, ES label (`resolveChrome`) · `hidden` suppress the FR **and** the toggle.
+- **Fixes:** `MasteryGauge` aria "Maîtrise…" → progress-framed "Mémorisation : {n} / 4" / "Memorización : {n} / 4" (drops the Mémorisé-not-Maîtrisé violation). `deleteToastMessage` + `DeferredDelete` undo toast mode-aware (fem. agreement: "«w» eliminada" / "{n} palabras eliminadas").
+- **`AudioButton` parked** (shared across dictionary/review/add/account/detail) → shared-components-pending list. All ES vetted by Omar; **CC authored no Spanish**. Suite 467→469; tsc + lint + build clean. **Smoke-test all 3 modes across TopNav/Home/Words/detail on the 4 palettes (`/add` stays French); tag v0.9.4 on the final post-polish commit.**
+
+### M6.1d+ — remaining immersion surfaces (not yet built)
 - **M6.1d — Drill immersion** (make `/drill` mode-aware; folds in the deferred `AnswerBlank` aria-label).
-- **`LoadingChecklist` immersion** — the shared loader's "Pendant que tu attends" line stays French until this (it's shared with the still-French `/add`).
+- **Shared-components-pending (make mode-aware when their last French consumer joins):** `AudioButton` ("Écouter la prononciation", shared 6 surfaces) · `LoadingChecklist` ("Pendant que tu attends", shared with `/add`) · `AnswerBlank` aria (shared with `/drill`).
 - **`deck` anglicism — finish the app-wide drop** (deferred internal identifiers: `DeckVerbInput`/`deckVerbs`, the `already_in_deck` wire value + comments/tests).
 - ~~Copy fill-in for Review~~ **DONE in M6.1a** (vetted ES folded in v0.9.2).
 - **Never mode-aware:** onboarding scaffolding is always French (instructional; not built yet) — the reason the resolver is per-surface opt-in, not a global lang lock.

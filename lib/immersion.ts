@@ -159,3 +159,115 @@ export const DISCOVER_CHROME = {
   },
   chooseAnother: { fr: 'Choisir un autre thème', es: 'Elegir otro tema' },
 } as const satisfies Record<string, ChromePair>
+
+// TopNav chrome (M6.1c). French + vetted ES.
+export const NAV_CHROME = {
+  home: { fr: 'Accueil', es: 'Inicio' },
+  myWords: { fr: 'Mes mots', es: 'Mis palabras' },
+  add: { fr: 'Ajouter', es: 'Añadir' },
+  review: { fr: 'Réviser', es: 'Repaso' },
+  discover: { fr: 'Découvrir', es: 'Descubrir' },
+  dictionary: { fr: 'Dictionnaire', es: 'Diccionario' },
+  dictionaryLocked: { fr: 'Dictionnaire (verrouillé)', es: 'Diccionario (bloqueado)' },
+  account: { fr: 'Compte', es: 'Cuenta' },
+} as const satisfies Record<string, ChromePair>
+
+// Home chrome (M6.1c) — page.tsx / ReviewHero / HubCards / CollectionSection. Dynamic count lines
+// ({n} mots à revoir, Voir les {n} mots) build per-language at the render site.
+export const HOME_CHROME = {
+  continueWithPaco: { fr: 'Continuer avec Paco', es: 'Sigue con Paco' },
+  addTitle: { fr: 'Ajouter', es: 'Añadir' },
+  addDesc: { fr: 'Un mot, une expression.', es: 'Una palabra, una expresión.' },
+  discoverTitle: { fr: 'Découvrir', es: 'Descubrir' },
+  discoverDesc: { fr: 'Des mots par thème.', es: 'Palabras por tema.' },
+  conjTitle: { fr: 'Conjugaison', es: 'Conjugación' },
+  conjDesc: { fr: 'Tes verbes en contexte.', es: 'Tus verbos en contexto.' },
+  conjUnit: { fr: 'verbes', es: 'verbos' },
+  dictTitle: { fr: 'Dictionnaire', es: 'Diccionario' },
+  dictDesc: { fr: 'Ton dico personnel.', es: 'Tu diccionario personal.' },
+  dictUnit: { fr: 'mémorisés', es: 'memorizados' },
+  reviewAvailable: { fr: 'Révision disponible', es: 'Repaso disponible' },
+  reviewEyebrow: { fr: 'Révision', es: 'Repaso' },
+  startReview: { fr: 'Commencer la révision', es: 'Empezar el repaso' },
+  allUpToDate: { fr: 'Tout est à jour', es: 'Todo al día' },
+  firstReviewSoon: { fr: 'Bientôt ta première révision', es: 'Pronto tu primer repaso' },
+  firstReviewEyebrow: { fr: 'Première révision', es: 'Primer repaso' },
+  caughtUpCopy: {
+    fr: 'Rien à réviser — Paco se repose. Reviens un peu plus tard.',
+    es: 'Nada que repasar — Paco descansa. Vuelve un poco más tarde.',
+  },
+  firstReviewCopy: {
+    fr: 'Tu pourras lancer ta première révision dès que tu auras ajouté tes premiers mots.',
+    es: 'Podrás empezar tu primer repaso en cuanto añadas tus primeras palabras.',
+  },
+  taCollection: { fr: 'Ta collection', es: 'Tu colección' },
+  collectionEmpty: { fr: 'Ta collection est vide', es: 'Tu colección está vacía' },
+  emptyCopy: {
+    fr: 'Ajoute ton premier mot — ou laisse Paco t’en proposer par thème.',
+    es: 'Añade tu primera palabra — o deja que Paco te proponga algunas por tema.',
+  },
+  addWordBtn: { fr: '+ Ajouter un mot', es: '+ Añadir una palabra' },
+  seeAll: { fr: 'Tout voir', es: 'Ver todo' },
+  firstWords: { fr: 'Tes premiers mots', es: 'Tus primeras palabras' },
+} as const satisfies Record<string, ChromePair>
+
+// Status pill DISPLAYED labels (M6.1c). Keyed by the 4 pill KINDS (the map keys "À rappeler"/"En
+// apprentissage" fold into review/progress and are never displayed, so no pair needed).
+export const STATUS_CHROME = {
+  review: { fr: 'À réviser', es: 'Por repasar' },
+  progress: { fr: 'En cours', es: 'En curso' },
+  new: { fr: 'Nouveau', es: 'Nuevo' },
+  memorise: { fr: 'Mémorisé', es: 'Memorizado' },
+} as const satisfies Record<string, ChromePair>
+
+// Words list chrome (M6.1c) — WordList / SwipeRow / DeferredDelete. Dynamic ({n} mot(s), the
+// query/delete-count lines) build per-language at the render site.
+export const WORDS_CHROME = {
+  filterAll: { fr: 'Tous', es: 'Todas' },
+  filterReview: { fr: 'À revoir', es: 'Por repasar' },
+  filterMemorised: { fr: 'Mémorisés', es: 'Memorizadas' },
+  sortAlpha: { fr: 'Alphabétique', es: 'Alfabético' },
+  sortDate: { fr: 'Date', es: 'Fecha' },
+  sortFamiliarity: { fr: 'Familiarité', es: 'Familiaridad' },
+  sortLabel: { fr: 'Trier', es: 'Ordenar' },
+  searchPlaceholder: { fr: 'Rechercher…', es: 'Buscar…' },
+  searchAria: { fr: 'Rechercher un mot', es: 'Buscar una palabra' },
+  clearSearch: { fr: 'Effacer la recherche', es: 'Borrar la búsqueda' },
+  myWords: { fr: 'Mes mots', es: 'Mis palabras' },
+  firstWordWaiting: { fr: 'Ton premier mot t’attend', es: 'Tu primera palabra te espera' },
+  firstWordCopy: {
+    fr: 'Ajoute un mot et Paco s’en souviendra avec toi — il te le ramènera au bon moment.',
+    es: 'Añade una palabra y Paco la recordará contigo — te la traerá en el momento justo.',
+  },
+  addWord: { fr: 'Ajouter un mot', es: 'Añadir una palabra' },
+  noResults: { fr: 'Aucun résultat', es: 'Sin resultados' },
+  noneMemorised: { fr: 'Aucun mot mémorisé', es: 'Ninguna palabra memorizada' },
+  nothingToReview: { fr: 'Rien à réviser', es: 'Nada que repasar' },
+  memorisedEmptyCopy: {
+    fr: 'Continue tes révisions — tes mots arriveront ici une fois bien ancrés.',
+    es: 'Sigue con tus repasos — tus palabras llegarán aquí una vez bien afianzadas.',
+  },
+  caughtUpCopy: {
+    fr: 'Tu es à jour. Paco se repose — reviens un peu plus tard.',
+    es: 'Estás al día. Paco descansa — vuelve un poco más tarde.',
+  },
+  delete: { fr: 'Supprimer', es: 'Eliminar' },
+  undo: { fr: 'Annuler', es: 'Cancelar' },
+} as const satisfies Record<string, ChromePair>
+
+// Word-detail chrome (M6.1c) — WordDetailContent / WordDetailActions / page. The FR "relearn" label
+// is reschedule-for-review (not relearn-from-scratch), so ES is "Volver a repasar".
+export const DETAIL_CHROME = {
+  formEyebrow: { fr: 'Forme', es: 'Forma' },
+  definitionEyebrow: { fr: 'Définition', es: 'Definición' },
+  examplesEyebrow: { fr: 'Exemples', es: 'Ejemplos' },
+  similarEyebrow: { fr: 'Mots similaires', es: 'Palabras similares' },
+  revealDef: { fr: 'Voir en français', es: 'Ver traducción' },
+  hideDef: { fr: 'Masquer le français', es: 'Ocultar traducción' },
+  revealEx: { fr: 'Traduction', es: 'Traducción' },
+  hideEx: { fr: 'Masquer la traduction', es: 'Ocultar traducción' },
+  myWordsBack: { fr: 'Mes mots', es: 'Mis palabras' },
+  relearn: { fr: 'Remettre à réviser', es: 'Volver a repasar' },
+  delete: { fr: 'Supprimer', es: 'Eliminar' },
+  notReviewedYet: { fr: 'Pas encore révisé', es: 'Aún sin repasar' },
+} as const satisfies Record<string, ChromePair>

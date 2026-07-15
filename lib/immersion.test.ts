@@ -8,6 +8,11 @@ import {
   REVIEW_CHROME,
   RATING_LABELS,
   DISCOVER_CHROME,
+  NAV_CHROME,
+  HOME_CHROME,
+  STATUS_CHROME,
+  WORDS_CHROME,
+  DETAIL_CHROME,
 } from './immersion'
 
 describe('coerceImmersionMode / isImmersionMode', () => {
@@ -72,6 +77,20 @@ describe('resolveChrome', () => {
     expect(resolveChrome(DISCOVER_CHROME.title, 'fr_es')).toBe('Découvrir')
     expect(resolveChrome(DISCOVER_CHROME.cardReveal, 'immersion')).toBe('Toca para traducir')
     expect(resolveChrome(DISCOVER_CHROME.knowStamp, 'totale')).toBe('Ya la sé')
+  })
+
+  it('has authored Spanish for every M6.1c chrome pair (no French holes)', () => {
+    const maps = { NAV_CHROME, HOME_CHROME, STATUS_CHROME, WORDS_CHROME, DETAIL_CHROME }
+    for (const [name, map] of Object.entries(maps)) {
+      for (const [key, pair] of Object.entries(map)) {
+        expect(pair.es, `${name}.${key} missing es`).toBeTruthy()
+        expect(resolveChrome(pair, 'immersion')).toBe(pair.es)
+        expect(resolveChrome(pair, 'fr_es')).toBe(pair.fr)
+      }
+    }
+    expect(resolveChrome(NAV_CHROME.review, 'immersion')).toBe('Repaso')
+    expect(resolveChrome(STATUS_CHROME.memorise, 'totale')).toBe('Memorizado')
+    expect(resolveChrome(DETAIL_CHROME.relearn, 'immersion')).toBe('Volver a repasar')
   })
 })
 

@@ -1,4 +1,5 @@
 import { getWordStatus, type WordCard } from '@/lib/word-status'
+import { resolveChrome, STATUS_CHROME, type ImmersionMode } from '@/lib/immersion'
 
 // §06 (board "Mots" cluster) — the ACTION pill. Two axes, by design: this pill is
 // "what action", the separate MasteryGauge is "how well known".
@@ -24,25 +25,29 @@ const PILL_FROM_LABEL: Record<string, PillKind> = {
   Mémorisé: 'memorise',
 }
 
-const PILL_STYLE: Record<PillKind, { label: string; cls: string }> = {
+// The displayed label per kind is now mode-aware (STATUS_CHROME); only the style stays here.
+const PILL_STYLE: Record<PillKind, string> = {
   // The one loud pill — amber fill, ivory text (its row card also gets the crème+ tint).
-  review: { label: 'À réviser', cls: 'bg-accent text-ivory border border-accent' },
+  review: 'bg-accent text-ivory border border-accent',
   // Neutral (sépia) — new / in-progress.
-  progress: { label: 'En cours', cls: 'bg-card text-muted border border-line' },
-  new: { label: 'Nouveau', cls: 'bg-card text-muted border border-line' },
+  progress: 'bg-card text-muted border border-line',
+  new: 'bg-card text-muted border border-line',
   // Sage — mastered.
-  memorise: { label: 'Mémorisé', cls: 'bg-ok-bg text-sage-ink border border-sage-border' },
+  memorise: 'bg-ok-bg text-sage-ink border border-sage-border',
 }
 
 export default function StatusPill({
   card,
   className = '',
+  mode = 'fr_es',
 }: {
   card: WordCard | null
   className?: string
+  mode?: ImmersionMode
 }) {
   const kind = PILL_FROM_LABEL[getWordStatus(card).label] ?? 'new'
-  const { label, cls } = PILL_STYLE[kind]
+  const cls = PILL_STYLE[kind]
+  const label = resolveChrome(STATUS_CHROME[kind], mode)
   return (
     <span
       className={`inline-flex items-center text-[10.5px] font-semibold uppercase tracking-[0.06em] px-2.5 py-1 rounded-full whitespace-nowrap ${cls}${

@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Search, Plus, ChevronUp, ChevronDown } from 'lucide-react'
 import { getFamiliarity, isDue, isMemorized } from '@/lib/word-status'
 import { matchesWordSearch } from '@/lib/word-search'
+import { resolveChrome, WORDS_CHROME } from '@/lib/immersion'
+import { useSettings } from '../SettingsProvider'
 import { useDeferredDelete } from '../DeferredDelete'
 import { SELECTION_ACTIVE } from '../selection'
 import Button from '../Button'
@@ -19,16 +21,16 @@ type Dir = 'asc' | 'desc'
 // opens newest-first; the base comparator is oldest-first, so its default is desc).
 const SORT_DEFAULT_DIR: Record<Sort, Dir> = { alpha: 'asc', date: 'desc', familiarite: 'asc' }
 
-const FILTERS: { key: Filter; label: string }[] = [
-  { key: 'tous', label: 'Tous' },
-  { key: 'arevoir', label: 'À revoir' },
-  { key: 'memorises', label: 'Mémorisés' },
+const FILTERS: { key: Filter; chrome: (typeof WORDS_CHROME)[keyof typeof WORDS_CHROME] }[] = [
+  { key: 'tous', chrome: WORDS_CHROME.filterAll },
+  { key: 'arevoir', chrome: WORDS_CHROME.filterReview },
+  { key: 'memorises', chrome: WORDS_CHROME.filterMemorised },
 ]
 
-const SORTS: { key: Sort; label: string }[] = [
-  { key: 'alpha', label: 'Alphabétique' },
-  { key: 'date', label: 'Date' },
-  { key: 'familiarite', label: 'Familiarité' },
+const SORTS: { key: Sort; chrome: (typeof WORDS_CHROME)[keyof typeof WORDS_CHROME] }[] = [
+  { key: 'alpha', chrome: WORDS_CHROME.sortAlpha },
+  { key: 'date', chrome: WORDS_CHROME.sortDate },
+  { key: 'familiarite', chrome: WORDS_CHROME.sortFamiliarity },
 ]
 
 // Progressive append (NOT virtualization): render an initial chunk, reveal the
@@ -37,6 +39,7 @@ const INITIAL_CHUNK = 40
 const CHUNK_INCREMENT = 30
 
 export default function WordList({ items }: { items: WordListItem[] }) {
+  const { immersionMode: mode } = useSettings()
   const [filter, setFilter] = useState<Filter>('tous')
   const [sort, setSort] = useState<Sort>('date')
   const [dir, setDir] = useState<Dir>(SORT_DEFAULT_DIR.date)
@@ -155,20 +158,20 @@ export default function WordList({ items }: { items: WordListItem[] }) {
     return (
       <div className="flex flex-col flex-1">
         <div className="px-5 pt-1 pb-2.5">
-          <h1 className="font-serif text-3xl font-bold text-ink leading-none">Mes mots</h1>
-          <p className="text-sm text-muted mt-1.5">0 mot</p>
+          <h1 className="font-serif text-3xl font-bold text-ink leading-none">{resolveChrome(WORDS_CHROME.myWords, mode)}</h1>
+          <p className="text-sm text-muted mt-1.5">{mode === 'fr_es' ? '0 mot' : '0 palabra'}</p>
         </div>
         <div className="flex-1 min-h-0 flex flex-col items-center justify-center text-center px-9 pb-16">
           <img src="/paco.png" alt="" className="w-[116px] mb-2.5" />
           <p className="font-serif text-[25px] font-bold text-ink tracking-[-0.01em] leading-tight">
-            Ton premier mot t&apos;attend
+            {resolveChrome(WORDS_CHROME.firstWordWaiting, mode)}
           </p>
           <p className="text-[14.5px] text-muted leading-relaxed mt-2.5 max-w-[268px]">
-            Ajoute un mot et Paco s&apos;en souviendra avec toi — il te le ramènera au bon moment.
+            {resolveChrome(WORDS_CHROME.firstWordCopy, mode)}
           </p>
           <Button href="/add" full className="mt-6 max-w-[300px]">
             <Plus size={18} />
-            Ajouter un mot
+            {resolveChrome(WORDS_CHROME.addWord, mode)}
           </Button>
         </div>
       </div>
@@ -180,9 +183,11 @@ export default function WordList({ items }: { items: WordListItem[] }) {
       <div className="p-5 flex flex-col gap-5">
         {/* Header */}
         <div>
-          <h1 className="font-serif text-3xl font-bold text-ink leading-none">Mes mots</h1>
+          <h1 className="font-serif text-3xl font-bold text-ink leading-none">{resolveChrome(WORDS_CHROME.myWords, mode)}</h1>
           <p className="text-sm text-muted mt-1.5">
-            {items.length} mot{items.length !== 1 ? 's' : ''}
+            {mode === 'fr_es'
+              ? `${items.length} mot${items.length !== 1 ? 's' : ''}`
+              : `${items.length} palabra${items.length !== 1 ? 's' : ''}`}
           </p>
         </div>
 
@@ -194,15 +199,15 @@ export default function WordList({ items }: { items: WordListItem[] }) {
             inputMode="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher…"
-            aria-label="Rechercher un mot"
+            placeholder={resolveChrome(WORDS_CHROME.searchPlaceholder, mode)}
+            aria-label={resolveChrome(WORDS_CHROME.searchAria, mode)}
             className="flex-1 min-w-0 text-base bg-transparent py-3 text-ink placeholder:text-faint placeholder:italic focus:outline-none"
           />
           {searching && (
             <button
               type="button"
               onClick={() => setSearch('')}
-              aria-label="Effacer la recherche"
+              aria-label={resolveChrome(WORDS_CHROME.clearSearch, mode)}
               className="press-icon shrink-0 grid place-items-center w-[22px] h-[22px] rounded-full text-accent text-lg leading-none"
             >
               ×
@@ -212,7 +217,7 @@ export default function WordList({ items }: { items: WordListItem[] }) {
 
         {/* Filter pills — active = SELECTION_ACTIVE (amber fill, ivory, short shadow). */}
         <div className="flex gap-2">
-          {FILTERS.map(({ key, label }) => {
+          {FILTERS.map(({ key, chrome }) => {
             const active = filter === key
             return (
               <button
@@ -225,7 +230,7 @@ export default function WordList({ items }: { items: WordListItem[] }) {
                     : 'press-pill font-medium bg-card text-ink border-[1.5px] border-line'
                 }`}
               >
-                {label}
+                {resolveChrome(chrome, mode)}
               </button>
             )
           })}
@@ -234,8 +239,8 @@ export default function WordList({ items }: { items: WordListItem[] }) {
         {/* Sort control — active = ink/bold + 2px amber underline + direction caret;
             inactive = faint. Re-clicking the active sort flips its direction. */}
         <div className="flex items-center gap-1.5 text-[13px]">
-          <span className="text-faint">Trier</span>
-          {SORTS.map(({ key, label }) => {
+          <span className="text-faint">{resolveChrome(WORDS_CHROME.sortLabel, mode)}</span>
+          {SORTS.map(({ key, chrome }) => {
             const active = sort === key
             return (
               <span key={key} className="flex items-center gap-1.5">
@@ -252,7 +257,7 @@ export default function WordList({ items }: { items: WordListItem[] }) {
                       : 'text-faint border-b-2 border-transparent pb-px'
                   }
                 >
-                  {label}
+                  {resolveChrome(chrome, mode)}
                   {active &&
                     (dir === 'asc' ? (
                       <ChevronUp size={13} className="text-accent" aria-hidden />
@@ -276,12 +281,13 @@ export default function WordList({ items }: { items: WordListItem[] }) {
                   word={it.word}
                   defEs={it.defEs}
                   card={it.card}
+                  mode={mode}
                   isOpen={openRowId === it.id}
                   onOpen={() => setOpenRowId(it.id)}
                   onClose={() => setOpenRowId((cur) => (cur === it.id ? null : cur))}
                   onDelete={() => {
                     setOpenRowId(null)
-                    scheduleDelete({ ids: [it.id], labels: [it.word] })
+                    scheduleDelete({ ids: [it.id], labels: [it.word], mode })
                   }}
                 />
               ))}
@@ -293,13 +299,17 @@ export default function WordList({ items }: { items: WordListItem[] }) {
           // which drew Durmiendo here: a puzzled dog fits a search-miss better).
           <div className="flex flex-col items-center justify-center text-center px-9 pt-12 pb-10">
             <img src="/paco-pensando.png" alt="" className="w-[110px] mb-2" />
-            <p className="font-serif text-[22px] font-bold text-ink whitespace-nowrap">Aucun résultat</p>
+            <p className="font-serif text-[22px] font-bold text-ink whitespace-nowrap">{resolveChrome(WORDS_CHROME.noResults, mode)}</p>
             <p className="text-sm text-muted leading-relaxed mt-2 max-w-[250px]">
-              Aucun mot ne correspond à «&nbsp;{query}&nbsp;».
+              {mode === 'fr_es' ? (
+                <>Aucun mot ne correspond à «&nbsp;{query}&nbsp;».</>
+              ) : (
+                <>Ninguna palabra coincide con «{query}».</>
+              )}
             </p>
             <Button href="/add" variant="secondary" className="mt-5">
               <Plus size={16} />
-              Ajouter «&nbsp;{query}&nbsp;»
+              {mode === 'fr_es' ? <>Ajouter «&nbsp;{query}&nbsp;»</> : <>Añadir «{query}»</>}
             </Button>
           </div>
         ) : (
@@ -308,12 +318,10 @@ export default function WordList({ items }: { items: WordListItem[] }) {
           <div className="flex flex-col items-center justify-center text-center px-9 pt-12 pb-10">
             <img src="/paco-durmiendo.png" alt="" className="w-[200px]" />
             <p className="font-serif text-[23px] font-bold text-ink whitespace-nowrap">
-              {filter === 'memorises' ? 'Aucun mot mémorisé' : 'Rien à réviser'}
+              {resolveChrome(filter === 'memorises' ? WORDS_CHROME.noneMemorised : WORDS_CHROME.nothingToReview, mode)}
             </p>
             <p className="text-[14.5px] text-muted leading-relaxed mt-2 max-w-[256px]">
-              {filter === 'memorises'
-                ? 'Continue tes révisions — tes mots arriveront ici une fois bien ancrés.'
-                : 'Tu es à jour. Paco se repose — reviens un peu plus tard.'}
+              {resolveChrome(filter === 'memorises' ? WORDS_CHROME.memorisedEmptyCopy : WORDS_CHROME.caughtUpCopy, mode)}
             </p>
           </div>
         )}

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
+import { glossVisibility, resolveChrome, DETAIL_CHROME, type ImmersionMode } from '@/lib/immersion'
 
 type Example = { es: string; fr: string }
 
@@ -13,6 +14,7 @@ type Props = {
   formAnnotation?: string | null
   examples: Example[]
   distractors: string[]
+  mode: ImmersionMode
 }
 
 // Board §06 reveal toggle: amber underlined text link with a chevron, toggles BOTH
@@ -48,9 +50,12 @@ function Card({ eyebrow, children }: { eyebrow: string; children: React.ReactNod
   )
 }
 
-export default function WordDetailContent({ defEs, defFr, formAnnotation, examples, distractors }: Props) {
+export default function WordDetailContent({ defEs, defFr, formAnnotation, examples, distractors, mode }: Props) {
   const [revealedDefFr, setRevealedDefFr] = useState(false)
   const [revealedFr, setRevealedFr] = useState<boolean[]>(() => new Array(examples.length).fill(false))
+  // Immersion gates the French gloss: visible (fr_es, existing toggle) · tap (immersion, same toggle,
+  // ES label) · hidden (totale, no FR and no toggle at all).
+  const gloss = glossVisibility(mode)
 
   function toggleFr(i: number) {
     setRevealedFr((prev) => prev.map((v, j) => (j === i ? !v : v)))
@@ -60,16 +65,16 @@ export default function WordDetailContent({ defEs, defFr, formAnnotation, exampl
     <div className="flex flex-col gap-3.5">
       {/* FORME */}
       {formAnnotation && (
-        <Card eyebrow="Forme">
+        <Card eyebrow={resolveChrome(DETAIL_CHROME.formEyebrow, mode)}>
           <p className="font-serif text-base text-ink leading-relaxed">{formAnnotation}</p>
         </Card>
       )}
 
       {/* DÉFINITION */}
       {(defEs || defFr) && (
-        <Card eyebrow="Définition">
+        <Card eyebrow={resolveChrome(DETAIL_CHROME.definitionEyebrow, mode)}>
           <p className="font-serif text-[17px] text-ink leading-relaxed">{defEs}</p>
-          {defFr && (
+          {defFr && gloss !== 'hidden' && (
             <>
               {revealedDefFr && (
                 <p className="font-serif italic text-[15px] text-muted leading-relaxed mt-3 pt-3 border-t border-border-soft">
@@ -78,7 +83,7 @@ export default function WordDetailContent({ defEs, defFr, formAnnotation, exampl
               )}
               <div className="mt-3">
                 <TextLink open={revealedDefFr} onClick={() => setRevealedDefFr((v) => !v)}>
-                  {revealedDefFr ? 'Masquer le français' : 'Voir en français'}
+                  {resolveChrome(revealedDefFr ? DETAIL_CHROME.hideDef : DETAIL_CHROME.revealDef, mode)}
                 </TextLink>
               </div>
             </>
@@ -88,19 +93,23 @@ export default function WordDetailContent({ defEs, defFr, formAnnotation, exampl
 
       {/* EXEMPLES */}
       {examples.length > 0 && (
-        <Card eyebrow="Exemples">
+        <Card eyebrow={resolveChrome(DETAIL_CHROME.examplesEyebrow, mode)}>
           <ul className="flex flex-col">
             {examples.map((ex, i) => (
               <li key={i} className={i > 0 ? 'pt-3.5 mt-3.5 border-t border-border-soft' : ''}>
                 <p className="font-serif text-base text-ink leading-relaxed">{ex.es}</p>
-                {revealedFr[i] && (
-                  <p className="font-serif italic text-[14.5px] text-muted leading-relaxed mt-2">{ex.fr}</p>
+                {gloss !== 'hidden' && (
+                  <>
+                    {revealedFr[i] && (
+                      <p className="font-serif italic text-[14.5px] text-muted leading-relaxed mt-2">{ex.fr}</p>
+                    )}
+                    <div className="mt-2.5">
+                      <TextLink open={revealedFr[i]} onClick={() => toggleFr(i)}>
+                        {resolveChrome(revealedFr[i] ? DETAIL_CHROME.hideEx : DETAIL_CHROME.revealEx, mode)}
+                      </TextLink>
+                    </div>
+                  </>
                 )}
-                <div className="mt-2.5">
-                  <TextLink open={revealedFr[i]} onClick={() => toggleFr(i)}>
-                    {revealedFr[i] ? 'Masquer la traduction' : 'Traduction'}
-                  </TextLink>
-                </div>
               </li>
             ))}
           </ul>
@@ -111,7 +120,7 @@ export default function WordDetailContent({ defEs, defFr, formAnnotation, exampl
           true family words, so the honest label stays "Mots similaires" (the board's
           "Mots de la même famille" would mislabel the data). */}
       {distractors.length > 0 && (
-        <Card eyebrow="Mots similaires">
+        <Card eyebrow={resolveChrome(DETAIL_CHROME.similarEyebrow, mode)}>
           <div className="flex flex-wrap gap-2">
             {distractors.map((d) => (
               <span
