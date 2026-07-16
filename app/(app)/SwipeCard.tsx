@@ -43,19 +43,31 @@ export default function SwipeCard({
   const [animating, setAnimating] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const startX = useRef(0)
-  const dragging = useRef(false)
+  const pointerDown = useRef(false)
+  const captured = useRef(false)
+
+  // Distance the pointer must travel before we treat it as a drag. Below this, the interaction stays a
+  // TAP: we never capture the pointer, so the click falls through to children (e.g. TapReveal's button).
+  const DRAG_THRESHOLD = 6
 
   function handleDown(e: PointerEvent) {
     if (disabled || animating) return
-    dragging.current = true
-    setIsDragging(true)
+    pointerDown.current = true
+    captured.current = false
     startX.current = e.clientX
-    e.currentTarget.setPointerCapture(e.pointerId)
+    // Deliberately NOT capturing here — capturing on down would retarget the click and kill taps.
   }
 
   function handleMove(e: PointerEvent) {
-    if (!dragging.current) return
-    setDx(e.clientX - startX.current)
+    if (!pointerDown.current) return
+    const delta = e.clientX - startX.current
+    if (!captured.current) {
+      if (Math.abs(delta) <= DRAG_THRESHOLD) return // still a tap — don't capture, don't move
+      captured.current = true
+      setIsDragging(true)
+      e.currentTarget.setPointerCapture(e.pointerId)
+    }
+    setDx(delta)
   }
 
   function fling(direction: 1 | -1, onDone: () => void) {
@@ -65,8 +77,11 @@ export default function SwipeCard({
   }
 
   function handleUp(e: PointerEvent) {
-    if (!dragging.current) return
-    dragging.current = false
+    if (!pointerDown.current) return
+    pointerDown.current = false
+    // A tap (never captured) → do nothing, let the click reach children (TapReveal).
+    if (!captured.current) return
+    captured.current = false
     setIsDragging(false)
     e.currentTarget.releasePointerCapture(e.pointerId)
     if (dx >= COMMIT_PX) {

@@ -101,8 +101,10 @@ export async function POST(request: Request) {
   }
 
   // 3. Pool exhausted for this user. A curated-only pool (esencial) is never live-generated (no theme
-  //    prompt) — return empty so the deck shows its exhausted state.
+  //    prompt) — return empty so the deck shows its exhausted state. An empty curated pool is an
+  //    anomaly (seed / exclude-accumulation), so surface it rather than failing silently.
   if (topic.curatedOnly) {
+    console.warn('[discovery/session] curated pool empty:', topic.key)
     return Response.json({ cards: [] })
   }
 

@@ -139,13 +139,13 @@ export default function DiscoverClient({
     return () => abortRef.current?.abort()
   }, [])
 
-  // Onboarding: auto-start the chosen topic once (skips the grid).
-  const autoStartedRef = useRef(false)
+  // Onboarding: auto-start the chosen topic (skips the grid). No persistent ref-guard — under React
+  // Strict Mode (dev) the mount effect's cleanup aborts the first fetch, so a guard would leave it
+  // aborted-and-never-retried. Keyed on `initialTopic` (a stable module constant from getTopic), this
+  // re-fires on the Strict-Mode re-mount with a fresh, un-aborted controller; startTopic's own abort()
+  // + the /session resume step prevent any duplicate draw.
   useEffect(() => {
-    if (initialTopic && !autoStartedRef.current) {
-      autoStartedRef.current = true
-      void startTopic(initialTopic)
-    }
+    if (initialTopic) void startTopic(initialTopic)
   }, [initialTopic])
 
   // Auto-dismiss the "Pour toi" coming-soon toast (keyed re-tap restarts it).
