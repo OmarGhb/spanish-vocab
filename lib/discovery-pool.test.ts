@@ -89,3 +89,66 @@ describe('selectPoolCards — limit + exhaustion', () => {
     expect(selectPoolCards({ rows: [], excludeWords: [], limit: 10 }).exhausted).toBe(true)
   })
 })
+
+// Mirror of the internal posCategory bucketing (not exported).
+function catOf(pos: string): string {
+  const p = pos.trim().toLowerCase()
+  if (p.startsWith('v.')) return 'verb'
+  if (p.startsWith('n.')) return 'noun'
+  if (p === 'adj.') return 'adj'
+  return 'other'
+}
+function maxRun(cards: { pos: string }[]): number {
+  let run = 1
+  let best = cards.length ? 1 : 0
+  for (let i = 1; i < cards.length; i++) {
+    run = catOf(cards[i].pos) === catOf(cards[i - 1].pos) ? run + 1 : 1
+    best = Math.max(best, run)
+  }
+  return best
+}
+
+describe('selectPoolCards — pos balancing', () => {
+  it('spreads parts of speech — no consecutive same-pos run when balanced', () => {
+    const pos = ['v.', 'n.m.', 'adj.', 'adv.']
+    const rows = pos.flatMap((p) => [0, 1, 2, 3].map((i) => row({ word: `${p}-${i}`, pos: p })))
+    const { cards } = selectPoolCards({ rows, excludeWords: [], limit: 16 })
+    expect(cards).toHaveLength(16)
+    expect(maxRun(cards)).toBe(1) // perfect interleave with equal buckets
+  })
+
+  it('degrades gracefully — minorities surface early, count preserved when one pos dominates', () => {
+    const rows = [
+      ...[0, 1, 2, 3, 4, 5].map((i) => row({ word: `n${i}`, pos: 'n.m.' })),
+      row({ word: 'the-verb', pos: 'v.' }),
+      row({ word: 'the-adj', pos: 'adj.' }),
+    ]
+    const { cards } = selectPoolCards({ rows, excludeWords: [], limit: 20 })
+    expect(cards).toHaveLength(8)
+    // The lone verb + adj lead the first round-robin pass (not buried in the noun tail).
+    expect(cards.findIndex((c) => c.word === 'the-verb')).toBeLessThan(3)
+    expect(cards.findIndex((c) => c.word === 'the-adj')).toBeLessThan(3)
+  })
+
+  it('keeps band-before-order after interleaving (all preferred band precede the rest)', () => {
+    const rows = [
+      row({ word: 'c-verb', pos: 'v.', band: 'core' }),
+      row({ word: 'c-noun', pos: 'n.m.', band: 'core' }),
+      row({ word: 'e-verb', pos: 'v.', band: 'extended' }),
+      row({ word: 'e-noun', pos: 'n.m.', band: 'extended' }),
+    ]
+    const { cards } = selectPoolCards({ rows, excludeWords: [], limit: 10 }) // no level → core preferred
+    const idx = (w: string) => cards.findIndex((c) => c.word === w)
+    expect(Math.max(idx('c-verb'), idx('c-noun'))).toBeLessThan(Math.min(idx('e-verb'), idx('e-noun')))
+  })
+
+  it('still applies the exclude filter alongside interleaving', () => {
+    const rows = [
+      row({ word: 'comer', pos: 'v.' }),
+      row({ word: 'casa', pos: 'n.f.' }),
+      row({ word: 'rojo', pos: 'adj.' }),
+    ]
+    const { cards } = selectPoolCards({ rows, excludeWords: ['casa'], limit: 10 })
+    expect(cards.map((c) => c.word).sort()).toEqual(['comer', 'rojo'])
+  })
+})
