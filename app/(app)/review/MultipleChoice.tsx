@@ -1,7 +1,7 @@
 'use client'
 
 import type React from 'react'
-import { useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { computeRating, type RatingResult } from '@/lib/rating'
 import { pickClozeExample, isVerbPos, chooseQcmCue } from '@/lib/review-cloze'
 import type { ReviewCard } from './page'
@@ -17,6 +17,25 @@ type Props = {
   // read here only inside event handlers — never during render.
   cardStartRef: React.RefObject<number>
   onRate: (rating: 1 | 2 | 3 | 4, timeMs: number, hintLevel: number) => void
+}
+
+// Render a masked sentence, drawing the `_____` token as a clean underline blank (a bottom border
+// under a nbsp) instead of literal underscore glyphs — the serif font spaces underscores out into
+// "- - - -"; this matches écriture's continuous line (AnswerBlank's border-b). Passive/faint since
+// the QCM blank isn't editable.
+function renderCloze(text: string): React.ReactNode {
+  const parts = text.split('_____')
+  if (parts.length === 1) return text
+  return parts.map((part, i) => (
+    <Fragment key={i}>
+      {part}
+      {i < parts.length - 1 && (
+        <span className="border-b-2 border-faint px-6 align-baseline" aria-hidden>
+          {' '}
+        </span>
+      )}
+    </Fragment>
+  ))
 }
 
 function shuffle<T>(arr: T[], seed: number): T[] {
@@ -98,6 +117,24 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
     setResult(rating)
   }
 
+  // Number keys 1–4 pick the matching option — the affordance the badges advertise. Inert once
+  // answered (rating pills own the keyboard then). Re-subscribes on state the picker reads so the
+  // handler never fires with a stale hint level.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (result) return
+      const n = Number(e.key)
+      if (Number.isInteger(n) && n >= 1 && n <= options.length) {
+        e.preventDefault()
+        handlePick(options[n - 1])
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // handlePick is recreated each render; the listed deps cover every value it reads.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result, options, hintUsed])
+
   // Board ②: correct = sage (strong, the loud element); wrong-picked = GENTLE terra (1px + soft
   // strike); others fade. Non-punitive — always surface the right answer over punishing the wrong.
   type OptState = 'rest' | 'correct' | 'wrong' | 'faded'
@@ -132,56 +169,72 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
       )}
 
       <div>
-        {/* Instruction eyebrow — pairs with écriture's "Complétez la phrase" (M5.5f). */}
-        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted mb-3">
-          {resolveChrome(REVIEW_CHROME.mcInstruction, immersionMode)}
-        </p>
-        {prompt.type === 'definition' ? (
-          <>
-            <p className="font-serif text-sm text-ink leading-relaxed">{prompt.es}</p>
-            {/* FR gloss behind the hint button (revealing it costs a hint). Suppressed in totale. */}
-            {gloss !== 'hidden' &&
-              (hintUsed ? (
-                <p className="font-serif italic text-sm text-muted mt-1">{prompt.fr}</p>
-              ) : (
-                !result && (
-                  <button
-                    type="button"
-                    onClick={() => setHintUsed(true)}
-                    className="text-xs text-accent mt-2"
-                  >
-                    ↓ {resolveChrome(REVIEW_CHROME.revealGloss, immersionMode)}
-                  </button>
-                )
-              ))}
-          </>
-        ) : (
-          <>
-            <p className="font-serif text-base text-ink leading-relaxed">{prompt.es}</p>
-            {/* Example gloss: shown (fr_es) · tap-to-reveal, free (immersion) · hidden (totale). */}
-            {gloss === 'visible' && <p className="font-serif text-sm text-muted mt-1">{prompt.fr}</p>}
-            {gloss === 'tap' && (
-              <div className="mt-1.5">
-                <TapReveal label={resolveChrome(REVIEW_CHROME.revealGloss, immersionMode)}>
-                  <p className="font-serif text-sm text-muted">{prompt.fr}</p>
-                </TapReveal>
-              </div>
-            )}
-          </>
+        {/* Instruction eyebrow — pairs with écriture's "Complétez la phrase" (M5.5f). Answering
+            state only; drops on the graded/verdict card, matching écriture (M6.1 reviser handoff). */}
+        {!result && (
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted mb-3">
+            {resolveChrome(REVIEW_CHROME.mcInstruction, immersionMode)}
+          </p>
         )}
+        {/* Same white card as the écriture prompt (FillInBlank) — QCM and Escritura now match. */}
+        <div className="bg-card border border-line rounded-card shadow-card p-[18px]">
+          {prompt.type === 'definition' ? (
+            <>
+              <p className="font-serif text-sm text-ink leading-relaxed">{prompt.es}</p>
+              {/* FR gloss behind the hint button (revealing it costs a hint). Suppressed in totale. */}
+              {gloss !== 'hidden' &&
+                (hintUsed ? (
+                  <p className="mt-2 font-serif italic text-[13px] text-muted">{prompt.fr}</p>
+                ) : (
+                  !result && (
+                    <button
+                      type="button"
+                      onClick={() => setHintUsed(true)}
+                      className="text-xs text-accent mt-2"
+                    >
+                      ↓ {resolveChrome(REVIEW_CHROME.revealGloss, immersionMode)}
+                    </button>
+                  )
+                ))}
+            </>
+          ) : (
+            <>
+              <p className="font-serif text-[19px] text-ink leading-[1.7]">{renderCloze(prompt.es)}</p>
+              {/* Example gloss: shown (fr_es) · tap-to-reveal, free (immersion) · hidden (totale). */}
+              {gloss === 'visible' && <p className="mt-2 font-serif italic text-[13px] text-muted">{prompt.fr}</p>}
+              {gloss === 'tap' && (
+                <div className="mt-2">
+                  <TapReveal label={resolveChrome(REVIEW_CHROME.revealGloss, immersionMode)}>
+                    <p className="font-serif italic text-[13px] text-muted">{prompt.fr}</p>
+                  </TapReveal>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col gap-[9px]">
-        {options.map((option) => {
+        {options.map((option, i) => {
           const st = optState(option)
           return (
             <button
               key={option}
               onClick={() => handlePick(option)}
               disabled={!!result}
-              className={`w-full flex items-center justify-between gap-3 text-left rounded-card border px-4 py-3.5 font-serif text-[17px] transition-colors ${OPT_CLS[st]}`}
+              className={`w-full flex items-center gap-3 text-left rounded-card border px-4 py-3.5 font-serif text-[17px] transition-colors ${OPT_CLS[st]}`}
             >
-              <span className={st === 'wrong' ? 'line-through decoration-1' : ''}>{option}</span>
+              {/* Leading 1–4 badge — signals an option can be TYPED (number keys) as well as tapped.
+                  Light-brown fill (handoff); the number inherits the option's per-state text colour
+                  (ink · sage · terra · faint), so it stays legible in every state. */}
+              <span
+                className={`flex items-center justify-center w-6 h-6 shrink-0 rounded-[7px] border border-border-soft bg-tint font-sans text-[12.5px] font-bold tabular-nums ${
+                  st === 'faded' ? 'opacity-100' : 'opacity-90'
+                }`}
+              >
+                {i + 1}
+              </span>
+              <span className={`flex-1 ${st === 'wrong' ? 'line-through decoration-1' : ''}`}>{option}</span>
               {st === 'correct' && (
                 <span className="flex items-center justify-center w-[22px] h-[22px] rounded-full bg-ok text-ivory shrink-0">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">

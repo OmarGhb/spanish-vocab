@@ -240,7 +240,13 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={() => setHintLevel((l) => Math.min(3, l + 1))}
+            // Return focus to the blank so the user can keep typing without re-tapping it (the
+            // button steals focus on tap; refocusing inside the click gesture also keeps the
+            // mobile keyboard up).
+            onClick={() => {
+              setHintLevel((l) => Math.min(3, l + 1))
+              inputRef.current?.focus()
+            }}
             disabled={hintLevel >= 3}
             className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-card border border-line py-3 font-sans text-sm font-semibold text-muted disabled:bg-page disabled:text-faint"
           >
