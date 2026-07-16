@@ -2,7 +2,7 @@ import Image from 'next/image'
 import { Mail } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getDictionaryState } from '@/lib/dictionary'
-import { displayNameFromEmail } from '@/lib/display-name'
+import { resolveDisplayName } from '@/lib/display-name'
 import { clampCardsPerSession } from '@/lib/session-cap'
 import { GroupHead, SettingsCard } from '@/components/form/SettingsCard'
 import { ActiveRow, SoonRow, DisplayRow, NavRow } from '@/components/form/Rows'
@@ -21,13 +21,12 @@ export default async function AccountPage() {
     data: { user },
   } = await supabase.auth.getUser()
   const email = user?.email ?? ''
-  const name = displayNameFromEmail(email) ?? 'Toi'
 
   // Parallel reads: prefs (live controls) · memorized count + lifetime révisions (BOTH from the one
   // getDictionaryState fetch — révisions = Σ review_cards.reps over the collection, since review_logs
   // is empty due to a separate insert bug) · TOTAL collection words (the delete-warning figure).
   const [{ data: profile }, dict, totalWordsRes] = await Promise.all([
-    supabase.from('profiles').select('cards_per_session, autoplay_audio, playback_speed, immersion_mode').maybeSingle(),
+    supabase.from('profiles').select('cards_per_session, autoplay_audio, playback_speed, immersion_mode, display_name').maybeSingle(),
     getDictionaryState(supabase),
     supabase
       .from('words')
@@ -36,6 +35,7 @@ export default async function AccountPage() {
   ])
 
   const mode = coerceImmersionMode(profile?.immersion_mode)
+  const name = resolveDisplayName(profile?.display_name, email) ?? 'Toi'
   const num = (n: number) => n.toLocaleString(mode === 'fr_es' ? 'fr-FR' : 'es-ES') // 1320 → "1 320"
   const cardsPerSession = clampCardsPerSession(profile?.cards_per_session)
   const reviewCount = dict.totalReviews

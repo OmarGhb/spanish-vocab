@@ -9,7 +9,7 @@ import {
   type DrillVerb,
   type PersonScope,
 } from '@/lib/drill'
-import { displayNameFromEmail } from '@/lib/display-name'
+import { resolveDisplayName } from '@/lib/display-name'
 import { coerceImmersionMode, resolveChrome, HOME_CHROME, NAV_CHROME } from '@/lib/immersion'
 import HubCardLocked from '../HubCardLocked'
 import DrillClient from './DrillClient'
@@ -36,14 +36,14 @@ export default async function DrillPage() {
       .from('words')
       .select('word, lemma, definition')
       .or('origin.eq.manual,discovery_status.eq.promoted'),
-    supabase.from('profiles').select('drill_tenses, drill_person_scope, immersion_mode').maybeSingle(),
+    supabase.from('profiles').select('drill_tenses, drill_person_scope, immersion_mode, display_name').maybeSingle(),
     supabase.auth.getUser(),
   ])
 
   const mode = coerceImmersionMode(profile?.immersion_mode)
 
-  // Placeholder display name from the email local-part (M6 onboarding replaces the source).
-  const displayName = displayNameFromEmail(auth.user?.email)
+  // Real name from onboarding (M6.2b) if captured, else the email-derived fallback.
+  const displayName = resolveDisplayName(profile?.display_name, auth.user?.email)
 
   const pool: DrillVerb[] = buildDrillPool(
     (words ?? []).map((w) => {

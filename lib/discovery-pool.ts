@@ -20,18 +20,20 @@ export type DiscoveryPoolRow = {
   status: 'active' | 'flagged'
 }
 
-// Onboarding niveau (slice 2). Until `profiles.level` is stored, ordering defaults to core-first —
-// the beginner/onboarding bias (2A). Kept in the signature so the consumer is wired now; only the
-// advanced tier currently changes behaviour (lets core/extended mix instead of forcing core ahead).
-export type DiscoveryLevel = 'debutant' | 'a2' | 'b1' | 'avance'
+// Onboarding niveau CEFR tier (slice 2, written to profiles.level). The value set matches the
+// niveau picker + the profiles.level CHECK. `undefined`/null level → core-first default.
+export type DiscoveryLevel = 'a1' | 'a2' | 'b1' | 'b2'
 
-const BAND_RANK: Record<PoolBand, number> = { core: 0, extended: 1 }
+// The level→discovery-band mapping (backlog spec): beginners see core essentials first, more advanced
+// learners see the extended/B1 tier first (they already know the core).
+export function levelBand(level: DiscoveryLevel): PoolBand {
+  return level === 'a1' || level === 'a2' ? 'core' : 'extended'
+}
 
 function bandRank(band: PoolBand, level?: DiscoveryLevel): number {
-  // Advanced learners don't need core forced ahead of extended — let the two mix. Everyone else
-  // (default, lower levels) gets core first.
-  if (level === 'avance') return 0
-  return BAND_RANK[band]
+  // Surface the band matching the user's level first; the other band follows. No level → core-first.
+  const preferred: PoolBand = level ? levelBand(level) : 'core'
+  return band === preferred ? 0 : 1
 }
 
 // Small deterministic hash of the row id → stable-ish intra-band order (so repeated draws don't

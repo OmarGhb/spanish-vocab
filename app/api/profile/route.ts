@@ -13,6 +13,8 @@ const ProfileSchema = z
     theme: z.enum(['sepia', 'ardoise', 'indigo', 'nuit']).optional(),
     immersion_mode: z.enum(['fr_es', 'immersion', 'totale']).optional(),
     onboarding_completed: z.boolean().optional(),
+    display_name: z.string().trim().min(1).max(40).nullable().optional(),
+    level: z.enum(['a1', 'a2', 'b1', 'b2']).optional(),
   })
   // Reject an empty body so a no-op write can't silently "succeed".
   .refine((o) => Object.keys(o).length > 0, { message: 'No fields to update.' })

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { selectPoolCards, type DiscoveryPoolRow } from './discovery-pool'
+import { selectPoolCards, levelBand, type DiscoveryPoolRow } from './discovery-pool'
 
 let n = 0
 const row = (over: Partial<DiscoveryPoolRow> = {}): DiscoveryPoolRow => ({
@@ -47,17 +47,26 @@ describe('selectPoolCards — band ordering', () => {
     expect(firstTwo).toEqual(['core1', 'core2'])
   })
 
-  it('does not force core ahead of extended for advanced learners', () => {
-    // With core forced first, the two core rows would always lead. For 'avance', ordering falls to
-    // the stable id hash, so an extended row can appear before a core row.
-    const rows = [
-      row({ id: 'a', word: 'ext', band: 'extended' }),
-      row({ id: 'z', word: 'core', band: 'core' }),
-    ]
-    const def = selectPoolCards({ rows, excludeWords: [], limit: 10 })
-    const adv = selectPoolCards({ rows, excludeWords: [], limit: 10, level: 'avance' })
-    expect(def.cards[0].word).toBe('core') // default: core first
-    expect(adv.cards[0].word).toBe('ext') // advanced: id-hash order (a < z), core not forced ahead
+  it('surfaces extended before core for advanced (b1/b2) levels', () => {
+    const rows = [row({ word: 'ext', band: 'extended' }), row({ word: 'core', band: 'core' })]
+    expect(selectPoolCards({ rows, excludeWords: [], limit: 10, level: 'b2' }).cards[0].word).toBe('ext')
+    expect(selectPoolCards({ rows, excludeWords: [], limit: 10, level: 'b1' }).cards[0].word).toBe('ext')
+  })
+
+  it('keeps core first for beginner (a1/a2) levels and when unset', () => {
+    const rows = [row({ word: 'ext', band: 'extended' }), row({ word: 'core', band: 'core' })]
+    expect(selectPoolCards({ rows, excludeWords: [], limit: 10, level: 'a1' }).cards[0].word).toBe('core')
+    expect(selectPoolCards({ rows, excludeWords: [], limit: 10, level: 'a2' }).cards[0].word).toBe('core')
+    expect(selectPoolCards({ rows, excludeWords: [], limit: 10 }).cards[0].word).toBe('core')
+  })
+})
+
+describe('levelBand', () => {
+  it('maps beginner tiers to core, advanced tiers to extended', () => {
+    expect(levelBand('a1')).toBe('core')
+    expect(levelBand('a2')).toBe('core')
+    expect(levelBand('b1')).toBe('extended')
+    expect(levelBand('b2')).toBe('extended')
   })
 })
 

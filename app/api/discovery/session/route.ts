@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { getTopic } from '@/lib/discovery-topics'
-import { selectPoolCards, type DiscoveryPoolRow } from '@/lib/discovery-pool'
+import { selectPoolCards, type DiscoveryPoolRow, type DiscoveryLevel } from '@/lib/discovery-pool'
 import {
   DISCOVERY_WORD_COLS,
   rowToCard,
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     return Response.json({ cards: (pending as DiscoveryWordRow[]).map(rowToCard) })
   }
 
-  // 2. Draw from the shared pool, minus the user's words.
+  // 2. Draw from the shared pool, minus the user's words, ordered by the user's captured level.
   let exclude: string[]
   try {
     exclude = await fetchUserWords(supabase)
@@ -68,6 +68,10 @@ export async function POST(request: Request) {
     console.error('[discovery/session] exclude fetch error:', e)
     return Response.json({ error: 'Failed to load collection.' }, { status: 500 })
   }
+
+  // Onboarding niveau (M6.2b) → band ordering. Null / not-yet-captured → core-first default.
+  const { data: profile } = await supabase.from('profiles').select('level').maybeSingle()
+  const level = (profile?.level as DiscoveryLevel | null) ?? undefined
 
   const { data: poolRows, error: poolError } = await supabase
     .from('discovery_pool')
@@ -83,6 +87,7 @@ export async function POST(request: Request) {
     rows: (poolRows ?? []) as DiscoveryPoolRow[],
     excludeWords: exclude,
     limit: topic.count,
+    level,
   })
 
   if (!exhausted) {
