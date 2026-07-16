@@ -105,12 +105,23 @@ function FeaturedCard({
 
 const COMING_SOON_MS = 4000
 
-export default function DiscoverClient() {
+export default function DiscoverClient({
+  initialTopic,
+  coachMark,
+  onFinish,
+}: {
+  initialTopic?: DiscoveryTopic
+  coachMark?: ReactNode
+  onFinish?: (kept: number) => void
+} = {}) {
   const router = useRouter()
   // Immersion mode gates the card French gloss + resolves all Discover chrome.
   const { immersionMode } = useSettings()
   const gloss = glossVisibility(immersionMode)
-  const [phase, setPhase] = useState<Phase>('grid')
+  // Onboarding first-swipe (M6.2c) mounts this with `initialTopic` (auto-start, skip the grid) +
+  // `onFinish` (finish/close hands the kept count back to the flow instead of routing) + a French
+  // `coachMark`. The bare /discover page passes none → grid-first, router-nav behavior unchanged.
+  const [phase, setPhase] = useState<Phase>(initialTopic ? 'generating' : 'grid')
   const [topic, setTopic] = useState<DiscoveryTopic | null>(null)
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
   const [comingSoon, setComingSoon] = useState<Featured | null>(null)
@@ -127,6 +138,15 @@ export default function DiscoverClient() {
     triggerEnrich()
     return () => abortRef.current?.abort()
   }, [])
+
+  // Onboarding: auto-start the chosen topic once (skips the grid).
+  const autoStartedRef = useRef(false)
+  useEffect(() => {
+    if (initialTopic && !autoStartedRef.current) {
+      autoStartedRef.current = true
+      void startTopic(initialTopic)
+    }
+  }, [initialTopic])
 
   // Auto-dismiss the "Pour toi" coming-soon toast (keyed re-tap restarts it).
   useEffect(() => {
@@ -183,7 +203,7 @@ export default function DiscoverClient() {
 
   function cancelGenerating() {
     abortRef.current?.abort()
-    backToGrid()
+    handleFinish(0)
   }
 
   function backToGrid() {
@@ -191,6 +211,13 @@ export default function DiscoverClient() {
     setTopic(null)
     setSelectedKey(null)
     setCards([])
+  }
+
+  // Close/finish: onboarding (onFinish set) hands the kept count back to the flow; the bare /discover
+  // page returns to the grid.
+  function handleFinish(count: number) {
+    if (onFinish) onFinish(count)
+    else backToGrid()
   }
 
   function decide(decision: 'kept' | 'known') {
@@ -339,7 +366,7 @@ export default function DiscoverClient() {
     return (
       <FocusedOverlay>
         <div className="shrink-0 px-[18px]" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
-          <CircleClose onClose={backToGrid} />
+          <CircleClose onClose={() => handleFinish(kept)} />
         </div>
         <div className="flex-1 min-h-0 flex flex-col items-center justify-center text-center px-9 pb-6">
           <Image src="/paco-feliz.png" alt="Paco" width={104} height={104} className="object-contain mb-2.5" />
@@ -369,15 +396,24 @@ export default function DiscoverClient() {
             className="w-full max-w-[300px] flex flex-col items-center gap-3 mt-7"
             style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
           >
-            <Button variant="primary" full type="button" onClick={() => router.push('/review')}>
-              {resolveChrome(DISCOVER_CHROME.reviewNow, immersionMode)} →
-            </Button>
-            <Button variant="secondary" full type="button" onClick={() => router.push('/')}>
-              {resolveChrome(DISCOVER_CHROME.backHome, immersionMode)}
-            </Button>
-            <Button variant="text" type="button" onClick={backToGrid}>
-              {resolveChrome(DISCOVER_CHROME.discoverAnother, immersionMode)} →
-            </Button>
+            {onFinish ? (
+              // Onboarding: one CTA hands off to the flow (→ Home handoff).
+              <Button variant="primary" full type="button" onClick={() => onFinish(kept)}>
+                Continuer →
+              </Button>
+            ) : (
+              <>
+                <Button variant="primary" full type="button" onClick={() => router.push('/review')}>
+                  {resolveChrome(DISCOVER_CHROME.reviewNow, immersionMode)} →
+                </Button>
+                <Button variant="secondary" full type="button" onClick={() => router.push('/')}>
+                  {resolveChrome(DISCOVER_CHROME.backHome, immersionMode)}
+                </Button>
+                <Button variant="text" type="button" onClick={backToGrid}>
+                  {resolveChrome(DISCOVER_CHROME.discoverAnother, immersionMode)} →
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </FocusedOverlay>
@@ -389,7 +425,7 @@ export default function DiscoverClient() {
     return (
       <FocusedOverlay>
         <div className="shrink-0 px-[18px]" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
-          <CircleClose onClose={backToGrid} />
+          <CircleClose onClose={() => handleFinish(kept)} />
         </div>
         <div className="flex-1 min-h-0 flex flex-col items-center justify-center text-center px-10 pb-12">
           <Image src="/paco-durmiendo.png" alt="Paco" width={196} height={196} className="object-contain mb-0.5" />
@@ -404,9 +440,15 @@ export default function DiscoverClient() {
             {resolveChrome(DISCOVER_CHROME.exhaustedBody, immersionMode)}
           </p>
           <div className="mt-6">
-            <Button variant="secondary" type="button" onClick={backToGrid}>
-              <Compass size={17} strokeWidth={1.9} /> {resolveChrome(DISCOVER_CHROME.chooseAnother, immersionMode)}
-            </Button>
+            {onFinish ? (
+              <Button variant="primary" type="button" onClick={() => onFinish(kept)}>
+                Continuer →
+              </Button>
+            ) : (
+              <Button variant="secondary" type="button" onClick={backToGrid}>
+                <Compass size={17} strokeWidth={1.9} /> {resolveChrome(DISCOVER_CHROME.chooseAnother, immersionMode)}
+              </Button>
+            )}
           </div>
         </div>
       </FocusedOverlay>
@@ -423,7 +465,7 @@ export default function DiscoverClient() {
       {/* Header: ✕ + theme eyebrow + counter + progress */}
       <div className="shrink-0 px-[18px]" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
         <div className="flex items-center justify-between gap-2">
-          <CircleClose onClose={backToGrid} />
+          <CircleClose onClose={() => handleFinish(kept)} />
           <div className="flex-1 min-w-0 flex flex-col items-center gap-1 leading-none">
             <span className="text-[9.5px] font-bold uppercase tracking-[0.12em] text-faint whitespace-nowrap">{topic?.es}</span>
             <span className="text-[13px] font-bold tabular-nums text-muted">{index + 1} / {cards.length}</span>
@@ -434,6 +476,9 @@ export default function DiscoverClient() {
           <div className="h-full bg-accent rounded-full transition-[width] duration-300" style={{ width: `${progress}%` }} />
         </div>
       </div>
+
+      {/* Onboarding coach-mark (French scaffolding — stays FR regardless of the card's immersion mode) */}
+      {coachMark && <div className="shrink-0 px-[22px] mt-3">{coachMark}</div>}
 
       {/* Card stack: two ghost cards behind + the swipeable top card */}
       <div className="flex-1 min-h-0 relative mx-[22px] mt-4 mb-1.5">

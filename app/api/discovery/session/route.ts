@@ -100,7 +100,13 @@ export async function POST(request: Request) {
     }
   }
 
-  // 3. Pool exhausted for this user — fall back to per-user live generation (today's path).
+  // 3. Pool exhausted for this user. A curated-only pool (esencial) is never live-generated (no theme
+  //    prompt) — return empty so the deck shows its exhausted state.
+  if (topic.curatedOnly) {
+    return Response.json({ cards: [] })
+  }
+
+  // Otherwise fall back to per-user live generation (today's path).
   try {
     const cards = await runLiveDiscovery(supabase, user.id, topic, exclude, request.signal)
     return Response.json({ cards })

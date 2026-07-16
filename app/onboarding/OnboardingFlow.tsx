@@ -1,12 +1,15 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { ArrowRight } from 'lucide-react'
 import Button from '../(app)/Button'
 import { useSettings } from '../(app)/SettingsProvider'
 import type { ImmersionMode } from '@/lib/immersion'
 import type { DiscoveryLevel } from '@/lib/discovery-pool'
+import { getTopic, ESENCIAL_TOPIC } from '@/lib/discovery-topics'
+import DiscoverClient from '../(app)/discover/DiscoverClient'
 import OnbShell from './OnbShell'
 import WelcomePanel from './WelcomePanel'
 import TourPanel from './TourPanel'
@@ -15,6 +18,7 @@ import NameStep from './NameStep'
 import ImmersionStep from './ImmersionStep'
 import ThemeStep from './ThemeStep'
 import LevelStep from './LevelStep'
+import StarterStep from './StarterStep'
 import styles from './transitions.module.css'
 
 // The linear first-run flow: Welcome → 5-step tour (¡Uy! reveal after Réviser) → the M6.2b capture
@@ -33,11 +37,13 @@ const JOURNEY = [
   { kind: 'step' as const, dot: 4, word: 'Construire', body: 'À mesure que tu ajoutes des mots, ton dictionnaire approche. À 10 mots, il s’ouvre — tes mots classés de A à Z, rien que les tiens.', Surf: SurfDict },
 ]
 
-// Index map: 0 = Welcome · 1..TOUR_LAST = tour · CAPTURE_BASE..CAPTURE_LAST = the 4 capture steps.
+// Index map: 0 = Welcome · 1..TOUR_LAST = tour · CAPTURE_BASE..CAPTURE_LAST = the 4 capture steps ·
+// STARTER_INDEX = starter pick · SWIPE_INDEX = the first-swipe (real DiscoverClient).
 const TOUR_LAST = JOURNEY.length // 6
 const CAPTURE_BASE = TOUR_LAST + 1 // 7
 const CAPTURE_COUNT = 4
 const CAPTURE_LAST = CAPTURE_BASE + CAPTURE_COUNT - 1 // 10
+const STARTER_INDEX = CAPTURE_LAST + 1 // 11 (the first-swipe is index 12 — the final fall-through)
 
 function patchProfile(body: Record<string, unknown>) {
   return fetch('/api/profile', {
@@ -47,7 +53,7 @@ function patchProfile(body: Record<string, unknown>) {
   })
 }
 
-export default function OnboardingFlow() {
+export default function OnboardingFlow({ poolCounts }: { poolCounts: Record<string, number> }) {
   const router = useRouter()
   const { setImmersionMode, setTheme } = useSettings()
   const [index, setIndex] = useState(0)
@@ -58,6 +64,7 @@ export default function OnboardingFlow() {
   const [name, setName] = useState('')
   const [immMode, setImmMode] = useState<ImmersionMode>('immersion') // pre-selected recommendation
   const [level, setLevel] = useState<DiscoveryLevel | null>(null)
+  const [starter, setStarter] = useState<string>(ESENCIAL_TOPIC.key) // recommended mélange, pre-selected
 
   const forward = () => {
     setGoingBack(false)
@@ -68,8 +75,8 @@ export default function OnboardingFlow() {
     setIndex((i) => Math.max(0, i - 1))
   }
 
-  // Terminal action: persist onboarding_completed (+ any final fields) THEN navigate — awaiting the
-  // write means the (app) layout reads the committed flag and lets Home through. Self-heals on fail.
+  // Early bail (tour Passer): persist the flag THEN navigate — awaiting means the (app) layout reads
+  // the committed flag. Used only for skipping BEFORE the capture cluster is done.
   async function complete(extra: Record<string, unknown> = {}) {
     if (saving) return
     setSaving(true)
@@ -79,6 +86,29 @@ export default function OnboardingFlow() {
       /* ignore — self-heals next load */
     }
     router.push('/')
+  }
+
+  // Commit onboarding_completed at the END OF THE CAPTURE CLUSTER (fold 1 — resilience): the flag is
+  // written here, so the starter + first-swipe are "bonus" steps a mid-swipe drop-out can't un-onboard.
+  // Awaited so a re-render / reload can't beat the write; forwards regardless of failure (the terminal
+  // finishToHome re-writes it as a backup).
+  async function commitAndForward(extra: Record<string, unknown> = {}) {
+    if (saving) return
+    setSaving(true)
+    try {
+      await patchProfile({ ...extra, onboarding_completed: true })
+    } catch {
+      /* the terminal finishToHome re-attempts the flag */
+    }
+    setSaving(false)
+    forward()
+  }
+
+  // Terminal (post-flag): navigate to the real Home. A redundant idempotent flag write covers the rare
+  // case where commitAndForward's PATCH failed. `added` (swipe kept-count) drives the one-time banner.
+  function finishToHome(added: number) {
+    void patchProfile({ onboarding_completed: true })
+    router.push(added > 0 ? `/?welcome=1&added=${added}` : '/')
   }
 
   const slide = goingBack ? styles.back : styles.forward
@@ -132,57 +162,95 @@ export default function OnboardingFlow() {
   }
 
   // ── Capture cluster (prénom · immersion · thème · niveau) ──
-  const step = index - CAPTURE_BASE // 0..3
-  const isFinal = index === CAPTURE_LAST
+  if (index <= CAPTURE_LAST) {
+    const step = index - CAPTURE_BASE // 0..3
 
-  // Continue: persist this step's field, then advance (or complete on the final step).
-  function captureContinue() {
-    if (saving) return
-    if (step === 0) {
-      const n = name.trim()
-      if (n) void patchProfile({ display_name: n })
-      forward()
-    } else if (step === 1) {
-      setImmersionMode(immMode)
-      forward()
-    } else if (step === 2) {
-      forward() // theme already applied live on tap
-    } else {
-      void complete(level ? { level } : {})
-    }
-  }
-
-  // Passer: apply this step's fallback, then advance (or complete on the final step).
-  function captureSkip() {
-    if (step === 0) forward() // name stays null → email fallback
-    else if (step === 1) {
-      setImmersionMode('fr_es')
-      forward()
-    } else if (step === 2) {
-      setTheme('sepia')
-      forward()
-    } else {
-      void complete() // level stays null → discovery core-first default
-    }
-  }
-
-  return (
-    <OnbShell
-      dots={{ total: CAPTURE_COUNT, current: step }}
-      onBack={back}
-      onSkip={captureSkip}
-      footer={
-        <Button variant="primary" full onClick={captureContinue} disabled={saving}>
-          {isFinal ? 'C’est parti' : 'Continuer'} {isFinal ? '' : <ArrowRight size={16} strokeWidth={2.1} />}
-        </Button>
+    // Continue: persist this step's field, then advance. Niveau (step 3) commits onboarding_completed
+    // (end of the capture cluster) then forwards to the "bonus" starter/first-swipe.
+    const captureContinue = () => {
+      if (saving) return
+      if (step === 0) {
+        const n = name.trim()
+        if (n) void patchProfile({ display_name: n })
+        forward()
+      } else if (step === 1) {
+        setImmersionMode(immMode)
+        forward()
+      } else if (step === 2) {
+        forward() // theme already applied live on tap
+      } else {
+        void commitAndForward(level ? { level } : {})
       }
-    >
-      <div key={index} className={`flex-1 min-h-0 flex flex-col ${slide}`}>
-        {step === 0 && <NameStep value={name} onChange={setName} />}
-        {step === 1 && <ImmersionStep selected={immMode} onSelect={setImmMode} />}
-        {step === 2 && <ThemeStep />}
-        {step === 3 && <LevelStep selected={level} onSelect={setLevel} />}
-      </div>
-    </OnbShell>
+    }
+
+    // Passer: apply this step's fallback, then advance. Niveau Passer still commits the flag + forwards.
+    const captureSkip = () => {
+      if (step === 0) forward() // name stays null → email fallback
+      else if (step === 1) {
+        setImmersionMode('fr_es')
+        forward()
+      } else if (step === 2) {
+        setTheme('sepia')
+        forward()
+      } else {
+        void commitAndForward() // level stays null → discovery core-first default
+      }
+    }
+
+    return (
+      <OnbShell
+        dots={{ total: CAPTURE_COUNT, current: step }}
+        onBack={back}
+        onSkip={captureSkip}
+        footer={
+          <Button variant="primary" full onClick={captureContinue} disabled={saving}>
+            Continuer <ArrowRight size={16} strokeWidth={2.1} />
+          </Button>
+        }
+      >
+        <div key={index} className={`flex-1 min-h-0 flex flex-col ${slide}`}>
+          {step === 0 && <NameStep value={name} onChange={setName} />}
+          {step === 1 && <ImmersionStep selected={immMode} onSelect={setImmMode} />}
+          {step === 2 && <ThemeStep />}
+          {step === 3 && <LevelStep selected={level} onSelect={setLevel} />}
+        </div>
+      </OnbShell>
+    )
+  }
+
+  // ── Starter pick (bonus — flag already committed at niveau) ──
+  if (index === STARTER_INDEX) {
+    return (
+      <OnbShell
+        onBack={back}
+        onSkip={() => finishToHome(0)}
+        footer={
+          <Button variant="primary" full onClick={forward}>
+            Commencer la session <ArrowRight size={16} strokeWidth={2.1} />
+          </Button>
+        }
+      >
+        <div key={index} className={`flex-1 min-h-0 flex flex-col ${slide}`}>
+          <StarterStep selected={starter} onSelect={setStarter} counts={poolCounts} />
+        </div>
+      </OnbShell>
+    )
+  }
+
+  // ── Première session — the REAL swipe deck (owns the full screen; no OnbShell). onFinish hands the
+  //    kept count back for the Home handoff. ──
+  return (
+    <DiscoverClient
+      initialTopic={getTopic(starter) ?? ESENCIAL_TOPIC}
+      onFinish={finishToHome}
+      coachMark={
+        <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-[12px] bg-amber-tint border border-tinted-border">
+          <Image src="/paco.png" alt="" width={28} height={28} className="object-contain shrink-0" />
+          <span className="font-sans text-[12.5px] leading-[1.4] text-amber-deep">
+            Glisse à droite ce que tu veux apprendre, à gauche ce que tu connais déjà.
+          </span>
+        </div>
+      }
+    />
   )
 }

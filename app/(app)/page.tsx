@@ -6,7 +6,9 @@ import { buildDrillPool, DRILL_UNLOCK_THRESHOLD } from '@/lib/drill'
 import { estimateMinutes, RECENT_LOGS_WINDOW } from '@/lib/review-estimate'
 import { resolveHomeState } from '@/lib/home-state'
 import { coerceImmersionMode, resolveChrome, HOME_CHROME } from '@/lib/immersion'
+import { resolveDisplayName } from '@/lib/display-name'
 import ReviewHero from './ReviewHero'
+import SalutBanner from './SalutBanner'
 import HubCard from './HubCard'
 import HubCardLocked from './HubCardLocked'
 import CollectionSection, { type CollectionPreview } from './CollectionSection'
@@ -15,11 +17,15 @@ import UnlockSync from './UnlockSync'
 // How many recent words the "Ta collection" preview shows before the "Voir les N mots →" footer.
 const PREVIEW_COUNT = 10
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ welcome?: string; added?: string }>
+}) {
   const supabase = await createClient()
   const nowIso = new Date().toISOString()
 
-  const [{ count: wordCount }, { count: dueCount }, { data: recent }, { data: logs }, { data: deckVerbs }, { data: profile }] =
+  const [{ count: wordCount }, { count: dueCount }, { data: recent }, { data: logs }, { data: deckVerbs }, { data: profile }, { data: auth }] =
     await Promise.all([
       // Only real collection words count: manual, or discovery rows fully promoted.
       supabase
@@ -44,11 +50,19 @@ export default async function HomePage() {
         .from('words')
         .select('word, lemma, definition')
         .or('origin.eq.manual,discovery_status.eq.promoted'),
-      // Immersion mode (M6.1c) — threaded into the server-rendered Home chrome (no client hook here).
-      supabase.from('profiles').select('immersion_mode').maybeSingle(),
+      // Immersion mode (M6.1c) + display_name (M6.2c salut banner) — server-rendered, no client hook.
+      supabase.from('profiles').select('immersion_mode, display_name').maybeSingle(),
+      supabase.auth.getUser(),
     ])
 
   const mode = coerceImmersionMode(profile?.immersion_mode)
+
+  // One-time onboarding handoff banner (M6.2c) — gated on ?welcome=1; `added` is the swipe kept-count,
+  // clamped so a hand-edited URL can't render a fake tally. The banner strips the query on mount.
+  const sp = await searchParams
+  const showWelcome = sp.welcome === '1'
+  const addedCount = Math.max(0, Math.min(50, Number(sp.added) || 0))
+  const welcomeName = resolveDisplayName(profile?.display_name, auth?.user?.email) ?? 'Toi'
 
   const totalWords = wordCount ?? 0
   const due = dueCount ?? 0
@@ -90,6 +104,8 @@ export default async function HomePage() {
       {/* Flips the sticky dictionary-unlock flag on app load once ≥10 words are memorized. */}
       <UnlockSync />
       <div className="flex-1 px-5 pb-[22px] pt-1.5 flex flex-col gap-[14px]">
+        {/* One-time onboarding handoff greeting (M6.2c) — above the hero, self-dismisses on refresh. */}
+        {showWelcome && <SalutBanner name={welcomeName} added={addedCount} />}
         {/* Review hero — the loudest element; a crème+ SURFACE, never amber-filled. */}
         <ReviewHero state={hero} count={due} minutes={minutes} mode={mode} />
 

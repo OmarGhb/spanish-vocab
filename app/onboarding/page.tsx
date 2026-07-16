@@ -4,6 +4,7 @@ import { SettingsProvider } from '../(app)/SettingsProvider'
 import { DEFAULT_PLAYBACK_SPEED, type PlaybackSpeed } from '@/lib/playback-speed'
 import { coerceTheme } from '@/lib/theme'
 import { coerceImmersionMode } from '@/lib/immersion'
+import { countByTheme } from '@/lib/discovery-topics'
 import OnboardingFlow from './OnboardingFlow'
 
 // First-run onboarding (M6.2a/b) — OUTSIDE the (app) group, so it has its own full-screen chrome (no
@@ -27,6 +28,11 @@ export default async function OnboardingPage() {
     .maybeSingle()
   if (profile?.onboarding_completed === true) redirect('/')
 
+  // Active pool counts per theme_key (M6.2c) for the starter grid. Shared-read RLS lets any logged-in
+  // user read the pool; grouped in JS (a theme with no pool rows simply shows 0).
+  const { data: poolRows } = await supabase.from('discovery_pool').select('theme_key').eq('status', 'active')
+  const poolCounts = countByTheme((poolRows ?? []) as { theme_key: string }[])
+
   return (
     <SettingsProvider
       initialAutoplayAudio={profile?.autoplay_audio ?? true}
@@ -34,7 +40,7 @@ export default async function OnboardingPage() {
       initialTheme={coerceTheme(profile?.theme)}
       initialImmersionMode={coerceImmersionMode(profile?.immersion_mode)}
     >
-      <OnboardingFlow />
+      <OnboardingFlow poolCounts={poolCounts} />
     </SettingsProvider>
   )
 }

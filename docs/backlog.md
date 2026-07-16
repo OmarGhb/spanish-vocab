@@ -66,7 +66,7 @@
 - Auto-suggest while typing on /add: dropdown of matching Spanish words after 2-3 chars.
 
 ## Onboarding
-- First-time user flow: empty state on home + guidance to add their first word.
+- ~~First-time user flow: empty state on home + guidance to add their first word.~~ **DONE — the onboarding flow is COMPLETE (M6.2a→c, v0.9.7 / v0.11.0 / v0.12.0):** welcome → tour → prénom · immersion · thème · niveau → starter → first-swipe → real Home handoff (salut banner + kept count). New users arrive with a non-empty collection + a captured name/level/mode/theme.
 - ~~Empty state for /review when no cards exist.~~ **SHIPPED as M6.0a (v0.9.0)** — the first-run `/review` vide (Durmiendo + Ajouter/Découvrir + the « prochaine révision » pill bound to `nextReviewLabel` in `lib/review-estimate.ts`).
 - Email verification on signup (currently disabled in Supabase). **Re-enable is M6 backend hardening** — M6.0a's signup deliberately leaves it disabled so `signUp` returns a live session and lands on Home.
 - **Password-reset flow — deferred (from M6.0a).** The « Mot de passe oublié ? » link ships and routes to a minimal `/forgot-password` stub (kept visible rather than churn re-adding it), but the actual reset (email → token → `updateUser`) is a separate backend slice, not built in M6.0a.
