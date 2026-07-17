@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type React from 'react'
 import { Lightbulb } from 'lucide-react'
 import {
@@ -17,6 +17,7 @@ import { verbCue, verbGridCoords } from '@/lib/review-cue'
 import { buildConjugationGridForTense } from '@/lib/conjugation-grid'
 import { posAbbrev } from '@/lib/discovery'
 import { scrambleLetters, seedFromString, usedScrambleTiles } from '@/lib/scramble'
+import { blankTargetInDefinition } from '@/lib/blank-definition'
 import { wordDiff, type DiffOp } from '@/lib/worddiff'
 import type { ReviewCard } from './page'
 import RatingButtons from './RatingButtons'
@@ -73,6 +74,12 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
   const { immersionMode } = useSettings()
   const gloss = glossVisibility(immersionMode)
   const revealLabel = resolveChrome(REVIEW_CHROME.revealGloss, immersionMode)
+
+  // Definition-as-hint leak guard: blank the headword where it appears in its own ES definition,
+  // at RENDER time only (the stored definition + the dictionary detail view keep the full text).
+  // `word` IS the answer at both écriture definition sites — the no-example prompt and the T2 Indice
+  // (non-verb → correctWord === word; a verb with a grid shows the table, not the definition).
+  const blankedDefEs = useMemo(() => blankTargetInDefinition(definition.es, word), [definition.es, word])
 
   const [picked] = useState(() =>
     pickClozeExample({
@@ -179,7 +186,7 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
             </p>
           ) : (
             <>
-              <p className="font-serif text-sm text-ink leading-relaxed">{definition.es}</p>
+              <p className="font-serif text-sm text-ink leading-relaxed">{blankedDefEs}</p>
               <p className="mt-3 font-serif text-[19px] text-ink">{blank}</p>
             </>
           )}
@@ -209,7 +216,7 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
             {showDefinition && (
               <div className="bg-card border border-line rounded-card p-4">
                 <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted">Definición · ES</p>
-                <p className="mt-1.5 font-serif text-sm text-ink leading-relaxed">{definition.es}</p>
+                <p className="mt-1.5 font-serif text-sm text-ink leading-relaxed">{blankedDefEs}</p>
               </div>
             )}
             {showScramble && (

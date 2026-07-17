@@ -102,5 +102,7 @@ export async function POST(request: Request) {
     console.error('[review] log insert failed (card already updated):', logError.message)
   }
 
-  return Response.json({ ok: true })
+  // Return the post-reschedule state/stability (already computed above — no extra query) so the
+  // client can detect a card crossing into "mémorisé" this session for the bilan callout.
+  return Response.json({ ok: true, card: { state: next.state, stability: next.stability } })
 }

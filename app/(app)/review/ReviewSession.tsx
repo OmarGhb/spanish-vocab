@@ -1,10 +1,12 @@
 'use client'
 
 import Image from 'next/image'
+import { Sparkles } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { isMemorized } from '@/lib/word-status'
 import type { BlankQuality } from '@/lib/rating'
 import type { ReviewCard } from './page'
 import FillInBlank from './FillInBlank'
@@ -22,7 +24,8 @@ type Props = { cards: ReviewCard[]; dictionaryUnlocked: boolean; cardsPerSession
 // One entry per reviewed word, accumulated in-memory during the session.
 // correct = final rating was Hard/Good/Easy (2/3/4); ✗ = Again (1).
 // firstTry = got it right WITHOUT a hint → the non-punitive "Sus du 1er coup" stat (board ⑥).
-type Outcome = { word: string; defEs: string; correct: boolean; firstTry: boolean; timeMs: number }
+// justMemorized = this review pushed the card across into "mémorisé" (was not, now is) → the bilan crossing callout.
+type Outcome = { word: string; defEs: string; correct: boolean; firstTry: boolean; timeMs: number; justMemorized: boolean }
 
 function chooseMode(card: ReviewCard, index: number): 'blank' | 'mc' {
   if (card.distractors.length === 0) return 'blank'
@@ -92,23 +95,34 @@ export default function ReviewSession({ cards: initialCards, dictionaryUnlocked,
   async function handleRate(rating: 1 | 2 | 3 | 4, timeMs: number, hintLevel: number) {
     const card = cards[index]
     const hintUsed = hintLevel > 0
-    // The deck is fixed (one row per word, no re-show), so a single append per
-    // rating yields exactly one recap row per word — no dedup needed.
-    setOutcomes((prev) => [
-      ...prev,
-      { word: card.word, defEs: card.definition?.es ?? '', correct: rating !== 1, firstTry: rating !== 1 && !hintUsed, timeMs },
-    ])
+    // Pre-review mastery, from the stored card (state + stability, already in hand — no query).
+    // Compared against the post-reschedule state the POST returns, to detect a crossing into
+    // "mémorisé" this session for the bilan callout.
+    const wasMemorized = isMemorized({ state: card.state, stability: card.stability, due: card.due })
 
+    let justMemorized = false
     try {
-      await fetch('/api/review', {
+      const res = await fetch('/api/review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cardId: card.id, rating, timeMs, hintUsed }),
       })
+      const data = (await res.json().catch(() => null)) as { card?: { state: number; stability: number } } | null
+      if (data?.card) {
+        justMemorized =
+          !wasMemorized && isMemorized({ state: data.card.state, stability: data.card.stability, due: card.due })
+      }
     } catch {
-      // Network failure: silently continue — losing one log entry is acceptable.
+      // Network failure: silently continue — losing one log entry (and the crossing signal) is acceptable.
       console.warn('[review] POST /api/review failed for card', card.id)
     }
+
+    // The deck is fixed (one row per word, no re-show), so a single append per
+    // rating yields exactly one recap row per word — no dedup needed.
+    setOutcomes((prev) => [
+      ...prev,
+      { word: card.word, defEs: card.definition?.es ?? '', correct: rating !== 1, firstTry: rating !== 1 && !hintUsed, timeMs, justMemorized },
+    ])
 
     if (index + 1 >= cards.length) {
       // Session over. Count cards still due now — reflects the reschedule the
@@ -189,6 +203,8 @@ export default function ReviewSession({ cards: initialCards, dictionaryUnlocked,
     const firstTry = outcomes.filter((o) => o.firstTry).length
     const totalMs = outcomes.reduce((sum, o) => sum + o.timeMs, 0)
     const timeLabel = totalMs < 60_000 ? '< 1 min' : `${Math.round(totalMs / 60_000)} min`
+    // Words that crossed into "mémorisé" during this session (order = review order).
+    const memorized = outcomes.filter((o) => o.justMemorized)
 
     // Fixed vertical frame (fills the column below TopNav); ONLY the word list scrolls.
     return (
@@ -222,6 +238,23 @@ export default function ReviewSession({ cards: initialCards, dictionaryUnlocked,
             ))}
           </div>
         </div>
+
+        {/* 2b — words that crossed into "mémorisé" this session (sage = acquisition, per the design
+            system). Shown only when ≥1 card crossed; the heading is mode-aware (FR/ES), the words
+            themselves are Spanish content. Sits above the per-word recap. */}
+        {memorized.length > 0 && (
+          <div className="px-[18px] pt-3 shrink-0">
+            <div className="fade-up bg-ok-bg border border-sage-border rounded-2xl px-4 py-3">
+              <p className="flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.12em] text-sage-ink">
+                <Sparkles size={13} strokeWidth={2} />
+                {resolveChrome(REVIEW_CHROME.newlyMemorized, immersionMode)}
+              </p>
+              <p className="mt-1.5 font-serif text-[15px] text-ink leading-snug">
+                {memorized.map((o) => o.word).join(' · ')}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* 3 — words reviewed this session (the scrollable core). Rows stagger in
             top-to-bottom on mount via `.fade-up` (globals.css) + per-row animationDelay

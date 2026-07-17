@@ -78,6 +78,7 @@ export const REVIEW_CHROME = {
   // Session-complete bilan
   loading: { fr: 'Chargement…', es: 'Cargando…' },
   sessionDone: { fr: 'Session terminée', es: 'Sesión terminada' },
+  newlyMemorized: { fr: 'Nouveaux mots mémorisés', es: 'Nuevas palabras memorizadas' },
   statReviewed: { fr: 'Révisés', es: 'Repasados' },
   statFirstTry: { fr: 'Sus du 1er coup', es: 'A la primera' },
   statTime: { fr: 'Temps', es: 'Tiempo' },

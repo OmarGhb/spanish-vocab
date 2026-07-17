@@ -10,6 +10,7 @@ import ResultReveal from './ResultReveal'
 import TapReveal from '../TapReveal'
 import { useSettings } from '../SettingsProvider'
 import { glossVisibility, resolveChrome, REVIEW_CHROME } from '@/lib/immersion'
+import { blankTargetInDefinition } from '@/lib/blank-definition'
 
 type Props = {
   card: ReviewCard
@@ -100,6 +101,16 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
   // Stable shuffle across re-renders, keyed on seed.
   const options = useMemo(() => shuffle([word, ...distractors], seed), [word, distractors, seed])
 
+  // Definition-as-hint leak guard: blank the answer where it appears in the ES definition prompt
+  // (render-time only). INVARIANT verified at this site: the answer the user picks is `word` —
+  // options === [word, ...distractors], computeRating uses correctWord: word, and optState marks
+  // `option === word` correct. So blanking `word` protects the actual answer. If the definition-MCQ
+  // ever prompts with a RELATED word's definition (answer ≠ card.word), blank that answer instead.
+  const blankedPromptEs = useMemo(
+    () => (prompt.type === 'definition' ? blankTargetInDefinition(prompt.es, word) : prompt.es),
+    [prompt, word],
+  )
+
   const [chosen, setChosen] = useState<string | null>(null)
   const [result, setResult] = useState<RatingResult | null>(null)
   const [hintUsed, setHintUsed] = useState(false)
@@ -180,7 +191,7 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
         <div className="bg-card border border-line rounded-card shadow-card p-[18px]">
           {prompt.type === 'definition' ? (
             <>
-              <p className="font-serif text-sm text-ink leading-relaxed">{prompt.es}</p>
+              <p className="font-serif text-sm text-ink leading-relaxed">{blankedPromptEs}</p>
               {/* FR gloss behind the hint button (revealing it costs a hint). Suppressed in totale. */}
               {gloss !== 'hidden' &&
                 (hintUsed ? (
