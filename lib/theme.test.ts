@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { isThemeId, coerceTheme, themeName, THEME_IDS, THEME_SWATCHES, DEFAULT_THEME } from './theme'
 
 describe('theme registry', () => {
-  it('isThemeId accepts the 4 ids, rejects everything else', () => {
+  it('isThemeId accepts every registered id, rejects everything else', () => {
     for (const id of THEME_IDS) expect(isThemeId(id)).toBe(true)
     expect(isThemeId('sombre')).toBe(false)
     expect(isThemeId('')).toBe(false)
@@ -19,9 +19,13 @@ describe('theme registry', () => {
 
   it('every id has a swatch with the picker-required preview fields', () => {
     expect(THEME_SWATCHES.map((s) => s.id).sort()).toEqual([...THEME_IDS].sort())
+    // Preview fields are CSS colors the picker paints directly: a 6-digit hex (the original 4
+    // palettes) OR an oklch() token (the four added palettes, whose swatches are the authoritative
+    // OKLCH values). Either is a valid inline background-color.
+    const SWATCH_COLOR = /^(#[0-9A-Fa-f]{6}|oklch\([^)]+\))$/
     for (const s of THEME_SWATCHES) {
       for (const k of ['page', 'surface', 'border', 'accent', 'success', 'onAccent'] as const) {
-        expect(s[k]).toMatch(/^#[0-9A-Fa-f]{6}$/)
+        expect(s[k]).toMatch(SWATCH_COLOR)
       }
     }
   })

@@ -22,7 +22,9 @@ export default function ThemePicker() {
       <div className="font-sans text-[12.5px] text-muted mb-2">
         {resolveChrome(ACCOUNT_CHROME.themeColorHelp, immersionMode)}
       </div>
-      <div className="flex gap-4">
+      {/* 8 swatches overflow a phone row — scroll horizontally (no-scrollbar; the clipped last
+          chip is the scroll cue). -mx-4 px-4 lets chips run edge-to-edge without clipping the ring. */}
+      <div className="flex gap-4 overflow-x-auto no-scrollbar -mx-4 px-4">
         {THEME_SWATCHES.map((p) => {
           const selected = p.id === theme
           return (
@@ -32,7 +34,7 @@ export default function ThemePicker() {
               onClick={() => setTheme(p.id)}
               aria-pressed={selected}
               aria-label={p.name}
-              className="press-card flex flex-col items-center gap-[7px]"
+              className="press-card shrink-0 flex flex-col items-center gap-[7px]"
             >
               <span
                 className="relative block w-[52px] h-[52px] rounded-[15px] overflow-hidden border-[1.5px]"

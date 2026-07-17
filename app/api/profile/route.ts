@@ -10,7 +10,7 @@ const ProfileSchema = z
     cards_per_session: z.number().int().min(MIN_CARDS_PER_SESSION).max(MAX_CARDS_PER_SESSION).optional(),
     autoplay_audio: z.boolean().optional(),
     playback_speed: z.enum(['lent', 'normal', 'rapide']).optional(),
-    theme: z.enum(['sepia', 'ardoise', 'indigo', 'nuit']).optional(),
+    theme: z.enum(['sepia', 'ardoise', 'indigo', 'nuit', 'fiesta', 'olive', 'prune', 'aubergine']).optional(),
     immersion_mode: z.enum(['fr_es', 'immersion', 'totale']).optional(),
     onboarding_completed: z.boolean().optional(),
     display_name: z.string().trim().min(1).max(40).nullable().optional(),

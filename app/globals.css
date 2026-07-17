@@ -90,7 +90,11 @@
    byte-parity). Percentages reverse-engineered from the Sépia literals (derivation, flagged). */
 :root[data-theme="ardoise"],
 :root[data-theme="indigo"],
-:root[data-theme="nuit"] {
+:root[data-theme="nuit"],
+:root[data-theme="fiesta"],
+:root[data-theme="olive"],
+:root[data-theme="prune"],
+:root[data-theme="aubergine"] {
   --color-amber-mid:     color-mix(in srgb, var(--color-accent) 78%, var(--color-card));
   --color-amber-tint:    color-mix(in srgb, var(--color-accent) 15%, var(--color-card));
   --color-amber-pale:    color-mix(in srgb, var(--color-accent) 50%, var(--color-card));
@@ -136,6 +140,66 @@
   --color-ok-bg: #233D34; --color-sage-ink: #8ACCB6; --color-sage-border: #365E50;
   --color-err-bg: #4A2519; --color-terra-ink: #EC8E6B; --color-terra-border: #7A4230;
   --color-ivory: #2A2218; --color-disabled-ink: #877046; --color-scrim: rgba(6,4,2,0.66);
+  --tw-shadow-color: rgba(0,0,0,0.55);
+}
+
+/* ════════════ Four added palettes (design handoff) ════════════
+   Token values are the authoritative OKLCH from the handoff — copied exactly. Handoff role →
+   repo var: surface→card, surfaceAlt→surface-alt, border→line, borderSoft→border-soft,
+   sepia→muted, accentDeep→amber-deep, accentLight→amber-light, okBg→ok-bg, sageInk→sage-ink,
+   errBg→err-bg, terraInk→terra-ink, onAccent→ivory, amberDisabled→disabled-ink. Success stays
+   sage / danger stays terra (fixed semantics); only their sub-token neutrals shift per palette.
+   The accent-family tints (amber-mid/tint/pale, tint, tinted-border, hair) are color-mix-derived
+   in the shared block above. */
+
+/* ── Fiesta — vif & joyeux, light (sunny cream + tangerine accent) ── */
+:root[data-theme="fiesta"] {
+  --color-page: oklch(0.96 0.045 85); --color-card: oklch(0.99 0.02 90); --color-surface-alt: oklch(0.93 0.06 80);
+  --color-line: oklch(0.85 0.07 72); --color-border-soft: oklch(0.90 0.05 78);
+  --color-ink: oklch(0.26 0.06 45); --color-muted: oklch(0.50 0.07 45); --color-faint: oklch(0.64 0.06 50);
+  --color-accent: oklch(0.66 0.19 52); --color-amber-deep: oklch(0.57 0.19 48); --color-amber-light: oklch(0.92 0.09 60);
+  --color-ok: oklch(0.56 0.13 162); --color-err: oklch(0.56 0.19 22);
+  --color-ok-bg: oklch(0.92 0.09 162); --color-sage-ink: oklch(0.46 0.12 162); --color-sage-border: oklch(0.80 0.10 162);
+  --color-err-bg: oklch(0.93 0.08 22); --color-terra-ink: oklch(0.48 0.18 20); --color-terra-border: oklch(0.80 0.12 20);
+  --color-ivory: #FFFBF3; --color-disabled-ink: oklch(0.78 0.10 60); --color-scrim: oklch(0.26 0.06 45 / 0.42);
+}
+
+/* ── Olive — vert-or terreux, light (warm oat + olive-gold accent, hue 105) ── */
+:root[data-theme="olive"] {
+  --color-page: oklch(0.96 0.022 95); --color-card: oklch(0.99 0.012 95); --color-surface-alt: oklch(0.93 0.03 95);
+  --color-line: oklch(0.86 0.035 95); --color-border-soft: oklch(0.90 0.025 95);
+  --color-ink: oklch(0.24 0.03 95); --color-muted: oklch(0.50 0.03 95); --color-faint: oklch(0.64 0.025 95);
+  --color-accent: oklch(0.50 0.10 105); --color-amber-deep: oklch(0.42 0.09 105); --color-amber-light: oklch(0.93 0.06 105);
+  --color-ok: oklch(0.52 0.08 165); --color-err: oklch(0.52 0.15 28);
+  --color-ok-bg: oklch(0.93 0.05 165); --color-sage-ink: oklch(0.45 0.08 165); --color-sage-border: oklch(0.82 0.06 165);
+  --color-err-bg: oklch(0.93 0.05 24); --color-terra-ink: oklch(0.47 0.16 24); --color-terra-border: oklch(0.81 0.09 24);
+  --color-ivory: #FFFBF3; --color-disabled-ink: oklch(0.72 0.06 105); --color-scrim: oklch(0.24 0.03 95 / 0.42);
+}
+
+/* ── Prune — vin tamisé, light (soft mauve paper + plum accent, hue 335) ── */
+:root[data-theme="prune"] {
+  --color-page: oklch(0.95 0.018 330); --color-card: oklch(0.99 0.008 330); --color-surface-alt: oklch(0.92 0.025 330);
+  --color-line: oklch(0.86 0.03 330); --color-border-soft: oklch(0.90 0.022 330);
+  --color-ink: oklch(0.24 0.04 330); --color-muted: oklch(0.50 0.035 330); --color-faint: oklch(0.63 0.03 330);
+  --color-accent: oklch(0.48 0.15 335); --color-amber-deep: oklch(0.40 0.14 335); --color-amber-light: oklch(0.93 0.05 335);
+  --color-ok: oklch(0.52 0.08 165); --color-err: oklch(0.52 0.15 28);
+  --color-ok-bg: oklch(0.93 0.05 165); --color-sage-ink: oklch(0.45 0.08 165); --color-sage-border: oklch(0.82 0.06 165);
+  --color-err-bg: oklch(0.93 0.05 24); --color-terra-ink: oklch(0.47 0.16 24); --color-terra-border: oklch(0.81 0.09 24);
+  --color-ivory: #FFFBF3; --color-disabled-ink: oklch(0.70 0.07 335); --color-scrim: oklch(0.24 0.04 330 / 0.44);
+}
+
+/* ── Aubergine — sombre/dark (deep aubergine + orchid accent). Inverts like Nuit: dark chips,
+   light text; onAccent is DARK (text on the light accent). Deeper shadow via --tw-shadow-color
+   (the .shadow-* utilities read that, not --shadow-card — same mechanism as Nuit). ── */
+:root[data-theme="aubergine"] {
+  --color-page: oklch(0.16 0.022 330); --color-card: oklch(0.21 0.028 330); --color-surface-alt: oklch(0.25 0.03 330);
+  --color-line: oklch(0.32 0.03 330); --color-border-soft: oklch(0.27 0.028 330);
+  --color-ink: oklch(0.93 0.012 330); --color-muted: oklch(0.66 0.03 330); --color-faint: oklch(0.52 0.025 330);
+  --color-accent: oklch(0.70 0.16 330); --color-amber-deep: oklch(0.80 0.14 330); --color-amber-light: oklch(0.26 0.06 330);
+  --color-ok: oklch(0.74 0.13 165); --color-err: oklch(0.70 0.15 28);
+  --color-ok-bg: oklch(0.28 0.05 165); --color-sage-ink: oklch(0.80 0.12 165); --color-sage-border: oklch(0.42 0.07 165);
+  --color-err-bg: oklch(0.30 0.07 25); --color-terra-ink: oklch(0.78 0.13 30); --color-terra-border: oklch(0.46 0.10 28);
+  --color-ivory: oklch(0.18 0.02 330); --color-disabled-ink: oklch(0.55 0.06 330); --color-scrim: oklch(0.10 0.02 330 / 0.66);
   --tw-shadow-color: rgba(0,0,0,0.55);
 }
 
