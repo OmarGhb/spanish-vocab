@@ -3,6 +3,30 @@
 > The repo-canonical backlog (as of v0.6.1 — M5.3a). Items here are not yet scheduled.
 > Committed work lives in `docs/roadmap.md`. When a backlog item is promoted to a milestone, it moves out of this file.
 
+## On-device testing feedback (from v0.12.3 device pass)
+
+> Logged from real-usage testing after the review restyle. **Log only — no design done here.** (b+c) is
+> the priority item and needs a proposal before build.
+
+- **(a) Definition leaks the target word.** The review/definition surface can print the headword inside its
+  own definition, giving the answer away. Fix direction: **blank the headword in the definition
+  post-enrichment**, preserving a trailing suffix — e.g. word `palabra`, definition contains `palabras` →
+  render `____s`. Use an **exact-stem match** and **ignore full inflections for now** (don't try to blank every
+  conjugated/derived form yet — just the stem-matched surface).
+- **(b+c) MCQ answer ambiguity — ⚠️ PRIORITY, NEEDS DESIGN.** The MCQ marks **only the exact target word
+  correct** even when another option also validly fits the sentence; distractors are often **too close**, and
+  sometimes **synonyms** of the target that would legitimately work. **Root cause = distractor selection.**
+  Needs a proposal, e.g.: an **accept-set** (multiple options can be right) vs. **provably-wrong distractors**;
+  **force ≥1 semantically-distant option**; and **never a synonym of the target** as a distractor. Design-first,
+  not a quick patch.
+- **(d) Review bilan — surface crossings into *mémorisé*.** The end-of-session bilan should **highlight the
+  words that crossed into `mémorisé` during this session** (a motivating "you just memorized these" signal),
+  distinct from the existing per-word ✓/✗ recap.
+- **(e) Écriture hint masked by the mobile keyboard.** On mobile the on-screen keyboard covers the revealed
+  hint letters. Fix direction: **move the revealed hint above the input** (out from under the keyboard) **and
+  make the hint letters tappable** to enter them into the field. Touches `FillInBlank` / `AnswerBlank` (the
+  v0.12.3 review-restyle files).
+
 ## Scheduling (FSRS)
 - **New-cards-per-day cap — KNOWN, ACCEPTED GAP (parked from M5.5i).** New-card introduction is
   currently **uncapped**: adding a word creates its `review_cards` row with `due = now` (immediately
