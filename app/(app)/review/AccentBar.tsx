@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useRef, useSyncExternalStore } from 'react'
+import { useSyncExternalStore } from 'react'
 import type { RefObject } from 'react'
+import { useCaretInsert } from './useCaretInsert'
 
 const ACCENTS = ['á', 'é', 'í', 'ó', 'ú', 'ñ', 'ü']
 const POINTER_QUERY = '(pointer: fine) and (hover: hover)'
@@ -28,26 +29,10 @@ type Props = {
 // keeps focus + caret position. Rendered only in the écriture answering state (FillInBlank).
 export default function AccentBar({ inputRef, value, onChange }: Props) {
   const show = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
-  const caret = useRef<number | null>(null)
-
-  // Restore the caret after the controlled value updates (React resets it to the end otherwise).
-  useEffect(() => {
-    if (caret.current != null && inputRef.current) {
-      inputRef.current.setSelectionRange(caret.current, caret.current)
-      caret.current = null
-    }
-  }, [value, inputRef])
+  // Shared insert-at-caret + caret-restore (also used by the mobile scramble tiles).
+  const insert = useCaretInsert(inputRef, value, onChange)
 
   if (!show) return null
-
-  const insert = (ch: string) => {
-    const el = inputRef.current
-    const start = el?.selectionStart ?? value.length
-    const end = el?.selectionEnd ?? value.length
-    caret.current = start + ch.length
-    onChange(value.slice(0, start) + ch + value.slice(end))
-    el?.focus()
-  }
 
   return (
     // -mt-2 pulls the row up toward the sentence/blank above so it reads as an input helper,

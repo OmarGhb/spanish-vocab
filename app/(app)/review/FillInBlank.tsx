@@ -23,6 +23,7 @@ import type { ReviewCard } from './page'
 import RatingButtons from './RatingButtons'
 import AnswerBlank from './AnswerBlank'
 import AccentBar from './AccentBar'
+import { useCaretInsert } from './useCaretInsert'
 import ConjugationGrid from '../ConjugationGrid'
 import ResultReveal, { type Verdict } from './ResultReveal'
 import TapReveal from '../TapReveal'
@@ -123,6 +124,8 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
   const [frozenTimeMs, setFrozenTimeMs] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const sentenceRef = useRef<HTMLDivElement>(null)
+  // Tap-to-insert for the scramble tiles (shares the caret mechanic with AccentBar).
+  const insertLetter = useCaretInsert(inputRef, answer, setAnswer)
 
   useEffect(() => {
     inputRef.current?.focus()
@@ -177,6 +180,42 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
           {resolveChrome(picked ? REVIEW_CHROME.blankInstruction : REVIEW_CHROME.definitionEyebrow, immersionMode)}
         </p>
 
+        {/* Scramble (Indice tier 3) — placed ABOVE the prompt so the on-screen mobile keyboard
+            (which covers the lower half of the viewport) can't hide the letters while typing. Tiles
+            are tappable: tapping a letter inserts it into the answer at the caret — the mobile
+            counterpart to the desktop AccentBar, and the easiest way to enter accents on a phone. */}
+        {showScramble && (
+          <div className="bg-card border border-line rounded-card p-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted mb-2">{resolveChrome(REVIEW_CHROME.scramble, immersionMode)}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {/* Tiles deplete as their letters are entered (typed OR tapped); a used tile is
+                  disabled so it can't over-insert. */}
+              {usedScrambleTiles(scrambled, answer).map((used, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  disabled={used}
+                  aria-label={scrambled[i]}
+                  // onPointerDown + preventDefault keeps the input focused so the soft keyboard stays
+                  // up (the primary iOS-Safari risk); insertLetter() also refocuses defensively.
+                  onPointerDown={(e) => {
+                    if (used) return
+                    e.preventDefault()
+                    insertLetter(scrambled[i])
+                  }}
+                  className={`inline-flex items-center justify-center w-[30px] h-[34px] rounded-lg border font-serif text-[17px] transition-colors ${
+                    used
+                      ? 'bg-page border-border-soft text-faint opacity-50'
+                      : 'bg-tint border-tinted-border text-ink active:bg-amber-tint'
+                  }`}
+                >
+                  {scrambled[i]}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div ref={sentenceRef} className="bg-card border border-line rounded-card shadow-card p-[18px] scroll-mt-24">
           {picked ? (
             <p className="font-serif text-[19px] text-ink leading-[1.7]">
@@ -203,8 +242,10 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
           )}
         </div>
 
-        {/* HintZone — revealed tiers stack below the prompt (tier-1 first letter lives in the blank). */}
-        {(showFormPill || showVerbTable || showDefinition || showScramble) && (
+        {/* HintZone — the read-once reference tiers (form pill / verb table / definition) stack below
+            the prompt (tier-1 first letter lives in the blank). The scramble tier is rendered ABOVE
+            the prompt instead — see the keyboard-occlusion note there. */}
+        {(showFormPill || showVerbTable || showDefinition) && (
           <div className="flex flex-col gap-2.5">
             {showFormPill && (
               <span className="self-start inline-flex items-baseline gap-2 bg-card border border-tinted-border rounded-full px-3.5 py-[7px]">
@@ -217,26 +258,6 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
               <div className="bg-card border border-line rounded-card p-4">
                 <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted">Definición · ES</p>
                 <p className="mt-1.5 font-serif text-sm text-ink leading-relaxed">{blankedDefEs}</p>
-              </div>
-            )}
-            {showScramble && (
-              <div className="bg-card border border-line rounded-card p-4">
-                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted mb-2">{resolveChrome(REVIEW_CHROME.scramble, immersionMode)}</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {/* Tiles deplete as the user types the matching letters (multiset, accent-folded). */}
-                  {usedScrambleTiles(scrambled, answer).map((used, i) => (
-                    <span
-                      key={i}
-                      className={`inline-flex items-center justify-center w-[30px] h-[34px] rounded-lg border font-serif text-[17px] transition-colors ${
-                        used
-                          ? 'bg-page border-border-soft text-faint opacity-50'
-                          : 'bg-tint border-tinted-border text-ink'
-                      }`}
-                    >
-                      {scrambled[i]}
-                    </span>
-                  ))}
-                </div>
               </div>
             )}
           </div>
