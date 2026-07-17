@@ -351,11 +351,11 @@ export const ADD_CHROME = {
   errorOccurred: { fr: "Une erreur s'est produite — veuillez réessayer.", es: 'Ha ocurrido un error — inténtalo de nuevo.' },
   listoSub: { fr: 'Voici ce que Paco a trouvé.', es: 'Esto es lo que Paco ha encontrado.' },
   seeCard: { fr: 'Voir la fiche', es: 'Ver la ficha' }, // + → in JSX
-  familyWords: { fr: 'Mots de la même famille', es: 'Palabras de la misma familia' },
+  familyWords: { fr: 'Mots associés', es: 'Palabras relacionadas' },
   similarNotConfuse: { fr: 'Mots associés à ne pas confondre', es: 'Palabras relacionadas que no debes confundir' },
   similarHelper: {
-    fr: "Apprendre des mots de la même famille en parallèle aide ton cerveau à les distinguer en contexte. Touche chaque mot pour l'ajouter à ton vocabulaire.",
-    es: 'Aprender palabras de la misma familia en paralelo ayuda a tu cerebro a distinguirlas en contexto. Toca cada palabra para añadirla a tu vocabulario.',
+    fr: "Apprendre des mots associés en parallèle aide ton cerveau à les distinguer en contexte. Touche chaque mot pour l'ajouter à ton vocabulaire.",
+    es: 'Aprender palabras relacionadas en paralelo ayuda a tu cerebro a distinguirlas en contexto. Toca cada palabra para añadirla a tu vocabulario.',
   },
   addToCollection: { fr: 'Ajouter à ma collection', es: 'Añadir a mi colección' },
   selectAll: { fr: 'Tout sélectionner', es: 'Seleccionar todo' },
