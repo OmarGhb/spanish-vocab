@@ -38,21 +38,33 @@ function fold(c: string): string {
   return c.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
 }
 
-// Per-tile "used" flags for the scramble Indice: as the user types, each typed letter consumes one
-// matching tile (multiset, position-independent), so tiles grey out one by one. A typed letter not
-// in the pool (or beyond its count) consumes nothing.
+// Per-tile "used" flags for the scramble Indice: each entered letter (typed OR tapped) consumes one
+// matching tile, so tiles grey out one by one. Two passes so tapping a specific tile greys THAT tile
+// even when accent variants collide (plain "o" vs "ó"):
+//   1. EXACT pass — an entered char consumes a tile with the identical glyph. A tapped tile inserts
+//      its exact glyph, so this attributes a tapped "o" to the plain-o tile and a tapped "ó" to the
+//      "ó" tile (for true duplicate tiles it greys an equivalent one — visually identical).
+//   2. FOLD pass — a char left unmatched (e.g. a TYPED plain "o" when only "ó" tiles remain; the
+//      keyboard can't easily produce accents) consumes the first remaining tile that folds to it.
+// Purely derived from the answer string, so deletion recomputes for free. A letter not in the pool
+// (or beyond its count) consumes nothing.
 export function usedScrambleTiles(tiles: string[], typed: string): boolean[] {
-  const remaining: Record<string, number> = {}
-  for (const ch of typed) {
-    const f = fold(ch)
-    if (f.trim()) remaining[f] = (remaining[f] || 0) + 1
+  const used = new Array(tiles.length).fill(false)
+  // Meaningful entered chars (skip whitespace/empties, same guard as before).
+  const chars = [...typed].filter((c) => fold(c).trim() !== '')
+
+  // Pass 1 — exact glyph.
+  const leftover: string[] = []
+  for (const c of chars) {
+    const idx = tiles.findIndex((t, i) => !used[i] && t === c)
+    if (idx >= 0) used[idx] = true
+    else leftover.push(c)
   }
-  return tiles.map((ch) => {
-    const f = fold(ch)
-    if ((remaining[f] || 0) > 0) {
-      remaining[f]--
-      return true
-    }
-    return false
-  })
+  // Pass 2 — accent/case fold, over whatever the exact pass didn't claim.
+  for (const c of leftover) {
+    const f = fold(c)
+    const idx = tiles.findIndex((t, i) => !used[i] && fold(t) === f)
+    if (idx >= 0) used[idx] = true
+  }
+  return used
 }

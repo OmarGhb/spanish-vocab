@@ -55,4 +55,21 @@ describe('usedScrambleTiles', () => {
   it('ignores letters not in the pool', () => {
     expect(usedScrambleTiles(['g', 'a', 't', 'o'], 'xyz')).toEqual([false, false, false, false])
   })
+
+  // Accent-variant collision (v0.12.9): tapping a tile inserts its EXACT glyph, so depletion must
+  // match the exact glyph before folding — otherwise an inserted plain "o" greys the "ó" tile.
+  it('exact glyph is depleted before folding when accent variants collide', () => {
+    const tiles = ['r', 'ó', 'l', 'g', 'o'] // scramble with both "o" and "ó"
+    // tapping the plain "o" inserts "o" → the plain-o tile (index 4) greys, "ó" (index 1) untouched
+    expect(usedScrambleTiles(tiles, 'o')).toEqual([false, false, false, false, true])
+    // tapping "ó" inserts "ó" → the "ó" tile (index 1) greys, plain "o" (index 4) untouched
+    expect(usedScrambleTiles(tiles, 'ó')).toEqual([false, true, false, false, false])
+  })
+
+  it('still folds a typed plain letter onto the accented tile when no exact tile remains', () => {
+    // no plain-o tile exists → a typed "o" folds onto "ó" (the keyboard-typing cushion, unchanged)
+    expect(usedScrambleTiles(['ó'], 'o')).toEqual([true])
+    // both entered: exact "ó" claims the ó tile, the folded "o" claims the plain-o tile
+    expect(usedScrambleTiles(['ó', 'o'], 'óo')).toEqual([true, true])
+  })
 })
