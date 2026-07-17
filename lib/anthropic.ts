@@ -1,9 +1,13 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { z } from 'zod'
+import { selectDistractors, type DistractorCandidate } from './distractors'
 
 const client = new Anthropic()
 
-const WordDataSchema = z.object({
+// The model now returns an over-generated distractor POOL with a short gloss per candidate + a short
+// target gloss; the server filters it to exactly 3 words (synonym-free, mutually distinct) via
+// selectDistractors. The public WordData shape stays `distractors: string[]` so no consumer changes.
+const RawWordDataSchema = z.object({
   definition: z.object({ es: z.string().min(1), fr: z.string().min(1), pos: z.string().min(1) }),
   lemma: z.string().min(1),
   form_annotation: z.string().min(1).nullable(),
@@ -11,10 +15,16 @@ const WordDataSchema = z.object({
     .array(z.object({ es: z.string().min(1), fr: z.string().min(1) }))
     .min(2)
     .max(3),
-  distractors: z.array(z.string().min(1)).min(3).max(3),
+  distractor_pool: z.object({
+    target_gloss: z.string().min(1),
+    candidates: z
+      .array(z.object({ word: z.string().min(1), fr: z.string().min(1) }))
+      .min(6),
+  }),
 })
 
-export type WordData = z.infer<typeof WordDataSchema>
+type RawWordData = z.infer<typeof RawWordDataSchema>
+export type WordData = Omit<RawWordData, 'distractor_pool'> & { distractors: string[] }
 
 const SYSTEM_PROMPT = `You are a vocabulary teaching assistant for a French speaker learning intermediate Spanish.
 
@@ -27,7 +37,17 @@ Return ONLY valid JSON — no markdown, no code blocks, no explanation. Match th
     { "es": "...", "fr": "..." },
     { "es": "...", "fr": "..." }
   ],
-  "distractors": ["...", "...", "..."]
+  "distractor_pool": {
+    "target_gloss": "voiture",
+    "candidates": [
+      { "word": "camión", "fr": "camion" },
+      { "word": "autobús", "fr": "bus" },
+      { "word": "moto", "fr": "moto" },
+      { "word": "bicicleta", "fr": "vélo" },
+      { "word": "tren", "fr": "train" },
+      { "word": "furgoneta", "fr": "camionnette" }
+    ]
+  }
 }
 
 Rules:
@@ -37,12 +57,14 @@ Rules:
 - "lemma": The canonical dictionary headword for the submitted word. For conjugated verbs return the infinitive; for plural nouns return the singular; for declined adjectives/determiners return the singular masculine. If the word is already in lemma form, return it unchanged. Generate "definition" and "examples" for the lemma, not the inflected form.
 - "form_annotation": If the lemma you just returned equals the submitted word, return null. Otherwise return a compact Spanish string in this exact format: "<Lemma capitalized> — <grammar info in Spanish>". Em-dash separator required. Spanish grammar terminology only (no French). No full sentences.
 - "examples": 2–3 natural, intermediate-level Spanish sentences, each with a fluent French translation. Each sentence must include enough surrounding context that the target word is the only natural fit for the blank — not a close synonym or related word. Use specific imagery, actions, or situations that rule out semantic neighbours. Avoid generic frames where a related word could substitute (e.g. for "atardecer", "Nos sentamos a ver el atardecer mientras el sol se hundía en el mar" is good — the sinking sun rules out "amanecer"; "Vimos el atardecer" is too weak). The target word must appear verbatim in the Spanish sentence.
-- "distractors": exactly 3 Spanish words that are plausible wrong answers in a multiple-choice exercise. They must:
-  - Be the same part of speech as the target word.
-  - Come from the same semantic field and register.
-  - Be words a learner at this level would plausibly confuse with the target.
-  - Be distinct from the target word and from each other.
-  - Never be random unrelated fillers.`
+- "distractor_pool": raw material for a multiple-choice exercise — the app filters it down to 3 wrong answers, so give it room to choose:
+  - "target_gloss": a SHORT French gloss of the target word (1–3 words, dictionary-style, no leading article on its own). Used to detect and drop synonyms.
+  - "candidates": exactly 6 Spanish words usable as WRONG answers, each { "word", "fr" } where "fr" is a SHORT 1–3 word French gloss. Each candidate MUST:
+    - Be the same part of speech as the target word.
+    - Be a DISTINCT member of a related category — a co-hyponym or clearly different thing that is wrong-but-plausible (e.g. for "coche": camión, autobús, moto, bicicleta, tren, furgoneta — all vehicles, none meaning "car").
+    - NEVER be a true synonym of the target, and never a word that is interchangeable with it in an ordinary sentence (e.g. for "feliz" do NOT use contento / alegre / satisfecho — they all mean "happy"; use distinct adjectives like triste, cansado, enfadado, nervioso, aburrido, tranquilo).
+    - Include at least one option that is clearly semantically DISTANT from the target, not only near-neighbours.
+    - Be distinct from the target word and from each other.`
 
 // ── Discovery batch generation (M5.1) ────────────────────────────────────────
 // Compact, partial entries for a swipe deck — NOT full enrichment. A kept word is
@@ -140,7 +162,7 @@ export async function getWordData(word: string, signal?: AbortSignal): Promise<W
     .stream(
       {
         model: 'claude-sonnet-4-6',
-        max_tokens: 1024,
+        max_tokens: 1536,
         system: SYSTEM_PROMPT,
         messages: [{ role: 'user', content: `Mot espagnol : « ${word} »` }],
       },
@@ -165,11 +187,20 @@ export async function getWordData(word: string, signal?: AbortSignal): Promise<W
     throw new Error('Anthropic returned malformed response: invalid JSON')
   }
 
-  const result = WordDataSchema.safeParse(parsed)
+  const result = RawWordDataSchema.safeParse(parsed)
   if (!result.success) {
     const msg = result.error.issues[0]?.message ?? 'schema mismatch'
     throw new Error(`Anthropic returned malformed response: ${msg}`)
   }
 
-  return result.data
+  // Filter the over-generated pool to exactly 3 synonym-free, mutually-distinct distractor words.
+  const { distractor_pool, ...rest } = result.data
+  const target: DistractorCandidate = { word, fr: distractor_pool.target_gloss }
+  const distractors = selectDistractors(target, distractor_pool.candidates)
+  if (distractors.length < 3) {
+    // ≥6 candidates were requested; <3 unique non-target words means a duplicative/malformed pool.
+    throw new Error('Anthropic returned malformed response: insufficient distractor candidates')
+  }
+
+  return { ...rest, distractors }
 }

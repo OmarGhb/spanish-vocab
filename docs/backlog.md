@@ -71,6 +71,16 @@
   This is the deliberate tradeoff of the in-progress framing, logged so it isn't forgotten.
 
 ## Review experience
+- **Form-coherence — infinitive-stored verbs carry conjugated distractors (from the v0.12.5
+  distractor-quality fix).** Surfaced by the distractor trace: an infinitive-stored verb can hold
+  distractors in a *conjugated* form (`hablar → contaron/gritaron/escucharon`, `comer →
+  bebes/pruebas/muerdes`) — so the option list mixes an infinitive target with conjugated options.
+  This is a **separate, pre-existing issue** from the synonym fix (which only changed *which* words
+  are chosen, not their form): it's the cloze-vs-definition-MCQ **form gate** (`chooseQcmCue` in
+  `lib/review-cloze.ts` + how distractors are generated for a lemma vs an inflected form). The
+  v0.12.5 fix deliberately did NOT touch it. A real fix aligns distractor form with the target's
+  stored form (or generates form-matched distractors for the chosen MCQ mode). Low urgency (single
+  user; the mismatch reads as odd, not wrong), but log so it isn't re-diagnosed.
 - **Countdown hint copy — show only for a user's first few answers ever (from M5.5e).** The
   auto-advance countdown's explanatory captions ("Sans rien faire, la note X s'applique…" /
   "Prends ton temps…") were removed in v0.8.4 (clutter after you know the mechanic). Re-introduce

@@ -261,7 +261,7 @@ export const DETAIL_CHROME = {
   formEyebrow: { fr: 'Forme', es: 'Forma' },
   definitionEyebrow: { fr: 'Définition', es: 'Definición' },
   examplesEyebrow: { fr: 'Exemples', es: 'Ejemplos' },
-  similarEyebrow: { fr: 'Mots similaires', es: 'Palabras similares' },
+  similarEyebrow: { fr: 'Mots associés', es: 'Palabras relacionadas' },
   revealDef: { fr: 'Voir en français', es: 'Ver traducción' },
   hideDef: { fr: 'Masquer le français', es: 'Ocultar traducción' },
   revealEx: { fr: 'Traduction', es: 'Traducción' },
@@ -337,8 +337,8 @@ export const ADD_CHROME = {
   newWord: { fr: 'Nouveau mot', es: 'Nueva palabra' },
   enterWord: { fr: 'Entre un mot espagnol', es: 'Escribe una palabra en español' },
   helperParagraph: {
-    fr: 'Paco va générer la définition, des exemples et des mots similaires pour enrichir ton apprentissage.',
-    es: 'Paco generará la definición, ejemplos y palabras similares para enriquecer tu aprendizaje.',
+    fr: 'Paco va générer la définition, des exemples et des mots associés pour enrichir ton apprentissage.',
+    es: 'Paco generará la definición, ejemplos y palabras relacionadas para enriquecer tu aprendizaje.',
   },
   search: { fr: 'Rechercher', es: 'Buscar' }, // + → in JSX
   didYouMean: { fr: 'Voulais-tu dire…', es: '¿Querías decir…?' },
@@ -351,7 +351,7 @@ export const ADD_CHROME = {
   listoSub: { fr: 'Voici ce que Paco a trouvé.', es: 'Esto es lo que Paco ha encontrado.' },
   seeCard: { fr: 'Voir la fiche', es: 'Ver la ficha' }, // + → in JSX
   familyWords: { fr: 'Mots de la même famille', es: 'Palabras de la misma familia' },
-  similarNotConfuse: { fr: 'Mots similaires à ne pas confondre', es: 'Palabras similares que no debes confundir' },
+  similarNotConfuse: { fr: 'Mots associés à ne pas confondre', es: 'Palabras relacionadas que no debes confundir' },
   similarHelper: {
     fr: "Apprendre des mots de la même famille en parallèle aide ton cerveau à les distinguer en contexte. Touche chaque mot pour l'ajouter à ton vocabulaire.",
     es: 'Aprender palabras de la misma familia en paralelo ayuda a tu cerebro a distinguirlas en contexto. Toca cada palabra para añadirla a tu vocabulario.',

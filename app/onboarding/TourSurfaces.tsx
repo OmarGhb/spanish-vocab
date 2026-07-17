@@ -24,7 +24,7 @@ export function SurfType() {
       <div className="flex items-start gap-3 mt-3">
         <Image src="/paco.png" alt="" width={44} height={44} className="object-contain shrink-0" />
         <div className="font-sans text-[12.5px] leading-[1.5] text-muted pt-0.5">
-          Paco va générer la définition, des exemples et des mots similaires.
+          Paco va générer la définition, des exemples et des mots associés.
         </div>
       </div>
       <div className="mt-[13px] flex items-center justify-center gap-2 py-[13px] rounded-[13px] bg-accent text-ivory font-sans text-[15px] font-semibold shadow-amber-sm">

@@ -116,9 +116,10 @@ export default function WordDetailContent({ defEs, defFr, formAnnotation, exampl
         </Card>
       )}
 
-      {/* MOTS SIMILAIRES — these are MCQ confusables (the `distractors` field), NOT
-          true family words, so the honest label stays "Mots similaires" (the board's
-          "Mots de la même famille" would mislabel the data). */}
+      {/* MOTS ASSOCIÉS — the `distractors` field. Post the v0.12.5 distractor-quality fix these are
+          deliberately DISTINCT co-hyponyms (coche→camión/autobús/moto), not synonyms and not true
+          family words, so the label is "Mots associés" / "Palabras relacionadas" — "similaires"
+          overclaimed sameness and "même famille" would mislabel the data. */}
       {distractors.length > 0 && (
         <Card eyebrow={resolveChrome(DETAIL_CHROME.similarEyebrow, mode)}>
           <div className="flex flex-wrap gap-2">

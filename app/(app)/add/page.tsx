@@ -715,7 +715,7 @@ export default function AddPage() {
           </ul>
         </div>
 
-        {/* MOTS SIMILAIRES */}
+        {/* MOTS ASSOCIÉS */}
         {result.distractors.length > 0 && (
           <div className="bg-surface-alt border border-tinted-border rounded-[14px] p-5">
             <div className="flex justify-between items-center mb-2">
