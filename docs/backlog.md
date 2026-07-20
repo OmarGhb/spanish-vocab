@@ -27,6 +27,16 @@
   make the hint letters tappable** to enter them into the field. Touches `FillInBlank` / `AnswerBlank` (the
   v0.12.3 review-restyle files).
 
+## Auth hardening (pre-beta)
+
+- **Login-error fix — PARKED, built + green, uncommitted.** A friendlier login-failure surface:
+  `lib/auth-errors.ts` + `lib/auth-errors.test.ts` (new, untracked) map Supabase auth errors to
+  human copy, wired into `app/login/page.tsx` (modified, uncommitted). **Not committed** because it
+  needs an **on-device verify with Supabase "Confirm email" toggled ON** — currently OFF for testing,
+  so the unconfirmed-email path can't be exercised locally. Belongs with the **Auth hardening
+  (pre-beta) cluster** in `roadmap.md` (re-enable email confirmation · personalized verification
+  email · SSO); land it there once confirm-email is turned on for a verify pass.
+
 ## Scheduling (FSRS)
 - **New-cards-per-day cap — KNOWN, ACCEPTED GAP (parked from M5.5i).** New-card introduction is
   currently **uncapped**: adding a word creates its `review_cards` row with `due = now` (immediately
@@ -78,12 +88,27 @@
   and `handleSaveLemmaWord` stores those; (b) nothing required verb distractors to be infinitives —
   now enforced server-side by the deterministic `isSpanishInfinitive` filter (over-generate + filter
   like `glossesOverlap`, graceful backfill to 3, logged shortfall). Applies only to verb-POS targets
-  with an infinitive headword; non-verbs untouched. **REMAINING follow-on — INFLECTED-stored targets
-  (the conjugate-transform):** when the stored headword is a *conjugated* form (cloze-MCQ), the
-  distractors should be conjugated into the target's tense/person via the `ConjugationGrid` conjugator
-  (`analyze(surface, lemma)` derives the coords deterministically). **Gated on `TRUSTED_LEMMAS`
-  coverage** (content-gate (a), still open) — the distractor infinitives must be conjugatable; falls
-  back to today's behavior outside coverage. Not built.
+  with an infinitive headword; non-verbs untouched. **REMAINING follow-on — the conjugate-transform,
+  the proper fix for INFLECTED-stored targets:** ask the model for *infinitive* distractors, then
+  **deterministically conjugate** them into the target's derived `(tense, person)` via the same engine
+  powering `ConjugationGrid` (`analyze(surface, lemma)` derives the coords deterministically). Today
+  the inflected case is only **approximated by the `rejectInfinitive` filter (v0.12.20)** — which
+  eliminates the wrong-FORM class (infinitives on a conjugated headword) but **can't guarantee the
+  *right* form** (correct tense/person). **Gated on `TRUSTED_LEMMAS` coverage** (content-gate (a),
+  still open) — needed on *both* sides: target-side coord derivation AND distractor-side conjugation
+  safety; falls back to today's behavior outside coverage. Not built.
+- **`[distractor-form-shortfall]` canary (from v0.12.20).** A distinctive greppable log fires when the
+  `selectDistractors` filter had to backfill the wrong form (includes the target word + how many
+  candidates were rejected). **Frequent hits in production = the prompt isn't holding** and the filter
+  is starving/backfilling wrong-form distractors → the signal to **escalate to the conjugate-transform**
+  above. Watch it once real usage lands; no code change until it fires often.
+- **Écriture L3 — deliberately DROPPED (from v0.12.23).** Infinitive-stored verbs whose examples have
+  **no infinitive-bearing sentence** (~38% of pre-v0.12.23 rows) still mask a *conjugation*, so the
+  écriture answer ≠ the stored headword (`gritar` stored, tested `gritaron`). L1 (v0.12.22,
+  `maskInfinitive`) + L2 (v0.12.23, prompt requires ≥1 bare-infinitive example) make **every new verb
+  add coherent**; L3 would have been a cue-fallback for the pre-existing rows. **Not fixed on purpose:**
+  that's disposable test data, and no backfill was wanted. **Revisit only if it appears on real user
+  data.**
 - **Countdown hint copy — show only for a user's first few answers ever (from M5.5e).** The
   auto-advance countdown's explanatory captions ("Sans rien faire, la note X s'applique…" /
   "Prends ton temps…") were removed in v0.8.4 (clutter after you know the mechanic). Re-introduce
