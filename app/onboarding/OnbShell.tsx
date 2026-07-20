@@ -21,7 +21,7 @@ export default function OnbShell({
   children: ReactNode
 }) {
   return (
-    <main className="w-full max-w-[430px] mx-auto min-h-screen flex flex-col">
+    <main className="w-full max-w-[430px] mx-auto min-h-screen-safe flex flex-col">
       {/* header: back (left) · dots (center) · Passer (right) — the side cells are fixed-width so
           the dots stay optically centered whether or not back/skip are present. */}
       <div className="flex-shrink-0 flex items-center justify-between px-[22px] pt-[18px] pb-1 min-h-[30px]">

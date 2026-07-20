@@ -219,6 +219,22 @@ body {
   display: none; /* WebKit/Blink */
 }
 
+/* Full-height column whose bottom (and any pinned footer) lands at the VISIBLE viewport bottom on
+   mobile. Progressive fallback via @supports (NOT two stacked `min-height` declarations — Lightning
+   CSS dedupes those and drops the fallback): browsers without dvh (pre-iOS-15.4) keep 100vh — today's
+   behavior, no regression — while modern browsers use 100dvh, which tracks the iOS address bar so the
+   bottom isn't hidden below it. If the dvh dynamic-resize reads as a jump on device, swap 100dvh →
+   100svh in the @supports block (stable, no jump, but leaves a strip when the bar collapses). Named
+   to NOT collide with Tailwind's built-in single-declaration `min-h-dvh`. */
+.min-h-screen-safe {
+  min-height: 100vh;
+}
+@supports (min-height: 100dvh) {
+  .min-h-screen-safe {
+    min-height: 100dvh;
+  }
+}
+
 /* Undo-toast countdown bar (DeferredDelete.tsx): a 3px amber rule that shrinks
    left over the ~5s undo window. Base style = full width so reduced-motion / print
    show a static (non-animated) full bar rather than nothing. */

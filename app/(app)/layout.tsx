@@ -43,7 +43,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           initialTheme={coerceTheme(profile?.theme)}
           initialImmersionMode={coerceImmersionMode(profile?.immersion_mode)}
         >
-          <div className="w-full max-w-[430px] mx-auto min-h-screen flex flex-col">
+          <div className="w-full max-w-[430px] mx-auto min-h-screen-safe flex flex-col">
             <TopNav
               dictionaryUnlocked={profile?.dictionary_unlocked === true}
               displayName={resolveDisplayName(profile?.display_name, user.email)}
