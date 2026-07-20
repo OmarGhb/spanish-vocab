@@ -71,16 +71,19 @@
   This is the deliberate tradeoff of the in-progress framing, logged so it isn't forgotten.
 
 ## Review experience
-- **Form-coherence — infinitive-stored verbs carry conjugated distractors (from the v0.12.5
-  distractor-quality fix).** Surfaced by the distractor trace: an infinitive-stored verb can hold
-  distractors in a *conjugated* form (`hablar → contaron/gritaron/escucharon`, `comer →
-  bebes/pruebas/muerdes`) — so the option list mixes an infinitive target with conjugated options.
-  This is a **separate, pre-existing issue** from the synonym fix (which only changed *which* words
-  are chosen, not their form): it's the cloze-vs-definition-MCQ **form gate** (`chooseQcmCue` in
-  `lib/review-cloze.ts` + how distractors are generated for a lemma vs an inflected form). The
-  v0.12.5 fix deliberately did NOT touch it. A real fix aligns distractor form with the target's
-  stored form (or generates form-matched distractors for the chosen MCQ mode). Low urgency (single
-  user; the mismatch reads as odd, not wrong), but log so it isn't re-diagnosed.
+- ~~**Form-coherence — infinitive-stored verbs carry conjugated distractors.**~~ **INFINITIVE-STORED
+  case FIXED (Piece 1, v0.12.19):** `hablar → contaron…` / `comer → bebes…`. Two causes closed at
+  GENERATION: (a) the add flow's "accept the lemma" path reused the conjugated distractors generated
+  for the typed surface — now the enrich returns a `lemma_distractor_pool` (infinitives for the lemma)
+  and `handleSaveLemmaWord` stores those; (b) nothing required verb distractors to be infinitives —
+  now enforced server-side by the deterministic `isSpanishInfinitive` filter (over-generate + filter
+  like `glossesOverlap`, graceful backfill to 3, logged shortfall). Applies only to verb-POS targets
+  with an infinitive headword; non-verbs untouched. **REMAINING follow-on — INFLECTED-stored targets
+  (the conjugate-transform):** when the stored headword is a *conjugated* form (cloze-MCQ), the
+  distractors should be conjugated into the target's tense/person via the `ConjugationGrid` conjugator
+  (`analyze(surface, lemma)` derives the coords deterministically). **Gated on `TRUSTED_LEMMAS`
+  coverage** (content-gate (a), still open) — the distractor infinitives must be conjugatable; falls
+  back to today's behavior outside coverage. Not built.
 - **Countdown hint copy — show only for a user's first few answers ever (from M5.5e).** The
   auto-advance countdown's explanatory captions ("Sans rien faire, la note X s'applique…" /
   "Prends ton temps…") were removed in v0.8.4 (clutter after you know the mechanic). Re-introduce

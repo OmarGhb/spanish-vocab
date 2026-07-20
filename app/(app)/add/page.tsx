@@ -22,6 +22,9 @@ type WordResult = {
   definition: { es: string; fr: string; pos?: string }
   examples: Example[]
   distractors: string[]
+  // Infinitive distractors for the lemma (conjugated-verb submissions only) — used when the learner
+  // stores the lemma instead of the typed form, so the distractors stay form-coherent (Piece 1).
+  lemma_distractors?: string[]
   lemma?: string
   form_annotation?: string | null
   audio_urls?: { es_ES: string } | null
@@ -143,6 +146,7 @@ export default function AddPage() {
         definition: data.definition,
         examples: data.examples,
         distractors: data.distractors,
+        ...(data.lemma_distractors ? { lemma_distractors: data.lemma_distractors } : {}),
         form_annotation: data.form_annotation,
         audio_urls: data.audio_urls,
       }
@@ -276,7 +280,9 @@ export default function AddPage() {
           word: lemmaWord,
           definition: result.definition,
           examples: result.examples,
-          distractors: result.distractors,
+          // Store the INFINITIVE distractor set for the lemma (Piece 1) — falls back to the surface set
+          // only if the model didn't return one (non-verb, or a lemma-pool shortfall).
+          distractors: result.lemma_distractors ?? result.distractors,
           ...(audioUrls ? { audio_urls: audioUrls } : {}),
         }),
       })

@@ -1,12 +1,22 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { z } from 'zod'
-import { selectDistractors, type DistractorCandidate } from './distractors'
+import { selectDistractors, isSpanishInfinitive, type DistractorCandidate } from './distractors'
+import { normalizeSearch } from './word-search'
 
 const client = new Anthropic()
 
-// The model now returns an over-generated distractor POOL with a short gloss per candidate + a short
-// target gloss; the server filters it to exactly 3 words (synonym-free, mutually distinct) via
-// selectDistractors. The public WordData shape stays `distractors: string[]` so no consumer changes.
+// The model returns an over-generated distractor POOL with a short gloss per candidate + a short
+// target gloss; the server filters it to exactly 3 words (synonym-free, mutually distinct, and — for a
+// verb-infinitive target — infinitive-only) via selectDistractors. The public WordData keeps
+// `distractors: string[]`. When the submitted word is a CONJUGATED VERB the model ALSO returns
+// `lemma_distractor_pool` (infinitives for the lemma); getWordData filters it into `lemmaDistractors`
+// so the add flow's "accept the lemma" path stores form-coherent (infinitive) distractors instead of
+// reusing the conjugated ones generated for the typed surface (Piece 1, form-coherence bug).
+const DistractorPoolSchema = z.object({
+  target_gloss: z.string().min(1),
+  candidates: z.array(z.object({ word: z.string().min(1), fr: z.string().min(1) })).min(6),
+})
+
 const RawWordDataSchema = z.object({
   definition: z.object({ es: z.string().min(1), fr: z.string().min(1), pos: z.string().min(1) }),
   lemma: z.string().min(1),
@@ -15,16 +25,18 @@ const RawWordDataSchema = z.object({
     .array(z.object({ es: z.string().min(1), fr: z.string().min(1) }))
     .min(2)
     .max(3),
-  distractor_pool: z.object({
-    target_gloss: z.string().min(1),
-    candidates: z
-      .array(z.object({ word: z.string().min(1), fr: z.string().min(1) }))
-      .min(6),
-  }),
+  distractor_pool: DistractorPoolSchema,
+  // Present only for a conjugated-verb submission (lemma ≠ typed, verb pos) — infinitive candidates
+  // for the lemma. Optional/nullable: the common case (infinitive or non-verb) omits it.
+  lemma_distractor_pool: DistractorPoolSchema.nullable().optional(),
 })
 
 type RawWordData = z.infer<typeof RawWordDataSchema>
-export type WordData = Omit<RawWordData, 'distractor_pool'> & { distractors: string[] }
+export type WordData = Omit<RawWordData, 'distractor_pool' | 'lemma_distractor_pool'> & {
+  distractors: string[]
+  // Set only when the submission was a conjugated verb; the add flow uses it if the user stores the lemma.
+  lemmaDistractors?: string[]
+}
 
 const SYSTEM_PROMPT = `You are a vocabulary teaching assistant for a French speaker learning intermediate Spanish.
 
@@ -64,7 +76,9 @@ Rules:
     - Be a DISTINCT member of a related category — a co-hyponym or clearly different thing that is wrong-but-plausible (e.g. for "coche": camión, autobús, moto, bicicleta, tren, furgoneta — all vehicles, none meaning "car").
     - NEVER be a true synonym of the target, and never a word that is interchangeable with it in an ordinary sentence (e.g. for "feliz" do NOT use contento / alegre / satisfecho — they all mean "happy"; use distinct adjectives like triste, cansado, enfadado, nervioso, aburrido, tranquilo).
     - Include at least one option that is clearly semantically DISTANT from the target, not only near-neighbours.
-    - Be distinct from the target word and from each other.`
+    - Be distinct from the target word and from each other.
+    - VERB FORM: if the target word is a VERB in its INFINITIVE form (ends in -ar/-er/-ir), EVERY candidate must also be an infinitive — never a conjugated form. (If the target is a conjugated verb form, match that same tense/person instead.)
+- "lemma_distractor_pool": OMIT this field entirely UNLESS the submitted word is a CONJUGATED VERB form — i.e. "lemma" differs from the submitted word AND the pos is a verb. In that case, ALSO return "lemma_distractor_pool" with the SAME structure as "distractor_pool" (a "target_gloss" for the LEMMA + 6 "candidates"), but its candidates are 6 INFINITIVE verbs (plausible wrong answers for the LEMMA, following all the rules above). It is used if the learner chooses to store the infinitive lemma instead of the typed form.`
 
 // ── Discovery batch generation (M5.1) ────────────────────────────────────────
 // Compact, partial entries for a swipe deck — NOT full enrichment. A kept word is
@@ -194,13 +208,36 @@ export async function getWordData(word: string, signal?: AbortSignal): Promise<W
   }
 
   // Filter the over-generated pool to exactly 3 synonym-free, mutually-distinct distractor words.
-  const { distractor_pool, ...rest } = result.data
+  const { distractor_pool, lemma_distractor_pool, ...rest } = result.data
+  const isVerb = rest.definition.pos.startsWith('v.')
+  // The submitted word is an infinitive verb when its pos is a verb AND it equals the lemma → require
+  // the distractors to be infinitives too (fixes the LLM returning conjugated distractors for an
+  // infinitive target). A conjugated-verb submission keeps its form-matched (conjugated) distractors.
+  const submittedIsInfinitiveVerb = isVerb && normalizeSearch(word) === normalizeSearch(rest.lemma)
   const target: DistractorCandidate = { word, fr: distractor_pool.target_gloss }
-  const distractors = selectDistractors(target, distractor_pool.candidates)
+  const distractors = selectDistractors(target, distractor_pool.candidates, 3, {
+    requireInfinitive: submittedIsInfinitiveVerb,
+  })
   if (distractors.length < 3) {
     // ≥6 candidates were requested; <3 unique non-target words means a duplicative/malformed pool.
     throw new Error('Anthropic returned malformed response: insufficient distractor candidates')
   }
+  if (submittedIsInfinitiveVerb && distractors.some((d) => !isSpanishInfinitive(d))) {
+    // The infinitive filter had to backfill a conjugated form (model returned too few infinitives).
+    console.warn(`[enrich] distractor shortfall: non-infinitive backfilled for verb "${word}"`)
+  }
 
-  return { ...rest, distractors }
+  // Conjugated-verb submission → also filter the lemma's INFINITIVE pool so the add flow's "store the
+  // lemma" path gets form-coherent distractors (Piece 1) instead of reusing the conjugated set above.
+  let lemmaDistractors: string[] | undefined
+  if (lemma_distractor_pool && isVerb) {
+    const lemmaTarget: DistractorCandidate = { word: rest.lemma, fr: lemma_distractor_pool.target_gloss }
+    const filtered = selectDistractors(lemmaTarget, lemma_distractor_pool.candidates, 3, {
+      requireInfinitive: true,
+    })
+    if (filtered.length === 3) lemmaDistractors = filtered
+    else console.warn(`[enrich] lemma distractor shortfall for "${rest.lemma}" — falling back to surface set`)
+  }
+
+  return { ...rest, distractors, ...(lemmaDistractors ? { lemmaDistractors } : {}) }
 }

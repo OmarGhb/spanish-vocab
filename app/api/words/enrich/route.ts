@@ -157,6 +157,9 @@ export async function POST(request: Request) {
     definition: wordData.definition,
     examples: wordData.examples,
     distractors: wordData.distractors,
+    // Infinitive distractors for the lemma (only when the submission was a conjugated verb) — the add
+    // flow's "store the lemma" path uses these instead of the conjugated surface set (Piece 1).
+    ...(wordData.lemmaDistractors ? { lemma_distractors: wordData.lemmaDistractors } : {}),
     form_annotation: wordData.form_annotation,
     audio_urls: wordAudio,
     status: 'new',
