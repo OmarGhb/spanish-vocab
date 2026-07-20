@@ -51,7 +51,12 @@ export default function OnbShell({
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 flex flex-col px-[26px] pt-3">{children}</div>
+      {/* Body scrolls internally so a tall step (tour mistake-reveal's ConjugationGrid, etc.) can't
+          grow the column and push the footer below the fold — the footer stays pinned (shrink-0),
+          same pattern the drill uses. Steps that manage their own scroll (StarterStep is
+          `flex-1 overflow-y-auto`) fill the body via flex, so only their inner region scrolls — no
+          double scrollbar; short steps don't overflow and stay put. */}
+      <div className="flex-1 min-h-0 overflow-y-auto flex flex-col px-[26px] pt-3">{children}</div>
 
       <div className="flex-shrink-0 px-[26px] pb-[26px] pt-4 flex flex-col gap-3">{footer}</div>
     </main>
