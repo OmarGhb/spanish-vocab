@@ -44,6 +44,46 @@ describe('pickClozeExample', () => {
     expect(r).toBeNull()
   })
 
+  it('L1 — infinitive-stored verb prefers the infinitive-bearing example so the answer = the headword', () => {
+    const r = pickClozeExample({
+      examples: [
+        { es: 'Los aficionados gritaron de alegría.', fr: 'fr' }, // only a conjugation
+        { es: 'Es difícil no gritar en un concierto.', fr: 'fr' }, // has the bare infinitive
+      ],
+      word: 'gritar',
+      id: id0,
+      lemma: null, // infinitive-stored (word === lemma)
+      pos: 'v.',
+    })
+    expect(r).not.toBeNull()
+    expect(r!.target!.surface).toBe('gritar') // masked the infinitive, coherent with the headword
+    expect(r!.masked).toContain(BLANK)
+  })
+
+  it('L1 — masks the infinitive even when a conjugation of the same verb appears earlier in the sentence', () => {
+    const r = pickClozeExample({
+      examples: [{ es: 'Los aficionados gritaron para gritar aún más.', fr: 'fr' }],
+      word: 'gritar',
+      id: id0,
+      lemma: null,
+      pos: 'v.',
+    })
+    expect(r!.masked).toBe(`Los aficionados gritaron para ${BLANK} aún más.`)
+    expect(r!.target!.surface).toBe('gritar')
+  })
+
+  it('L1 does NOT touch INFLECTED-stored verbs — they still mask their stored conjugation', () => {
+    // word ≠ lemma → the L1 infinitive-preference is skipped; masks "gritaron" (the stored form)
+    const r = pickClozeExample({
+      examples: [{ es: 'Los aficionados gritaron para gritar aún más.', fr: 'fr' }],
+      word: 'gritaron',
+      id: id0,
+      lemma: 'gritar',
+      pos: 'v.',
+    })
+    expect(r!.target!.surface).toBe('gritaron') // stored conjugation masked, not the infinitive
+  })
+
   it('verb (lemma-stored, word = infinitive): masks the contextual conjugated form + coordinates', () => {
     const r = pickClozeExample({
       examples: [{ es: 'El árbol creció muy rápido este año.', fr: 'fr' }],

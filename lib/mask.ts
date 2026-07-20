@@ -63,6 +63,31 @@ export function maskVerbSentence(sentence: string, lemma: string): { masked: str
   return null
 }
 
+// Mask the bare INFINITIVE token specifically (L1, écriture form-coherence). For an infinitive-STORED
+// verb, so the écriture answer equals the stored headword instead of some conjugation that happens to
+// appear earlier in the sentence — "Los aficionados gritaron para gritar más" masks "gritar", NOT the
+// earlier "gritaron". Whole-token match (accent/case-tolerant) so it never blanks a substring of a
+// future form (the token "gritaré" ≠ "gritar"). Returns null when the sentence has no bare-infinitive
+// occurrence (caller falls through to the existing conjugation masking). `lemma` is the infinitive,
+// passed with its -se for reflexives (matches the bare reflexive infinitive "levantarse").
+export function maskInfinitive(sentence: string, lemma: string): { masked: string; target: VerbTarget } | null {
+  const infLower = lemma.toLowerCase()
+  const infFolded = normalize(lemma)
+  // Only fire for an ACTUAL infinitive (ends in -ar/-er/-ir, + enclitic reflexive) — guards against a
+  // gerund/participle stored as the headword ("saltando"), which must NOT be mislabeled 'infinitivo'.
+  if (!/(ar|er|ir)(se)?$/.test(infFolded)) return null
+  const tokens = sentence.split(/\s+/)
+  for (let i = 0; i < tokens.length; i++) {
+    const bare = tokens[i].replace(/^[^\p{L}]+|[^\p{L}]+$/gu, '')
+    if (!bare) continue
+    if (bare.toLowerCase() === infLower || normalize(bare) === infFolded) {
+      const masked = tokens.map((t, j) => (j === i ? t.replace(bare, BLANK) : t)).join(' ')
+      return { masked, target: { surface: bare, tense: 'infinitivo', person: null } }
+    }
+  }
+  return null
+}
+
 const REFLEX_CLITICS = new Set(['me', 'te', 'se', 'nos', 'os'])
 
 /**

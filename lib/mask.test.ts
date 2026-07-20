@@ -1,5 +1,40 @@
 import { describe, it, expect } from 'vitest'
-import { maskSentence, maskVerbSentence, maskProcliticReflexive, BLANK } from './mask'
+import { maskSentence, maskVerbSentence, maskInfinitive, maskProcliticReflexive, BLANK } from './mask'
+
+describe('maskInfinitive — bare-infinitive masking (L1 écriture form-coherence)', () => {
+  it('masks the bare infinitive after a modal', () => {
+    const r = maskInfinitive('Los niños quieren gritar más fuerte.', 'gritar')
+    expect(r).not.toBeNull()
+    expect(r!.masked).toBe(`Los niños quieren ${BLANK} más fuerte.`)
+    expect(r!.target).toEqual({ surface: 'gritar', tense: 'infinitivo', person: null })
+  })
+
+  it('masks the INFINITIVE, not an earlier conjugation of the same verb', () => {
+    // the explicit case: "gritaron … para gritar" must blank "gritar", skipping "gritaron"
+    const r = maskInfinitive('Los aficionados gritaron para gritar aún más.', 'gritar')
+    expect(r).not.toBeNull()
+    expect(r!.masked).toBe(`Los aficionados gritaron para ${BLANK} aún más.`)
+    expect(r!.target.surface).toBe('gritar')
+  })
+
+  it('masks the infinitive after a preposition (sin / para)', () => {
+    expect(maskInfinitive('Se fue sin gritar.', 'gritar')!.masked).toBe(`Se fue sin ${BLANK}.`)
+  })
+
+  it('does NOT match a future form that merely starts with the infinitive (gritaré ≠ gritar)', () => {
+    expect(maskInfinitive('Mañana gritaré de alegría.', 'gritar')).toBeNull()
+  })
+
+  it('returns null when there is no bare infinitive', () => {
+    expect(maskInfinitive('Los aficionados gritaron de alegría.', 'gritar')).toBeNull()
+  })
+
+  it('masks a bare reflexive infinitive', () => {
+    const r = maskInfinitive('Es difícil levantarse temprano.', 'levantarse')
+    expect(r!.masked).toBe(`Es difícil ${BLANK} temprano.`)
+    expect(r!.target.surface).toBe('levantarse')
+  })
+})
 
 describe('maskVerbSentence — paradigm-aware verb masking', () => {
   it('blanks the conjugated form and recovers coordinates', () => {

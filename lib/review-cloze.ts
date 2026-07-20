@@ -1,4 +1,4 @@
-import { maskVerbSentence, maskSentence, maskProcliticReflexive, type VerbTarget } from './mask'
+import { maskVerbSentence, maskInfinitive, maskSentence, maskProcliticReflexive, type VerbTarget } from './mask'
 import { normalize } from './conjugator'
 
 // Pure, client-safe (no server-only, no Next/Supabase) — runs in the client review
@@ -41,10 +41,21 @@ export function pickClozeExample({ examples, word, id, lemma, pos, reps = 0 }: C
   const start = seed % examples.length
   const verbLemma = lemma ?? word
   const verb = isVerbPos(pos)
+  // Infinitive-STORED verb: the stored headword IS the infinitive (word === lemma, incl. lemma-null).
+  // Only these get the L1 infinitive-preference; inflected-stored verbs (comieron, sujetaron: word ≠
+  // lemma) are untouched — their coherent form is the conjugation, masked as before.
+  const infinitiveStored = verb && normalize(word) === normalize(verbLemma)
 
   // Mask a single example under the card's path, or null if it can't be masked.
   const maskOne = (ex: { es: string; fr: string }): ClozeExample | null => {
     if (verb) {
+      // L1: for an infinitive-stored verb, prefer masking the BARE INFINITIVE so the answer equals the
+      // stored headword ("…para gritar" → mask "gritar", not an earlier "gritaron"). Falls through
+      // when the example has no bare-infinitive occurrence (then the conjugation masking below runs).
+      if (infinitiveStored) {
+        const inf = maskInfinitive(ex.es, verbLemma)
+        if (inf) return { example: ex, masked: inf.masked, target: inf.target }
+      }
       // Proclitic-reflexive stored words ("te levantas") mask the full clitic+verb unit so the
       // blank == the stored word + full-reflexive options. Falls through (null) for non-reflexive
       // words and legacy lemma-null cards → existing verb masking.
