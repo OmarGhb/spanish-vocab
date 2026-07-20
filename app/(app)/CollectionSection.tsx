@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ChevronRight, Compass, Library } from 'lucide-react'
+import { ChevronRight, Compass, Library, Sparkles } from 'lucide-react'
 import type { WordCard } from '@/lib/word-status'
 import type { CollectionState } from '@/lib/home-state'
 import { resolveChrome, HOME_CHROME, type ImmersionMode } from '@/lib/immersion'
@@ -71,6 +71,18 @@ export default function CollectionSection({
                 <Compass size={16} strokeWidth={1.9} className="text-accent" /> {resolveChrome(HOME_CHROME.discoverTitle, mode)}
               </Button>
             </div>
+          </div>
+        ) : state === 'preparing' ? (
+          // Words added but still enriching (fresh onboarding) — a calm "arriving" card, NO CTAs
+          // (the words are on their way; the PreparingPoller refreshes Home when they land).
+          <div className="bg-card border border-line rounded-card px-5 pt-[26px] pb-[22px] flex flex-col items-center text-center gap-[9px]">
+            <span className="w-[46px] h-[46px] rounded-[13px] bg-amber-tint border border-amber-light text-amber-deep flex items-center justify-center motion-safe:animate-pulse">
+              <Sparkles size={22} strokeWidth={1.7} />
+            </span>
+            <p className="mt-0.5 font-serif text-[18px] font-bold text-ink">{resolveChrome(HOME_CHROME.collectionPreparingTitle, mode)}</p>
+            <p className="text-[12.5px] leading-[1.5] text-muted max-w-[250px]">
+              {resolveChrome(HOME_CHROME.collectionPreparingCopy, mode)}
+            </p>
           </div>
         ) : (
           <>

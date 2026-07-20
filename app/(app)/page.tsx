@@ -13,6 +13,7 @@ import HubCard from './HubCard'
 import HubCardLocked from './HubCardLocked'
 import CollectionSection, { type CollectionPreview } from './CollectionSection'
 import UnlockSync from './UnlockSync'
+import PreparingPoller from './PreparingPoller'
 
 // How many recent words the "Ta collection" preview shows before the "Voir les N mots →" footer.
 const PREVIEW_COUNT = 10
@@ -25,7 +26,7 @@ export default async function HomePage({
   const supabase = await createClient()
   const nowIso = new Date().toISOString()
 
-  const [{ count: wordCount }, { count: dueCount }, { data: recent }, { data: logs }, { data: deckVerbs }, { data: profile }, { data: auth }] =
+  const [{ count: wordCount }, { count: dueCount }, { count: preparingCount }, { data: recent }, { data: logs }, { data: deckVerbs }, { data: profile }, { data: auth }] =
     await Promise.all([
       // Only real collection words count: manual, or discovery rows fully promoted.
       supabase
@@ -33,6 +34,9 @@ export default async function HomePage({
         .select('*', { count: 'exact', head: true })
         .or('origin.eq.manual,discovery_status.eq.promoted'),
       supabase.from('review_cards').select('*', { count: 'exact', head: true }).lte('due', nowIso),
+      // "Preparing" — words decided-keep but not yet enriched/promoted (fresh onboarding, mid background
+      // enrichment). Distinguishes a real EMPTY collection from one whose words are simply on their way.
+      supabase.from('words').select('*', { count: 'exact', head: true }).eq('discovery_status', 'kept'),
       supabase
         .from('words')
         .select('id, word, definition, review_cards(state, due, stability, reps)')
@@ -66,6 +70,7 @@ export default async function HomePage({
 
   const totalWords = wordCount ?? 0
   const due = dueCount ?? 0
+  const preparing = preparingCount ?? 0
 
   // Trusted (drillable) deck verbs gate the Conjugaison card (active at ≥5).
   const trustedVerbCount = buildDrillPool(
@@ -97,12 +102,15 @@ export default async function HomePage({
     }
   })
 
-  const { hero, collection } = resolveHomeState({ wordCount: totalWords, dueCount: due, hasReviewedBefore })
+  const { hero, collection } = resolveHomeState({ wordCount: totalWords, dueCount: due, hasReviewedBefore, preparingCount: preparing })
 
   return (
     <div className="flex flex-col flex-1">
       {/* Flips the sticky dictionary-unlock flag on app load once ≥10 words are memorized. */}
       <UnlockSync />
+      {/* Words still enriching (kept, not yet promoted) → poll-refresh Home until they land + a
+          catch-up enrich nudge. Only mounted while preparing, so it stops itself once ready. */}
+      {preparing > 0 && <PreparingPoller />}
       <div className="flex-1 px-5 pb-[22px] pt-1.5 flex flex-col gap-[14px]">
         {/* One-time onboarding handoff greeting (M6.2c) — above the hero, self-dismisses on refresh. */}
         {showWelcome && <SalutBanner name={welcomeName} added={addedCount} />}

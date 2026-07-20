@@ -210,6 +210,17 @@ export const HOME_CHROME = {
   addWordBtn: { fr: '+ Ajouter un mot', es: '+ Añadir una palabra' },
   seeAll: { fr: 'Tout voir', es: 'Ver todo' },
   firstWords: { fr: 'Tes premiers mots', es: 'Tus primeras palabras' },
+  // "Preparing" state — words are added-but-not-yet-enriched (fresh onboarding, mid background enrich).
+  heroPreparingHeadline: { fr: 'Tes mots se préparent', es: 'Tus palabras se están preparando' },
+  heroPreparingCopy: {
+    fr: 'Ta première révision commencera dès qu’ils seront prêts.',
+    es: 'Tu primer repaso empezará en cuanto estén listas.',
+  },
+  collectionPreparingTitle: { fr: 'Tes mots arrivent', es: 'Tus palabras están llegando' },
+  collectionPreparingCopy: {
+    fr: 'Paco prépare tes mots. Ils apparaîtront ici dans un instant.',
+    es: 'Paco está preparando tus palabras. Aparecerán aquí en un momento.',
+  },
 } as const satisfies Record<string, ChromePair>
 
 // Status pill DISPLAYED labels (M6.1c). Keyed by the 4 pill KINDS (the map keys "À rappeler"/"En

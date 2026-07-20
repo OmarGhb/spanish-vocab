@@ -52,9 +52,23 @@ export default function ReviewHero({
     )
   }
 
-  // Caught-up vs before-first-review share a thin horizontal row (no CTA) and differ only by mascot
-  // mood + copy.
+  // Caught-up / before-first-review / preparing share a thin horizontal row (no CTA), differing only
+  // by mascot mood + copy. `preparing` = words added but still enriching (fresh onboarding); it reuses
+  // the firstReview eyebrow + the Animando mascot but says "your words are being prepared" instead of
+  // the (now-only-when-genuinely-empty) "add your first words" invitation.
   const caughtUp = state === 'caughtUp'
+  const preparing = state === 'preparing'
+  const eyebrow = caughtUp ? HOME_CHROME.reviewEyebrow : HOME_CHROME.firstReviewEyebrow
+  const headline = caughtUp
+    ? HOME_CHROME.allUpToDate
+    : preparing
+      ? HOME_CHROME.heroPreparingHeadline
+      : HOME_CHROME.firstReviewSoon
+  const copy = caughtUp
+    ? HOME_CHROME.caughtUpCopy
+    : preparing
+      ? HOME_CHROME.heroPreparingCopy
+      : HOME_CHROME.firstReviewCopy
   return (
     <div className="bg-surface-alt border-[1.5px] border-tinted-border rounded-[18px] shadow-card px-[18px] py-3 flex items-center gap-3.5">
       <Image
@@ -70,13 +84,13 @@ export default function ReviewHero({
             caughtUp ? 'text-faint' : 'text-amber-deep'
           }`}
         >
-          {resolveChrome(caughtUp ? HOME_CHROME.reviewEyebrow : HOME_CHROME.firstReviewEyebrow, mode)}
+          {resolveChrome(eyebrow, mode)}
         </p>
         <h2 className="mt-1 font-serif text-[19px] font-bold text-ink tracking-[-0.01em]">
-          {resolveChrome(caughtUp ? HOME_CHROME.allUpToDate : HOME_CHROME.firstReviewSoon, mode)}
+          {resolveChrome(headline, mode)}
         </h2>
         <p className="mt-[3px] text-[12.5px] leading-[1.45] text-muted">
-          {resolveChrome(caughtUp ? HOME_CHROME.caughtUpCopy : HOME_CHROME.firstReviewCopy, mode)}
+          {resolveChrome(copy, mode)}
         </p>
       </div>
     </div>

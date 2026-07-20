@@ -21,6 +21,29 @@ describe('resolveHomeState', () => {
     expect(resolveHomeState({ wordCount: 170, dueCount: 3, hasReviewedBefore: true }).collection).toBe('established')
   })
 
+  it('routes both axes to "preparing" when words are kept-but-not-yet-promoted (fresh onboarding)', () => {
+    // 0 promoted words, 0 due (no review cards yet), never reviewed, but 14 kept + enriching.
+    expect(resolveHomeState({ wordCount: 0, dueCount: 0, hasReviewedBefore: false, preparingCount: 14 })).toEqual({
+      hero: 'preparing',
+      collection: 'preparing',
+    })
+  })
+
+  it('firstReview / empty only when genuinely zero words AND nothing preparing', () => {
+    expect(resolveHomeState({ wordCount: 0, dueCount: 0, hasReviewedBefore: false, preparingCount: 0 }).hero).toBe('firstReview')
+    expect(resolveHomeState({ wordCount: 0, dueCount: 0, hasReviewedBefore: false, preparingCount: 0 }).collection).toBe('empty')
+    // preparingCount defaults to 0 when omitted (back-compat).
+    expect(resolveHomeState({ wordCount: 0, dueCount: 0, hasReviewedBefore: false }).collection).toBe('empty')
+  })
+
+  it('real words win over preparing (partial: some promoted + stragglers still kept)', () => {
+    // A ready collection stays ready; the poller pulls the stragglers in — no preparing copy here.
+    expect(resolveHomeState({ wordCount: 6, dueCount: 6, hasReviewedBefore: false, preparingCount: 3 })).toEqual({
+      hero: 'due',
+      collection: 'young',
+    })
+  })
+
   it('resolves hero and collection independently (new account with due words)', () => {
     // Just-added first words are due immediately but the account has never reviewed:
     // active hero + young collection — both honest, not collapsed onto one axis.

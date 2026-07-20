@@ -12,13 +12,17 @@
 //   caught-up established account (Durmiendo) from the never-reviewed one (Animando) when both
 //   sit at dueCount === 0.
 
-export type HeroState = 'due' | 'caughtUp' | 'firstReview'
-export type CollectionState = 'empty' | 'young' | 'established'
+export type HeroState = 'due' | 'caughtUp' | 'firstReview' | 'preparing'
+export type CollectionState = 'empty' | 'young' | 'established' | 'preparing'
 
 export type HomeStateInput = {
   wordCount: number
   dueCount: number
   hasReviewedBefore: boolean
+  // Words decided-keep but not yet enriched/promoted (discovery_status = 'kept') — e.g. straight out
+  // of onboarding, mid background enrichment. `wordCount` counts only promoted/manual, so without
+  // this a fresh onboarding (all kept, 0 promoted) reads as an EMPTY collection. Default 0.
+  preparingCount?: number
 }
 
 export type HomeState = {
@@ -30,17 +34,21 @@ export function resolveHomeState({
   wordCount,
   dueCount,
   hasReviewedBefore,
+  preparingCount = 0,
 }: HomeStateInput): HomeState {
-  // Hero: anything due → the active review hero; otherwise split caught-up (has reviewed) vs
-  // before-first-review (never reviewed) so the never-reviewed account gets the invitation, not
-  // the "tout est à jour" rest state.
-  const hero: HeroState =
-    dueCount > 0 ? 'due' : hasReviewedBefore ? 'caughtUp' : 'firstReview'
+  const preparing = preparingCount > 0
 
-  // Collection: no words → empty; words but never reviewed → the young "tes premiers mots"
-  // framing; otherwise the established "ta collection" preview.
+  // Hero: anything due → the active review hero; else caught-up (has reviewed) vs — when words are
+  // still being prepared — the "preparing" state, else the genuine before-first-review invitation.
+  // `firstReview` therefore only renders at a genuinely empty account: 0 due, never reviewed, nothing
+  // preparing (and promoted words are due-immediately, so wordCount>0 ⇒ due>0 ⇒ never firstReview).
+  const hero: HeroState =
+    dueCount > 0 ? 'due' : hasReviewedBefore ? 'caughtUp' : preparing ? 'preparing' : 'firstReview'
+
+  // Collection: has real words → young/established; else words being prepared → 'preparing' (NOT the
+  // failure-reading empty state); else genuinely empty.
   const collection: CollectionState =
-    wordCount === 0 ? 'empty' : hasReviewedBefore ? 'established' : 'young'
+    wordCount > 0 ? (hasReviewedBefore ? 'established' : 'young') : preparing ? 'preparing' : 'empty'
 
   return { hero, collection }
 }
