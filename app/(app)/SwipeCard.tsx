@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState, type ReactNode, type PointerEvent } from 'react'
+import { shouldCommitSwipe, COMMIT_PX } from '@/lib/swipe-commit'
 
 type Props = {
   onSwipeLeft: () => void
@@ -21,7 +22,7 @@ type Props = {
   children: ReactNode
 }
 
-const COMMIT_PX = 90 // drag distance past which release commits a swipe
+// COMMIT_PX + the flick thresholds live in lib/swipe-commit.ts (tunable in one place).
 const FLING_PX = 600 // how far the card travels when flung off-screen
 
 // Generic horizontal swipe primitive: drag with tilt, threshold commit, stamp feedback,
@@ -45,6 +46,11 @@ export default function SwipeCard({
   const startX = useRef(0)
   const pointerDown = useRef(false)
   const captured = useRef(false)
+  // Recent pointer velocity (px/ms, signed) for the flick-commit path — a smoothed instantaneous
+  // value so a single jittery sample can't dominate the release decision.
+  const velocity = useRef(0)
+  const lastX = useRef(0)
+  const lastT = useRef(0)
 
   // Distance the pointer must travel before we treat it as a drag. Below this, the interaction stays a
   // TAP: we never capture the pointer, so the click falls through to children (e.g. TapReveal's button).
@@ -66,6 +72,18 @@ export default function SwipeCard({
       captured.current = true
       setIsDragging(true)
       e.currentTarget.setPointerCapture(e.pointerId)
+      // Reset the velocity baseline at capture start so the initial jump isn't read as a flick.
+      lastX.current = e.clientX
+      lastT.current = e.timeStamp
+      velocity.current = 0
+    } else {
+      const dt = e.timeStamp - lastT.current
+      if (dt > 0) {
+        const instant = (e.clientX - lastX.current) / dt
+        velocity.current = velocity.current * 0.4 + instant * 0.6 // light smoothing, recent-weighted
+      }
+      lastX.current = e.clientX
+      lastT.current = e.timeStamp
     }
     setDx(delta)
   }
@@ -84,9 +102,11 @@ export default function SwipeCard({
     captured.current = false
     setIsDragging(false)
     e.currentTarget.releasePointerCapture(e.pointerId)
-    if (dx >= COMMIT_PX) {
+    // Commit on distance OR a fast flick (see lib/swipe-commit.ts); else spring back.
+    const decision = shouldCommitSwipe({ dx, velocity: velocity.current })
+    if (decision === 'right') {
       fling(1, onSwipeRight)
-    } else if (dx <= -COMMIT_PX) {
+    } else if (decision === 'left') {
       fling(-1, onSwipeLeft)
     } else {
       setDx(0) // spring back
