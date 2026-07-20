@@ -15,8 +15,14 @@ export function renderCloze(text: string): React.ReactNode {
     <Fragment key={i}>
       {part}
       {i < parts.length - 1 && (
-        <span className="border-b-2 border-faint px-6 align-baseline" aria-hidden>
-          {' '}
+        // inline-block (not inline) so the blank wraps to the next line as one unit instead of its
+        // side padding overflowing the card at a line end; max-w-full caps it to the container. The
+        // &nbsp; (a NON-collapsing space, unlike a plain " " which collapses inside an inline-block)
+        // gives the box a real text baseline so the underline sits ON the line — an EMPTY inline-block
+        // baselines at its bottom edge and drops the underline. align-baseline lines that baseline up
+        // with the surrounding text, matching the mid-sentence cloze look.
+        <span className="inline-block max-w-full border-b-2 border-faint px-6 align-baseline" aria-hidden>
+          &nbsp;
         </span>
       )}
     </Fragment>
