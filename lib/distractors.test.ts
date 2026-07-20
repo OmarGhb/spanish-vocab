@@ -1,5 +1,25 @@
 import { describe, it, expect } from 'vitest'
-import { glossesOverlap, selectDistractors, isSpanishInfinitive, type DistractorCandidate } from './distractors'
+import { glossesOverlap, selectDistractors, isSpanishInfinitive, deCapitalize, type DistractorCandidate } from './distractors'
+
+describe('deCapitalize', () => {
+  it('lowercases the first letter of a capitalized word', () => {
+    expect(deCapitalize('Soltar')).toBe('soltar')
+    expect(deCapitalize('Ñoño')).toBe('ñoño')
+  })
+
+  it('leaves an already-lowercase word unchanged', () => {
+    expect(deCapitalize('soltar')).toBe('soltar')
+  })
+
+  it('only touches the first token — preserves later-word capitals (accent-safe)', () => {
+    expect(deCapitalize('Río Grande')).toBe('río Grande')
+    expect(deCapitalize('la Mancha')).toBe('la Mancha') // first char already lowercase
+  })
+
+  it('handles empty input', () => {
+    expect(deCapitalize('')).toBe('')
+  })
+})
 
 describe('isSpanishInfinitive', () => {
   it('accepts clear infinitives (-ar/-er/-ir)', () => {

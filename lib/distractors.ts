@@ -58,6 +58,17 @@ export function isSpanishInfinitive(word: string): boolean {
   return /(ar|er|ir)(se)?$/.test(w)
 }
 
+// Lowercase only the FIRST letter of a distractor so an LLM-capitalized option ("Soltar") doesn't
+// render capitalized among lowercase ones. Conservative: preserves accents and any internal/later-word
+// capitals (a multi-word phrase lowercases only its first token). Distractors are common A2–B1
+// same-POS vocabulary, so a proper noun essentially never surfaces here; if one ever did it'd be
+// lowercased (a cosmetic error on a throwaway wrong answer, not a correctness bug). Stored HEADWORD
+// casing is deliberately NOT touched (proper-noun risk, existing rows, user intent — see backlog).
+export function deCapitalize(word: string): string {
+  if (!word) return word
+  return word[0].toLowerCase() + word.slice(1)
+}
+
 // Filter an over-generated candidate pool down to (at most) `count` distractor words:
 //   1. dedup by normalized word; drop the target surface itself
 //   2. PRIMARY pool = non-synonyms (gloss doesn't overlap the target) that also satisfy the form

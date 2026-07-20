@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { z } from 'zod'
-import { selectDistractors, isSpanishInfinitive, type DistractorCandidate } from './distractors'
+import { selectDistractors, isSpanishInfinitive, deCapitalize, type DistractorCandidate } from './distractors'
 import { normalizeSearch } from './word-search'
 
 const client = new Anthropic()
@@ -217,10 +217,12 @@ export async function getWordData(word: string, signal?: AbortSignal): Promise<W
   const isInfinitiveVerb = isVerb && normalizeSearch(word) === normalizeSearch(rest.lemma)
   const isInflectedVerb = isVerb && !isInfinitiveVerb
   const target: DistractorCandidate = { word, fr: distractor_pool.target_gloss }
+  // deCapitalize so an LLM-capitalized option ("Soltar") doesn't render capitalized among lowercase
+  // ones. isSpanishInfinitive (below) is case-insensitive, so this doesn't affect the form log.
   const distractors = selectDistractors(target, distractor_pool.candidates, 3, {
     requireInfinitive: isInfinitiveVerb,
     rejectInfinitive: isInflectedVerb,
-  })
+  }).map(deCapitalize)
   if (distractors.length < 3) {
     // ≥6 candidates were requested; <3 unique non-target words means a duplicative/malformed pool.
     throw new Error('Anthropic returned malformed response: insufficient distractor candidates')
@@ -248,7 +250,7 @@ export async function getWordData(word: string, signal?: AbortSignal): Promise<W
     const lemmaTarget: DistractorCandidate = { word: rest.lemma, fr: lemma_distractor_pool.target_gloss }
     const filtered = selectDistractors(lemmaTarget, lemma_distractor_pool.candidates, 3, {
       requireInfinitive: true,
-    })
+    }).map(deCapitalize)
     if (filtered.length === 3) lemmaDistractors = filtered
     else console.warn(`[enrich] lemma distractor shortfall for "${rest.lemma}" — falling back to surface set`)
   }

@@ -156,6 +156,14 @@
 > (reflexive proclitic). The remaining headword-integrity work is a dictionary/validation slice,
 > not a patch — keep it out of small bug-fix commits.
 
+- **Stored-headword casing normalization (deferred from v0.12.21).** v0.12.21 lowercases DISTRACTOR
+  casing (`deCapitalize`) so `Soltar` doesn't render capitalized among lowercase options, but the
+  stored `word` is left as typed (e.g. `Acordaron`, `Soltar`). Normalizing the headword is deferred:
+  it carries **proper-noun risk** (a user legitimately adding `México`/`Juan`), touches **existing
+  rows** (a backfill decision), and overrides the **user's typed intent**. A real fix would
+  lowercase-by-default while sparing proper nouns — which needs a signal we don't have today (POS
+  notation has no proper-noun tag). Low urgency (cosmetic).
+
 - **Structured `person` field on the enrichment response** — retire the `form_annotation` regex parse in `lib/reflexive.ts` (`parseReflexiveClitic`). Anthropic returns free-text annotations (`"Acostarse — 2ª pers. sing., reflexiva"`); a structured `{person: '1s'|'2s'|…, reflexive: bool}` field would make the clitic correction (and any future morphology consumer) robust to annotation drift. The v0.6.5 helper already degrades to the lemma on parse failure, so this is hardening, not a live bug.
 - **Dictionary-based headword validation** — a general guard that the stored `word` is a well-formed Spanish surface (beyond per-token spellcheck), to catch grammatical malformations the lexical gate can't.
 - **`bebep`-style discovery hallucination** — discovery generation can emit a non-word; validate generated headwords before persisting `pending` rows.
