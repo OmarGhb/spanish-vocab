@@ -205,8 +205,9 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
                   type="button"
                   disabled={used}
                   aria-label={scrambled[i]}
-                  // onPointerDown + preventDefault keeps the input focused so the soft keyboard stays
-                  // up (the primary iOS-Safari risk); insertLetter() also refocuses defensively.
+                  // preventDefault PRESERVES focus if the input already has it (so tapping tiles while
+                  // typing doesn't drop the keyboard) but never acquires it — insertLetter appends when
+                  // the input is blurred, so tapping a tile with the keyboard down does NOT re-summon it.
                   onPointerDown={(e) => {
                     if (used) return
                     e.preventDefault()
@@ -278,13 +279,10 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
         <div className="flex gap-2">
           <button
             type="button"
-            // Return focus to the blank so the user can keep typing without re-tapping it (the
-            // button steals focus on tap; refocusing inside the click gesture also keeps the
-            // mobile keyboard up).
-            onClick={() => {
-              setHintLevel((l) => Math.min(3, l + 1))
-              inputRef.current?.focus()
-            }}
+            // Reveal the next Indice tier. Deliberately does NOT refocus the input — tapping Pista
+            // lets the button take focus so the soft keyboard dismisses and stays dismissed while the
+            // user reads the hint (the keyboard returns only if they tap the blank again).
+            onClick={() => setHintLevel((l) => Math.min(3, l + 1))}
             disabled={hintLevel >= 3}
             className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-card border border-line py-3 font-sans text-sm font-semibold text-muted disabled:bg-page disabled:text-faint"
           >
