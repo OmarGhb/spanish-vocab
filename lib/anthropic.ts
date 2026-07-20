@@ -77,8 +77,8 @@ Rules:
     - NEVER be a true synonym of the target, and never a word that is interchangeable with it in an ordinary sentence (e.g. for "feliz" do NOT use contento / alegre / satisfecho — they all mean "happy"; use distinct adjectives like triste, cansado, enfadado, nervioso, aburrido, tranquilo).
     - Include at least one option that is clearly semantically DISTANT from the target, not only near-neighbours.
     - Be distinct from the target word and from each other.
-    - VERB FORM: if the target word is a VERB in its INFINITIVE form (ends in -ar/-er/-ir), EVERY candidate must also be an infinitive — never a conjugated form. (If the target is a conjugated verb form, match that same tense/person instead.)
-- "lemma_distractor_pool": OMIT this field entirely UNLESS the submitted word is a CONJUGATED VERB form — i.e. "lemma" differs from the submitted word AND the pos is a verb. In that case, ALSO return "lemma_distractor_pool" with the SAME structure as "distractor_pool" (a "target_gloss" for the LEMMA + 6 "candidates"), but its candidates are 6 INFINITIVE verbs (plausible wrong answers for the LEMMA, following all the rules above). It is used if the learner chooses to store the infinitive lemma instead of the typed form.`
+    - VERB FORM — match the SUBMITTED word's exact grammatical form, whatever it is. If the submitted word is a CONJUGATED form, EVERY candidate must be in that SAME tense and person (submitted "sujetaron" → "soltaron", "lanzaron", "empujaron" — all preterite 3rd-person plural; NEVER the infinitives "soltar"/"lanzar"). If the submitted word is an INFINITIVE, every candidate must be an infinitive (submitted "sujetar" → "soltar", "lanzar", "empujar"). Never mix forms, and never fall back to infinitives for a conjugated target.
+- "lemma_distractor_pool" (a SEPARATE set from "distractor_pool" above — it must NOT change the main pool's form): OMIT this field entirely UNLESS the submitted word is a CONJUGATED VERB form — i.e. "lemma" differs from the submitted word AND the pos is a verb. When present, it mirrors "distractor_pool"'s structure (a "target_gloss" for the LEMMA + 6 "candidates"), but its candidates are 6 INFINITIVE verbs — wrong answers for the LEMMA only (used if the learner stores the infinitive instead of the typed form). The main "distractor_pool" STILL matches the submitted word's form, not the infinitive.`
 
 // ── Discovery batch generation (M5.1) ────────────────────────────────────────
 // Compact, partial entries for a swipe deck — NOT full enrichment. A kept word is
@@ -210,21 +210,35 @@ export async function getWordData(word: string, signal?: AbortSignal): Promise<W
   // Filter the over-generated pool to exactly 3 synonym-free, mutually-distinct distractor words.
   const { distractor_pool, lemma_distractor_pool, ...rest } = result.data
   const isVerb = rest.definition.pos.startsWith('v.')
-  // The submitted word is an infinitive verb when its pos is a verb AND it equals the lemma → require
-  // the distractors to be infinitives too (fixes the LLM returning conjugated distractors for an
-  // infinitive target). A conjugated-verb submission keeps its form-matched (conjugated) distractors.
-  const submittedIsInfinitiveVerb = isVerb && normalizeSearch(word) === normalizeSearch(rest.lemma)
+  // Verb targets get a FORM gate on the main distractor pool: an infinitive-stored verb (word ===
+  // lemma) requires infinitive distractors; an inflected verb (word ≠ lemma) rejects infinitives (the
+  // wrong-form class — we don't produce the exact conjugated form here, that's the conjugate-transform).
+  // Non-verbs are unconstrained.
+  const isInfinitiveVerb = isVerb && normalizeSearch(word) === normalizeSearch(rest.lemma)
+  const isInflectedVerb = isVerb && !isInfinitiveVerb
   const target: DistractorCandidate = { word, fr: distractor_pool.target_gloss }
   const distractors = selectDistractors(target, distractor_pool.candidates, 3, {
-    requireInfinitive: submittedIsInfinitiveVerb,
+    requireInfinitive: isInfinitiveVerb,
+    rejectInfinitive: isInflectedVerb,
   })
   if (distractors.length < 3) {
     // ≥6 candidates were requested; <3 unique non-target words means a duplicative/malformed pool.
     throw new Error('Anthropic returned malformed response: insufficient distractor candidates')
   }
-  if (submittedIsInfinitiveVerb && distractors.some((d) => !isSpanishInfinitive(d))) {
-    // The infinitive filter had to backfill a conjugated form (model returned too few infinitives).
-    console.warn(`[enrich] distractor shortfall: non-infinitive backfilled for verb "${word}"`)
+  // FORM-SHORTFALL SIGNAL — distinctive + greppable ("[distractor-form-shortfall]"): the filter had to
+  // backfill the exact wrong form it's meant to eliminate (model returned too few right-form
+  // candidates). If this fires often, the prompt fix isn't holding / escalate to the conjugate-transform.
+  if (isInfinitiveVerb || isInflectedVerb) {
+    const wrongForm = (w: string) => isSpanishInfinitive(w) !== isInfinitiveVerb
+    const badInFinal = distractors.filter(wrongForm).length
+    if (badInFinal > 0) {
+      const total = distractor_pool.candidates.length
+      const rejected = distractor_pool.candidates.filter((c) => wrongForm(c.word)).length
+      console.warn(
+        `[distractor-form-shortfall] "${word}" (${isInfinitiveVerb ? 'infinitive' : 'inflected'} target): ` +
+          `${badInFinal}/3 final distractors are wrong-form; ${rejected}/${total} candidates were wrong-form`,
+      )
+    }
   }
 
   // Conjugated-verb submission → also filter the lemma's INFINITIVE pool so the add flow's "store the

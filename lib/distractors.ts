@@ -71,11 +71,17 @@ export function selectDistractors(
   target: DistractorCandidate,
   candidates: DistractorCandidate[],
   count = 3,
-  opts: { requireInfinitive?: boolean } = {},
+  opts: { requireInfinitive?: boolean; rejectInfinitive?: boolean } = {},
 ): string[] {
-  const requireInf = opts.requireInfinitive === true
   const targetKey = normalizeSearch(target.word)
-  const formOk = (c: DistractorCandidate) => !requireInf || isSpanishInfinitive(c.word)
+  // Form gate: infinitive-STORED verb target → only infinitives; inflected verb target → only
+  // NON-infinitives (reject the wrong-form infinitive class); otherwise no form constraint. The two
+  // flags are mutually exclusive by construction (getWordData picks one); requireInfinitive wins if both.
+  const formOk = (c: DistractorCandidate): boolean => {
+    if (opts.requireInfinitive) return isSpanishInfinitive(c.word)
+    if (opts.rejectInfinitive) return !isSpanishInfinitive(c.word)
+    return true
+  }
 
   // 1. dedup by normalized word; drop the target surface.
   const seen = new Set<string>()

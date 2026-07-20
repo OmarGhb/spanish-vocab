@@ -159,6 +159,39 @@ describe('selectDistractors', () => {
     expect(result).not.toContain('bebes')
   })
 
+  it('rejectInfinitive: for an inflected target, drops infinitive distractors and keeps conjugated ones', () => {
+    const target: DistractorCandidate = { word: 'sujetaron', fr: 'tenir' }
+    const candidates: DistractorCandidate[] = [
+      { word: 'soltar', fr: 'lâcher' }, // infinitive → wrong form → excluded
+      { word: 'soltaron', fr: 'lâcher' },
+      { word: 'lanzaron', fr: 'lancer' },
+      { word: 'empujaron', fr: 'pousser' },
+      { word: 'lanzar', fr: 'lancer' }, // infinitive → excluded
+      { word: 'agarraron', fr: 'attraper' },
+    ]
+    const result = selectDistractors(target, candidates, 3, { rejectInfinitive: true })
+    expect(result).toHaveLength(3)
+    expect(result.some((w) => isSpanishInfinitive(w))).toBe(false) // no infinitive survives
+    expect(result).not.toContain('soltar')
+    expect(result).not.toContain('lanzar')
+  })
+
+  it('rejectInfinitive: backfills an infinitive only when too few conjugated forms survive (graceful)', () => {
+    const target: DistractorCandidate = { word: 'sujetaron', fr: 'tenir' }
+    const candidates: DistractorCandidate[] = [
+      { word: 'soltaron', fr: 'lâcher' }, // 1 clean conjugated form
+      { word: 'soltar', fr: 'a' },
+      { word: 'lanzar', fr: 'b' },
+      { word: 'empujar', fr: 'c' },
+      { word: 'agarrar', fr: 'd' },
+      { word: 'atar', fr: 'e' },
+    ]
+    const result = selectDistractors(target, candidates, 3, { rejectInfinitive: true })
+    expect(result).toHaveLength(3) // still exactly 3 — backfilled from infinitives
+    expect(result).toContain('soltaron')
+    expect(result.some((w) => isSpanishInfinitive(w))).toBe(true) // an infinitive was backfilled
+  })
+
   it('requireInfinitive: backfills a conjugated form only when too few infinitives survive (graceful)', () => {
     const target: DistractorCandidate = { word: 'hablar', fr: 'parler' }
     const candidates: DistractorCandidate[] = [
