@@ -18,6 +18,7 @@ import { buildConjugationGridForTense } from '@/lib/conjugation-grid'
 import { posAbbrev } from '@/lib/discovery'
 import { scrambleLetters, seedFromString, usedScrambleTiles } from '@/lib/scramble'
 import { blankTargetInDefinition } from '@/lib/blank-definition'
+import { renderCloze } from './renderCloze'
 import { wordDiff, type DiffOp } from '@/lib/worddiff'
 import type { ReviewCard } from './page'
 import RatingButtons from './RatingButtons'
@@ -95,6 +96,13 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
   const verbLemma = lemma ?? word
   const correctWord = picked?.target?.surface ?? word
   const isVerbCard = !!picked?.target
+  // Defensive: blank the Spanish headword in the cloze example's FR translation too, so a translation
+  // that happens to contain the raw Spanish word can't leak it (a no-match is a pure passthrough; the
+  // French translation of the word is a different stem and stays visible).
+  const blankedExampleFr = useMemo(
+    () => (picked ? blankTargetInDefinition(picked.example.fr, word) : ''),
+    [picked, word],
+  )
 
   // Deterministic verb cue (tier-1 form text) + raw grid coords (tier-2 table + verb verdicts).
   const cue = isVerbCard ? verbCue(correctWord, verbLemma) : null
@@ -225,18 +233,19 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
             </p>
           ) : (
             <>
-              <p className="font-serif text-sm text-ink leading-relaxed">{blankedDefEs}</p>
+              <p className="font-serif text-sm text-ink leading-relaxed">{renderCloze(blankedDefEs)}</p>
               <p className="mt-3 font-serif text-[19px] text-ink">{blank}</p>
             </>
           )}
-          {/* Sentence FR gloss: shown (fr_es) · tap-to-reveal (immersion) · hidden (totale). */}
+          {/* Sentence FR gloss: shown (fr_es) · tap-to-reveal (immersion) · hidden (totale).
+              Blanked defensively — a translation that contains the raw Spanish word can't leak it. */}
           {picked && gloss === 'visible' && (
-            <p className="mt-2 font-serif italic text-[13px] text-muted">{picked.example.fr}</p>
+            <p className="mt-2 font-serif italic text-[13px] text-muted">{renderCloze(blankedExampleFr)}</p>
           )}
           {picked && gloss === 'tap' && (
             <div className="mt-2">
               <TapReveal label={revealLabel}>
-                <p className="font-serif italic text-[13px] text-muted">{picked.example.fr}</p>
+                <p className="font-serif italic text-[13px] text-muted">{renderCloze(blankedExampleFr)}</p>
               </TapReveal>
             </div>
           )}
@@ -257,7 +266,7 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
             {showDefinition && (
               <div className="bg-card border border-line rounded-card p-4">
                 <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted">Definición · ES</p>
-                <p className="mt-1.5 font-serif text-sm text-ink leading-relaxed">{blankedDefEs}</p>
+                <p className="mt-1.5 font-serif text-sm text-ink leading-relaxed">{renderCloze(blankedDefEs)}</p>
               </div>
             )}
           </div>

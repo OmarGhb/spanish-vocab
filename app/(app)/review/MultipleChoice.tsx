@@ -1,7 +1,7 @@
 'use client'
 
 import type React from 'react'
-import { Fragment, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { computeRating, type RatingResult } from '@/lib/rating'
 import { pickClozeExample, isVerbPos, chooseQcmCue } from '@/lib/review-cloze'
 import type { ReviewCard } from './page'
@@ -11,6 +11,7 @@ import TapReveal from '../TapReveal'
 import { useSettings } from '../SettingsProvider'
 import { glossVisibility, resolveChrome, REVIEW_CHROME } from '@/lib/immersion'
 import { blankTargetInDefinition } from '@/lib/blank-definition'
+import { renderCloze } from './renderCloze'
 
 type Props = {
   card: ReviewCard
@@ -18,25 +19,6 @@ type Props = {
   // read here only inside event handlers — never during render.
   cardStartRef: React.RefObject<number>
   onRate: (rating: 1 | 2 | 3 | 4, timeMs: number, hintLevel: number) => void
-}
-
-// Render a masked sentence, drawing the `_____` token as a clean underline blank (a bottom border
-// under a nbsp) instead of literal underscore glyphs — the serif font spaces underscores out into
-// "- - - -"; this matches écriture's continuous line (AnswerBlank's border-b). Passive/faint since
-// the QCM blank isn't editable.
-function renderCloze(text: string): React.ReactNode {
-  const parts = text.split('_____')
-  if (parts.length === 1) return text
-  return parts.map((part, i) => (
-    <Fragment key={i}>
-      {part}
-      {i < parts.length - 1 && (
-        <span className="border-b-2 border-faint px-6 align-baseline" aria-hidden>
-          {' '}
-        </span>
-      )}
-    </Fragment>
-  ))
 }
 
 function shuffle<T>(arr: T[], seed: number): T[] {
@@ -110,6 +92,11 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
     () => (prompt.type === 'definition' ? blankTargetInDefinition(prompt.es, word) : prompt.es),
     [prompt, word],
   )
+  // Defensive: blank the Spanish headword in the FR gloss too (the definition FR gloss AND the cloze
+  // example's FR translation), so a gloss that happens to contain the raw Spanish word can't leak it.
+  // A no-match is a pure passthrough. The Spanish `word` never matches its French TRANSLATION
+  // (different stem) — so a legitimate gloss like "ressource" stays visible.
+  const blankedPromptFr = useMemo(() => blankTargetInDefinition(prompt.fr, word), [prompt, word])
 
   const [chosen, setChosen] = useState<string | null>(null)
   const [result, setResult] = useState<RatingResult | null>(null)
@@ -191,11 +178,12 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
         <div className="bg-card border border-line rounded-card shadow-card p-[18px]">
           {prompt.type === 'definition' ? (
             <>
-              <p className="font-serif text-sm text-ink leading-relaxed">{blankedPromptEs}</p>
-              {/* FR gloss behind the hint button (revealing it costs a hint). Suppressed in totale. */}
+              <p className="font-serif text-sm text-ink leading-relaxed">{renderCloze(blankedPromptEs)}</p>
+              {/* FR gloss behind the hint button (revealing it costs a hint). Suppressed in totale.
+                  Also blanked — the FR gloss can contain the raw Spanish headword (e.g. "Un recurso est…"). */}
               {gloss !== 'hidden' &&
                 (hintUsed ? (
-                  <p className="mt-2 font-serif italic text-[13px] text-muted">{prompt.fr}</p>
+                  <p className="mt-2 font-serif italic text-[13px] text-muted">{renderCloze(blankedPromptFr)}</p>
                 ) : (
                   !result && (
                     <button
@@ -211,12 +199,13 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
           ) : (
             <>
               <p className="font-serif text-[19px] text-ink leading-[1.7]">{renderCloze(prompt.es)}</p>
-              {/* Example gloss: shown (fr_es) · tap-to-reveal, free (immersion) · hidden (totale). */}
-              {gloss === 'visible' && <p className="mt-2 font-serif italic text-[13px] text-muted">{prompt.fr}</p>}
+              {/* Example gloss: shown (fr_es) · tap-to-reveal, free (immersion) · hidden (totale).
+                  Blanked defensively — a translation that contains the raw Spanish word can't leak it. */}
+              {gloss === 'visible' && <p className="mt-2 font-serif italic text-[13px] text-muted">{renderCloze(blankedPromptFr)}</p>}
               {gloss === 'tap' && (
                 <div className="mt-2">
                   <TapReveal label={resolveChrome(REVIEW_CHROME.revealGloss, immersionMode)}>
-                    <p className="font-serif italic text-[13px] text-muted">{prompt.fr}</p>
+                    <p className="font-serif italic text-[13px] text-muted">{renderCloze(blankedPromptFr)}</p>
                   </TapReveal>
                 </div>
               )}

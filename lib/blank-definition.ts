@@ -5,7 +5,7 @@
 // Match rule (kept deliberately narrow per the v0.12.4 scope):
 //   • exact stem match, case- AND accent-insensitive (via normalizeSearch)
 //   • plus a Spanish PLURAL suffix (+s / +es), preserving the actual suffix:
-//       word "palabra"  in "conjunto de palabras"  →  "conjunto de ____s"
+//       word "palabra"  in "conjunto de palabras"  →  "conjunto de _____s"
 //   • full inflections are intentionally NOT matched — "corres" is never blanked for "correr",
 //     "comería" never for "comer" (the trailing letter fails the plural gate + word boundary).
 //   • whole-word only (a trailing/leading letter kills the match) so "palabra" ignores "palabrota".
@@ -14,7 +14,12 @@
 
 import { normalizeSearch } from './word-search'
 
-const BLANK = '____'
+// The blank sentinel emitted in place of the target. Kept as a token (not styled underscores) so the
+// helper stays a pure string→string function; the shared renderCloze (app/(app)/review/renderCloze)
+// splits on this and draws the continuous-underline blank. 5 underscores, matching the cloze masker's
+// token in lib/mask.ts (which emits the same literal — keep them equal so one renderer serves both).
+export const BLANK_TOKEN = '_____'
+const BLANK = BLANK_TOKEN
 
 // Base letter → every Spanish surface form that folds to it. Built on the STEM (already accent-
 // stripped + ñ→n by normalizeSearch), so each base letter is expanded back to an accent-insensitive
