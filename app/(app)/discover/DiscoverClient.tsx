@@ -26,8 +26,13 @@ const GEN_PHASE_PAIRS = [
   DISCOVER_CHROME.genPhasePhon,
 ] as const
 
-// Background enrichment of kept words. Fired on grid mount (catch-up for any stranded
-// 'kept' rows) and again when the bilan shows. The endpoint is concurrency-safe.
+// Background enrichment of kept words. Fired on grid mount (catch-up for any stranded 'kept' rows),
+// DURING the swipe session (first keep + a light interval — so words are mostly promoted by the time
+// the user reaches Home, shrinking the Home "preparing" window), and when the bilan shows. The
+// endpoint is concurrency-safe, drains all pending 'kept' rows, and is idempotent — so overlapping or
+// empty calls are harmless; the route's per-invocation cap means each call does a bounded batch and
+// repeated calls finish the rest. Fetches are fire-and-forget (they survive an SPA unmount).
+const ENRICH_INTERVAL_MS = 15_000 // cadence while swiping the deck
 function triggerEnrich() {
   void fetch('/api/discovery/enrich', { method: 'POST' }).catch(() => {})
 }
@@ -133,11 +138,22 @@ export default function DiscoverClient({
   const [genError, setGenError] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
   const genResultRef = useRef<CollectionCard[] | null>(null)
+  // Fire enrichment as soon as the FIRST word is kept this session (state is async) — reset per topic.
+  const enrichKickedRef = useRef(false)
 
   useEffect(() => {
     triggerEnrich()
     return () => abortRef.current?.abort()
   }, [])
+
+  // Light enrichment cadence WHILE swiping the deck (drains keeps accumulated since the last tick), so
+  // most kept words are promoted by the time the user hits Home. Only the interval is cleared on
+  // unmount / phase change; any in-flight fetch is fire-and-forget and completes on the server.
+  useEffect(() => {
+    if (phase !== 'collection') return
+    const id = setInterval(triggerEnrich, ENRICH_INTERVAL_MS)
+    return () => clearInterval(id)
+  }, [phase])
 
   // Onboarding: auto-start the chosen topic (skips the grid). No persistent ref-guard — under React
   // Strict Mode (dev) the mount effect's cleanup aborts the first fetch, so a guard would leave it
@@ -168,6 +184,7 @@ export default function DiscoverClient({
     setIndex(0)
     setKept(0)
     setKnown(0)
+    enrichKickedRef.current = false // new session → first-keep kickoff fires again
     setPhase('generating')
     try {
       // Pool-first (M8): /session draws from the shared pool (instant, no AI) and only falls back to
@@ -229,8 +246,16 @@ export default function DiscoverClient({
       body: JSON.stringify({ wordId: card.id, decision }),
     }).catch(() => {})
 
-    if (decision === 'kept') setKept((k) => k + 1)
-    else setKnown((k) => k + 1)
+    if (decision === 'kept') {
+      setKept((k) => k + 1)
+      // Kick off enrichment on the first keep so it runs concurrently with the rest of the swiping.
+      if (!enrichKickedRef.current) {
+        enrichKickedRef.current = true
+        triggerEnrich()
+      }
+    } else {
+      setKnown((k) => k + 1)
+    }
 
     if (index + 1 >= cards.length) {
       triggerEnrich()

@@ -3,9 +3,18 @@ import { getWordData } from '@/lib/anthropic'
 import { getAudioForWord } from '@/lib/tts'
 import { createInitialCard } from '@/lib/fsrs'
 
+// maxDuration requests 300s, but this project runs on Vercel HOBBY, whose function duration is capped
+// (~60s) — so 300 is clamped at runtime. It's kept at 300 so a future Pro upgrade benefits, but we do
+// NOT rely on the exact ceiling: MAX_PER_INVOCATION bounds each call to a small batch that finishes
+// well under any plausible cap, so a single invocation can never run long enough to be killed
+// mid-drain and STRAND rows (claimed-but-not-promoted, reclaimable only after STALE_MS). Repeated
+// calls — the discovery-session cadence, the Home PreparingPoller, the bilan/grid-mount triggers —
+// drain the rest incrementally. **Do NOT "simplify" this back into one drain-everything call**: that
+// reintroduces the timeout/stranding risk. Overlapping calls are safe (the claim is atomic).
 export const maxDuration = 300
 
-const CHUNK = 3
+const CHUNK = 3 // words enriched in parallel per loop iteration
+const MAX_PER_INVOCATION = 9 // per-call word cap (≈3 chunks) — keep conservative; raise only with headroom
 const STALE_MS = 2 * 60 * 1000 // a claim older than this is assumed dead and reclaimable
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
@@ -77,6 +86,7 @@ export async function POST() {
   }
 
   let promoted = 0
+  let processed = 0
 
   // Claim and process one chunk at a time so the claim window stays fresh even if a
   // single word's enrichment is slow. The claim is an atomic UPDATE … RETURNING: two
@@ -119,7 +129,11 @@ export async function POST() {
       (claimed as ClaimRow[]).map((row) => enrichOne(supabase, user.id, row)),
     )
     promoted += results.filter(Boolean).length
+    processed += claimed.length
+    // Per-invocation cap (see the maxDuration note above): bound the work so a single call can't
+    // approach the serverless timeout and strand rows. Repeated calls finish the rest.
+    if (processed >= MAX_PER_INVOCATION) break
   }
 
-  return Response.json({ ok: true, promoted })
+  return Response.json({ ok: true, promoted, capped: processed >= MAX_PER_INVOCATION })
 }
