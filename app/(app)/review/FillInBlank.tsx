@@ -22,6 +22,7 @@ import { renderCloze } from './renderCloze'
 import { wordDiff, type DiffOp } from '@/lib/worddiff'
 import type { ReviewCard } from './page'
 import RatingButtons from './RatingButtons'
+import StickyActions from '../StickyActions'
 import AnswerBlank from './AnswerBlank'
 import AccentBar from './AccentBar'
 import { useCaretInsert } from './useCaretInsert'
@@ -335,7 +336,10 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
   const showVerdictTable = (quality === 'wrongForm' || quality === 'wrong') && isVerbCard && !!verbGrid
 
   return (
-    <div className="flex flex-col gap-4">
+    // RESULT state only (keyboard already dismissed on submit) — rating pinned to a fixed footer; the
+    // ANSWERING state keeps Indice/Valider in flow so a fixed bar never fights the on-screen keyboard
+    // or re-occludes the v0.12.8 scramble tiles (↵ still validates). pb reserves space for the footer.
+    <div className="flex flex-col gap-4 pb-44">
       <ResultReveal verdict={verdict} note={note} audioUrl={card.audioUrl} />
 
       {/* ¡Eso es! — surface reveal with the answer in sage */}
@@ -455,9 +459,11 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
         </div>
       )}
 
-      <div className="fade-up" style={{ animationDelay: '0.18s' }}>
-        <RatingButtons result={result} onRate={(r) => onRate(r, frozenTimeMs, hintLevel)} />
-      </div>
+      <StickyActions>
+        <div className="fade-up w-full" style={{ animationDelay: '0.18s' }}>
+          <RatingButtons result={result} onRate={(r) => onRate(r, frozenTimeMs, hintLevel)} />
+        </div>
+      </StickyActions>
     </div>
   )
 }

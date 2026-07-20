@@ -6,6 +6,7 @@ import { computeRating, type RatingResult } from '@/lib/rating'
 import { pickClozeExample, isVerbPos, chooseQcmCue } from '@/lib/review-cloze'
 import type { ReviewCard } from './page'
 import RatingButtons from './RatingButtons'
+import StickyActions from '../StickyActions'
 import ResultReveal from './ResultReveal'
 import TapReveal from '../TapReveal'
 import { useSettings } from '../SettingsProvider'
@@ -150,7 +151,9 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    // In the result state the rating is pinned to a fixed StickyActions footer (below-the-fold audit
+    // #1+#6) — reserve space with pb so the options aren't hidden behind it.
+    <div className={`flex flex-col gap-6 ${result ? 'pb-44' : ''}`}>
       {/* Verdict at the TOP, matching écriture (verdict → answer detail → rating). Same Paco
           reveal as FillInBlank; MCQ is binary — no ¡Casi!; the correct option stays tinted in
           the list below, so no extra "answer" line is needed. */}
@@ -255,10 +258,13 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
       </div>
 
       {result && (
-        // Quiet fade-up cascade matching écriture's rating slot (verdict already fades itself).
-        <div className="fade-up" style={{ animationDelay: '0.18s' }}>
-          <RatingButtons result={result} onRate={(r) => onRate(r, frozenTimeMs, hintUsed ? 1 : 0)} />
-        </div>
+        // Pinned footer (no keyboard on MCQ) — always visible without scrolling past a long prompt +
+        // 4 options. Quiet fade-up matching écriture's rating slot (verdict already fades itself).
+        <StickyActions>
+          <div className="fade-up w-full" style={{ animationDelay: '0.18s' }}>
+            <RatingButtons result={result} onRate={(r) => onRate(r, frozenTimeMs, hintUsed ? 1 : 0)} />
+          </div>
+        </StickyActions>
       )}
     </div>
   )
