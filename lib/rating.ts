@@ -103,6 +103,20 @@ export function classifyVerbBlank(params: {
 // suggestion, never raises it. Replaces the old single hintUsed −1 penalty (no double count).
 const HINT_CAP: readonly (1 | 2 | 3 | 4)[] = [4, 3, 2, 1]
 
+// Lenient, mode-aware speed windows for the rating SUGGESTION only. timeMs is measured from
+// prompt RENDER (not card mount — reading time is no longer charged to the user, M6.1), so these
+// windows cover read + answer at an unhurried pace. Speed never re-classifies the answer; it only
+// maps an already-fixed quality to a rating, then sets the preselected pill + Enter default. The
+// user can always tap any rating. Tunable on device.
+//   mc    (recognition — read stem + tap an option): Facile ≤ 12 s · Bien ≤ 30 s · else Difficile.
+//   blank (recall — read + TYPE the word, slower):    exact Facile ≤ 20 s, else Bien;
+//                                                     a near-miss is capped at Bien, dropping to
+//                                                     Difficile only past 45 s (never Facile).
+const SPEED_MS = {
+  mc: { facile: 12000, bien: 30000 },
+  blank: { facile: 20000, near: 45000 },
+} as const
+
 export function computeRating(params: {
   correctWord: string
   userAnswer: string
@@ -117,10 +131,6 @@ export function computeRating(params: {
 }): RatingResult {
   const { correctWord, userAnswer, timeMs, hintLevel, mode, verb } = params
 
-  // fast < 5 s · medium 5–15 s · slow > 15 s
-  const speed: 'fast' | 'medium' | 'slow' =
-    timeMs < 5000 ? 'fast' : timeMs <= 15000 ? 'medium' : 'slow'
-
   let rating: 1 | 2 | 3 | 4
   let reason: string
 
@@ -129,17 +139,21 @@ export function computeRating(params: {
     if (!correct) {
       rating = 1
       reason = 'Mauvaise réponse'
-    } else if (speed === 'slow') {
-      rating = 2
-      reason = `Bonne réponse · ${timeLabel(timeMs)}`
-    } else if (speed === 'medium') {
+    } else if (timeMs <= SPEED_MS.mc.facile) {
+      rating = 4
+      reason = 'Bonne réponse · rapide'
+    } else if (timeMs <= SPEED_MS.mc.bien) {
       rating = 3
       reason = `Bonne réponse · ${timeLabel(timeMs)}`
     } else {
-      rating = 4
-      reason = 'Bonne réponse · rapide'
+      rating = 2
+      reason = `Bonne réponse · ${timeLabel(timeMs)}`
     }
   } else {
+    // quality is fixed by string comparison BEFORE timing is read — a near-miss and a wrong-form
+    // are separate categories decided here, and the speed branch below only maps an already-fixed
+    // quality to a rating. A slow near-miss therefore stays 'near' (→ Difficile); it can never
+    // fall into the 'wrongForm' bucket (→ À revoir). The two are cleanly separated.
     const { quality } = verb
       ? classifyVerbBlank({ target: verb.target, lemma: verb.lemma, userAnswer, inParadigm: verb.inParadigm })
       : classifyBlankAnswer(correctWord, userAnswer)
@@ -151,16 +165,15 @@ export function computeRating(params: {
       // Right verb, wrong form — a lapse to review (À revoir), not "close".
       rating = 1
       reason = 'Bon verbe, mauvaise forme'
-    } else if (quality === 'near' && speed === 'slow') {
-      rating = 2
+    } else if (quality === 'near') {
+      // A typo/accent slip is weaker recall than a clean answer — capped at Bien (never Facile),
+      // dropping to Difficile only when very slow.
+      rating = timeMs > SPEED_MS.blank.near ? 2 : 3
       reason = `Quasi correct · ${timeLabel(timeMs)}`
-    } else if (quality === 'near' || (quality === 'exact' && speed === 'slow')) {
-      rating = 3
-      reason = quality === 'near' ? `Quasi correct · ${timeLabel(timeMs)}` : `Exact · ${timeLabel(timeMs)}`
     } else {
-      // exact + fast or medium
-      rating = 4
-      reason = speed === 'fast' ? 'Exact · rapide' : `Exact · ${timeLabel(timeMs)}`
+      // exact: Facile inside the lenient window, otherwise a clean-but-unhurried Bien.
+      rating = timeMs <= SPEED_MS.blank.facile ? 4 : 3
+      reason = timeMs <= SPEED_MS.blank.facile ? 'Exact · rapide' : `Exact · ${timeLabel(timeMs)}`
     }
 
     // Tiered hint cap (replaces the old −1 penalty): each Indice used lowers the ceiling one notch.

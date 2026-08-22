@@ -84,13 +84,12 @@ export default function ReviewSession({ cards: initialCards, dictionaryUnlocked,
     return () => setFocus(false)
   }, [setFocus])
 
-  // Timer boundary: cardStartRef is written in an effect on each card change and read
-  // only inside child event handlers — never during render. Using a ref (not state)
-  // avoids a cascading render that setState-in-effect would cause.
+  // Timer boundary: cardStartRef is stamped by the visible card component AFTER its prompt paints
+  // (a requestAnimationFrame in the card's mount effect), not here at card-change — reading time
+  // is no longer charged to the user (M6.1). The card is keyed by card.id, so each new card
+  // remounts and re-stamps. Read only inside child event handlers, never during render; a ref
+  // (not state) avoids a cascading render.
   const cardStartRef = useRef(0)
-  useEffect(() => {
-    cardStartRef.current = Date.now()
-  }, [index])
 
   async function handleRate(rating: 1 | 2 | 3 | 4, timeMs: number, hintLevel: number) {
     const card = cards[index]
@@ -169,7 +168,8 @@ export default function ReviewSession({ cards: initialCards, dictionaryUnlocked,
       }
       setCards(next)
       setIndex(0)
-      cardStartRef.current = Date.now() // index may already be 0 → reset the timer manually
+      // The next batch's first card remounts (new card.id key) and re-stamps cardStartRef from
+      // its own prompt paint — no manual reset needed here.
       setVerdict(null)
       setDone(false) // re-enters focus mode via the done effect
     } catch {

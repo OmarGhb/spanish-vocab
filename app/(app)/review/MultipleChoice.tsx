@@ -105,10 +105,16 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
   // timeMs frozen at pick — not recomputed when the user taps a rating.
   const [frozenTimeMs, setFrozenTimeMs] = useState(0)
 
+  // Start the answer-clock once the prompt has painted (not at card mount) so reading time is not
+  // charged to the user. rAF fires after the first paint of this card's stem + options.
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => { cardStartRef.current = Date.now() })
+    return () => cancelAnimationFrame(raf)
+  }, [cardStartRef])
+
   function handlePick(option: string) {
     if (result) return
-    // Timer stops here. cardStartRef.current was set on card mount by ReviewSession.
-    // eslint-disable-next-line react-hooks/purity -- Date.now() in an event handler is correct usage
+    // Timer stops here. cardStartRef.current was stamped after this card's prompt painted.
     const timeMs = Date.now() - cardStartRef.current
     setChosen(option)
     setFrozenTimeMs(timeMs)

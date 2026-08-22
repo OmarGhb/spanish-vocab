@@ -112,6 +112,45 @@ describe('computeRating — verb recalibration', () => {
   })
 })
 
+describe('lenient mode-aware speed windows (M6.1)', () => {
+  const mc = (userAnswer: string, timeMs: number) =>
+    computeRating({ correctWord: 'mercado', userAnswer, timeMs, hintLevel: 0, mode: 'mc' }).rating
+  const blank = (userAnswer: string, timeMs: number) =>
+    computeRating({ correctWord: 'mercado', userAnswer, timeMs, hintLevel: 0, mode: 'blank' }).rating
+
+  describe('MCQ — Facile ≤ 12 s · Bien ≤ 30 s · else Difficile', () => {
+    it('correct at 8 s → 4 (Facile)', () => expect(mc('mercado', 8000)).toBe(4))
+    it('correct at the 12 s boundary → 4', () => expect(mc('mercado', 12000)).toBe(4))
+    it('correct at 20 s → 3 (Bien)', () => expect(mc('mercado', 20000)).toBe(3))
+    it('correct at the 30 s boundary → 3', () => expect(mc('mercado', 30000)).toBe(3))
+    it('correct at 40 s → 2 (Difficile)', () => expect(mc('mercado', 40000)).toBe(2))
+    it('wrong → 1 regardless of speed', () => expect(mc('biblioteca', 3000)).toBe(1))
+  })
+
+  describe('écriture — exact Facile ≤ 20 s else Bien; near capped at Bien, Difficile past 45 s', () => {
+    it('exact at 10 s → 4 (Facile)', () => expect(blank('mercado', 10000)).toBe(4))
+    it('exact at the 20 s boundary → 4', () => expect(blank('mercado', 20000)).toBe(4))
+    it('exact at 30 s → 3 (Bien), not Facile', () => expect(blank('mercado', 30000)).toBe(3))
+    it('near (typo) even very fast → 3, never Facile', () => expect(blank('mercdo', 1000)).toBe(3))
+    it('near at 40 s → 3 (still Bien)', () => expect(blank('mercdo', 40000)).toBe(3))
+    it('near past 45 s → 2 (Difficile)', () => expect(blank('mercdo', 50000)).toBe(2))
+  })
+
+  it('a slow near-miss stays "near" (→ Difficile), never reclassified as wrongForm (→ À revoir)', () => {
+    // Timing maps an already-fixed quality; it never changes the classification. A verb near-miss
+    // (accent slip) past the 45 s window is Difficile (2), not the wrongForm rating (1).
+    const slowNear = computeRating({
+      correctWord: 'estudió',
+      userAnswer: 'estudio',
+      timeMs: 60000,
+      hintLevel: 0,
+      mode: 'blank',
+      verb: { target: 'estudió', lemma: 'estudiar', inParadigm: (a) => isInParadigm(a, 'estudiar') },
+    })
+    expect(slowNear.rating).toBe(2)
+  })
+})
+
 describe('non-verb grading is untouched', () => {
   it('classifyBlankAnswer still classifies exact/near/wrong (never wrongForm)', () => {
     expect(classifyBlankAnswer('mercado', 'mercado')).toMatchObject({ quality: 'exact' })

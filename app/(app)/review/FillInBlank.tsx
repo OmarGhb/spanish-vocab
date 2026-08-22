@@ -137,12 +137,18 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
   const insertLetter = useCaretInsert(inputRef, answer, setAnswer)
 
   useEffect(() => {
+    // Start the answer-clock once the prompt has painted (not at card mount) so reading time is
+    // not charged to the user. rAF fires after the first paint of this card's sentence.
+    const raf = requestAnimationFrame(() => { cardStartRef.current = Date.now() })
     inputRef.current?.focus()
     const bring = () => sentenceRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
     const vv = window.visualViewport
     vv?.addEventListener('resize', bring)
-    return () => vv?.removeEventListener('resize', bring)
-  }, [])
+    return () => {
+      cancelAnimationFrame(raf)
+      vv?.removeEventListener('resize', bring)
+    }
+  }, [cardStartRef])
 
   function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault()
