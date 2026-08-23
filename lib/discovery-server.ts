@@ -1,6 +1,7 @@
 import 'server-only'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getDiscoveryBatch } from './anthropic'
+import { isLatinScript } from './latin-script'
 import type { DiscoveryTopic } from './discovery-topics'
 import type { CollectionCard, Gender } from './discovery'
 
@@ -44,7 +45,17 @@ export async function insertPendingCards(
   topicKey: string,
   cards: Array<Pick<CollectionCard, 'word' | 'fr' | 'pos' | 'gender' | 'example'>>,
 ): Promise<CollectionCard[]> {
-  const insertRows = cards.map((c) => ({
+  // Script guard (A2): discovery words are LLM-sourced and bypass the manual spellcheck gate, so drop
+  // any word carrying a non-Latin character (e.g. the Cyrillic-homoglyph "bebер") before it can become
+  // a deck card with broken audio. Single choke point for BOTH the pool-draw and live-generation paths.
+  const clean = cards.filter((c) => {
+    if (isLatinScript(c.word)) return true
+    console.warn(`[discovery] dropped non-Latin word: ${JSON.stringify(c.word)}`)
+    return false
+  })
+  if (clean.length === 0) return []
+
+  const insertRows = clean.map((c) => ({
     user_id: userId,
     word: c.word.trim(),
     origin: 'discovery' as const,
