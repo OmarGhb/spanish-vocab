@@ -3,6 +3,19 @@
 > The repo-canonical backlog (as of v0.6.1 — M5.3a). Items here are not yet scheduled.
 > Committed work lives in `docs/roadmap.md`. When a backlog item is promoted to a milestone, it moves out of this file.
 
+## Post-beta wants (parked — NOT yet scoped)
+
+> Captured after the v0.12.24–26 session so they survive into future chats. **Not scheduled, not scoped** —
+> product/launch wants gated on the near-term committed work (`roadmap.md` → whitelist + seed migration).
+
+- **Real domain.** Acquire `paco.<something>` and point DNS **once the whitelist + cost cap are live** (not before — an open-signup public URL is the thing to avoid). **Trademark sanity-check first:** a kids' TV character named *Paco* exists, so confirm the name is safe before buying. Expands the existing "Branding follow-up → Custom domain" bullet below.
+- **LinkedIn showcase post.** French, playful "built it for myself, maybe I'll let you in" framing, **DM-gated — no public signup URL**. **Held until whitelist is live and the domain is pointed** (it's the reason whitelist-only signups are near-term committed).
+- **Cost cap** (relocated from the `roadmap.md` PRE-BETA gate). Budget / rate guards on the two paid paths — the **Anthropic enrich** call + the **GCP TTS** call. **Deprioritized from a hard gate** because signups are Omar-controlled via the whitelist, **but still wanted before usage grows**. Note it also protects against **Omar's own heavy sessions** — a burst of adds this session overdrew the API credit.
+- **Auth hardening** — re-enable email confirmation, personalized verify email, SSO. **Relaxed to post-whitelist** (invite-only removes the open-signup abuse vector). See the dedicated "Auth hardening (pre-beta)" cluster below (now post-whitelist).
+- **Writing correction feature.** Prompt → user writes an **N-word paragraph** → detailed **structured** correction. Reuses the existing Anthropic pipeline. **Design constraint:** corrections must use **structured error categories, not free-form LLM prose**, to stay consistent and reviewable.
+- **Crossword — daily game.** Currently in `roadmap.md` → STRATEGIC. Captured here with the dependency framing: **requires building the shared generation/cache layer FIRST** (the drill's `triggerFrame` seam stands in for it today) — it's **new-infra-then-a-game**, not just a game.
+- **Native mobile (iOS + Android).** Currently in `roadmap.md` → STRATEGIC/LATER. **Approach decision first** (Capacitor / PWA / rewrite), then build. Largest, most dependency-laden item; interacts with **RevenueCat native IAP** rules and would require **Sign in with Apple**.
+
 ## On-device testing feedback (from v0.12.3 device pass)
 
 > Logged from real-usage testing after the review restyle. **Log only — no design done here.** (b+c) is
@@ -28,6 +41,11 @@
   v0.12.3 review-restyle files).
 
 ## Auth hardening (pre-beta)
+
+> **RELAXED to post-whitelist (post-v0.12.26).** With whitelist-only signups committed near-term
+> (`roadmap.md` → whitelist), invite-only removes the open-signup abuse vector, so re-enabling email
+> confirmation · personalized verify email · SSO are no longer pre-beta blockers — they move behind the
+> whitelist. The login-error fix below still wants its on-device verify whenever confirm-email is toggled on.
 
 - **Login-error fix — PARKED, built + green, uncommitted.** A friendlier login-failure surface:
   `lib/auth-errors.ts` + `lib/auth-errors.test.ts` (new, untracked) map Supabase auth errors to
@@ -191,6 +209,14 @@
 
 - **Structured `person` field on the enrichment response** — retire the `form_annotation` regex parse in `lib/reflexive.ts` (`parseReflexiveClitic`). Anthropic returns free-text annotations (`"Acostarse — 2ª pers. sing., reflexiva"`); a structured `{person: '1s'|'2s'|…, reflexive: bool}` field would make the clitic correction (and any future morphology consumer) robust to annotation drift. The v0.6.5 helper already degrades to the lemma on parse failure, so this is hardening, not a live bug.
 - **Dictionary-based headword validation** — a general guard that the stored `word` is a well-formed Spanish surface (beyond per-token spellcheck), to catch grammatical malformations the lexical gate can't.
+- **Discovery hallucination — real-word (dictionary) validation — UNSCOPED.** The v0.12.25 `isLatinScript`
+  guard (`insertPendingCards`) catches **wrong-script** tokens (Cyrillic homoglyphs like `bebер`) but NOT
+  **plausible-looking Latin-script words the LLM invents** that aren't real Spanish. **Established constraint
+  (do not re-derive):** a full Hunspell/`checkSpelling` gate **over-rejects valid words absent from the
+  dictionary** (`bachata`, `kilombo` are real but not in the set), so this is **not** simply "run discovery
+  through `checkSpelling`." Needs a validation approach that catches fakes **without** dropping
+  real-but-uncommon words (e.g. a confidence/frequency signal, a second-model check, or a curated
+  allow-through for known dictionary gaps). Not scoped.
 - **`bebep`-style discovery hallucination** — discovery generation can emit a non-word; validate generated headwords before persisting `pending` rows. **PARTIALLY ADDRESSED (v0.12.25):** the new `isLatinScript` guard in `insertPendingCards` now rejects **script-contaminated** headwords (non-Latin characters) on both discovery persist paths. A hallucinated non-word made of *real Latin letters* (`bebep`) still passes — dictionary-based headword validation for those remains deferred (see "Headword integrity" / "Dictionary-based headword validation" above).
 - ~~**Corrupted "beber" row — Cyrillic homoglyphs in the stored `word`.**~~ **FIXED (v0.12.25).** The `bebер` row (Latin `beb` + Cyrillic `е`/`р`) was corrected to `beber` with regenerated audio by `scripts/fix-misspelled-words.ts` (already run), and the **root cause is closed**: `isLatinScript` in `insertPendingCards` now blocks any non-Latin word from being persisted via discovery (the path this row came in on — it was `origin=discovery`, promoted after the spellcheck gate existed). Diagnosed this session as the actual cause of the "increíble read with an English accent" report (a stored MISSPELLING mis-synthesized, plus the separate English-fallback-voice bug fixed in v0.12.26 — both in `PROJECT_STATE.md` head note).
 
