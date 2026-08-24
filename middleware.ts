@@ -28,11 +28,14 @@ export async function middleware(request: NextRequest) {
 
   // Public (logged-out-reachable) auth routes. Without /signup + /forgot-password here, the guard
   // below would bounce a logged-out visitor straight back to /login and make signup unreachable.
+  // /auth/* is the invite landing (confirm route + set-password + error): the invite click arrives
+  // logged-out at /auth/confirm and MUST run verifyOtp before the guard would otherwise redirect it.
   const { pathname } = request.nextUrl
   const isPublicAuthRoute =
     pathname.startsWith('/login') ||
     pathname.startsWith('/signup') ||
-    pathname.startsWith('/forgot-password')
+    pathname.startsWith('/forgot-password') ||
+    pathname.startsWith('/auth')
 
   if (!user && !isPublicAuthRoute) {
     const url = request.nextUrl.clone()
