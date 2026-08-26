@@ -9,10 +9,10 @@
 > product/launch wants gated on the near-term committed work (`roadmap.md` → whitelist + seed migration).
 
 - **Real domain.** Acquire `paco.<something>` and point DNS **once the whitelist + cost cap are live** (not before — an open-signup public URL is the thing to avoid). **Trademark sanity-check first:** a kids' TV character named *Paco* exists, so confirm the name is safe before buying. Expands the existing "Branding follow-up → Custom domain" bullet below.
-- **LinkedIn showcase post.** French, playful "built it for myself, maybe I'll let you in" framing, **DM-gated — no public signup URL**. **Held until whitelist is live and the domain is pointed** (it's the reason whitelist-only signups are near-term committed).
+- ~~**LinkedIn showcase post.**~~ **PROMOTED to `roadmap.md` → near-term committed (item 9).** Its gate is met — **whitelist-only signups are live (v0.12.28)** — so it is no longer parked. Sequenced *after* the domain move (item 7) and English-as-a-language (item 8): it needs a real domain to point at and the ability to serve an English audience before it goes out.
 - **Cost cap** (relocated from the `roadmap.md` PRE-BETA gate). Budget / rate guards on the two paid paths — the **Anthropic enrich** call + the **GCP TTS** call. **Deprioritized from a hard gate** because signups are Omar-controlled via the whitelist, **but still wanted before usage grows**. Note it also protects against **Omar's own heavy sessions** — a burst of adds this session overdrew the API credit.
 - **Auth hardening** — re-enable email confirmation, personalized verify email, SSO. **Relaxed to post-whitelist** (invite-only removes the open-signup abuse vector). See the dedicated "Auth hardening (pre-beta)" cluster below (now post-whitelist).
-- **Writing correction feature.** Prompt → user writes an **N-word paragraph** → detailed **structured** correction. Reuses the existing Anthropic pipeline. **Design constraint:** corrections must use **structured error categories, not free-form LLM prose**, to stay consistent and reviewable.
+- ~~**Writing correction feature.**~~ **PROMOTED to `roadmap.md` → near-term committed (item 11).** Prompt → user writes an **N-word paragraph** → detailed **structured** correction; reuses the existing Anthropic pipeline. **Design constraint (carried):** corrections must use **structured error categories, not free-form LLM prose**, to stay consistent and reviewable. **New dependency recorded at promotion:** it trails the **item-8 content-locale decision** — the error categories and the correction copy are written *in the learner's language*, so building this before English lands means re-doing the prompt.
 - **Crossword — daily game.** Currently in `roadmap.md` → STRATEGIC. Captured here with the dependency framing: **requires building the shared generation/cache layer FIRST** (the drill's `triggerFrame` seam stands in for it today) — it's **new-infra-then-a-game**, not just a game.
 - **Native mobile (iOS + Android).** Currently in `roadmap.md` → STRATEGIC/LATER. **Approach decision first** (Capacitor / PWA / rewrite), then build. Largest, most dependency-laden item; interacts with **RevenueCat native IAP** rules and would require **Sign in with Apple**.
 
@@ -21,20 +21,31 @@
 > Logged from real-usage testing after the review restyle. **Log only — no design done here.** (b+c) is
 > the priority item and needs a proposal before build.
 
-- **(a) Definition leaks the target word.** The review/definition surface can print the headword inside its
-  own definition, giving the answer away. Fix direction: **blank the headword in the definition
-  post-enrichment**, preserving a trailing suffix — e.g. word `palabra`, definition contains `palabras` →
-  render `____s`. Use an **exact-stem match** and **ignore full inflections for now** (don't try to blank every
-  conjugated/derived form yet — just the stem-matched surface).
+- **(a) Definition leaks the target word — ✅ RESOLVED (v0.12.6 / v0.12.10).** The review/definition surface
+  could print the headword inside its own definition, giving the answer away. **Fixed at RENDER time** (the
+  stored definition + the dictionary detail view keep the full text) by `blankTargetInDefinition` in
+  `lib/blank-definition.ts` — exact-stem match, case- and accent-insensitive, preserving a Spanish plural
+  suffix (`palabra` → `_____s`), whole-word-only so full inflections and substrings are deliberately NOT
+  blanked. Wired into all four review render sites: `MultipleChoice.tsx` (`prompt.es`, `prompt.fr`) and
+  `FillInBlank.tsx` (`definition.es`, `picked.example.fr`); the shared `review/renderCloze.tsx` splits on the
+  `BLANK_TOKEN` sentinel and draws the continuous underline (same token as `lib/mask.ts`).
+  **v0.12.10 follow-up:** coverage extended to the **FR gloss** (the ES-only v0.12.6 pass still leaked the
+  answer through the French translation) + the underline rendering.
 - **(b+c) MCQ answer ambiguity — ⚠️ PRIORITY, NEEDS DESIGN.** The MCQ marks **only the exact target word
   correct** even when another option also validly fits the sentence; distractors are often **too close**, and
   sometimes **synonyms** of the target that would legitimately work. **Root cause = distractor selection.**
   Needs a proposal, e.g.: an **accept-set** (multiple options can be right) vs. **provably-wrong distractors**;
   **force ≥1 semantically-distant option**; and **never a synonym of the target** as a distractor. Design-first,
   not a quick patch.
-- **(d) Review bilan — surface crossings into *mémorisé*.** The end-of-session bilan should **highlight the
-  words that crossed into `mémorisé` during this session** (a motivating "you just memorized these" signal),
-  distinct from the existing per-word ✓/✗ recap.
+- **(d) Review bilan — surface crossings into *mémorisé* — ✅ RESOLVED (v0.12.6).** The end-of-session bilan
+  now **highlights the words that crossed into `mémorisé` during this session**, distinct from the per-word
+  ✓/✗ recap. `ReviewSession.tsx` renders a sage callout (`bg-ok-bg` / `border-sage-border` + Sparkles) above
+  the recap list, shown only when ≥1 card crossed; the heading is mode-aware via
+  `resolveChrome(REVIEW_CHROME.newlyMemorized, immersionMode)` (`lib/immersion.ts`), the words themselves stay
+  Spanish content. **Data dependency also shipped:** `app/api/review/route.ts` returns the **post-reschedule**
+  `{ state, stability }` (already computed for the card update — no extra query) so the client can detect the
+  crossing. _(The `/drill` recap deliberately does NOT do this — see "Drill recap — known expectation gap"
+  below; the drill writes nothing to FSRS, so it has no source of truth for mastery.)_
 - **(e) Écriture hint masked by the mobile keyboard.** On mobile the on-screen keyboard covers the revealed
   hint letters. Fix direction: **move the revealed hint above the input** (out from under the keyboard) **and
   make the hint letters tappable** to enter them into the field. Touches `FillInBlank` / `AnswerBlank` (the
@@ -99,6 +110,18 @@
   This is the deliberate tradeoff of the in-progress framing, logged so it isn't forgotten.
 
 ## Review experience
+
+- **4. Hint-4 reveals the whole answer — ⏩ COMMITTED near-term (`roadmap.md` → near-term item 6).** The top
+  hint tier shows **all the letters in order**, which is effectively handing over the answer — the tier costs
+  the user nothing and collapses the exercise. **Rework so the highest tier still costs something** (the
+  shape of that cost is the open design question: a heavier FSRS rating penalty, a partial reveal that stops
+  short of the full string, or a different affordance entirely). Pairs naturally with the item-3 tier-3 fix
+  since both sit in the same hint ladder.
+
+- **5. Card view after MCQ/FIB answer.** After answering (either format), let the user open the word's **full
+  card — definition / examples / audio — in a modal** launched from the result state, without leaving the
+  session. Today the result card shows only the verdict + the one example. Not yet scheduled.
+
 - ~~**Form-coherence — infinitive-stored verbs carry conjugated distractors.**~~ **INFINITIVE-STORED
   case FIXED (Piece 1, v0.12.19):** `hablar → contaron…` / `comer → bebes…`. Two causes closed at
   GENERATION: (a) the add flow's "accept the lemma" path reused the conjugated distractors generated
@@ -301,6 +324,20 @@
   mastery = a **new feature**, not a fix. Parked; only build if drill-tied progress becomes a goal.
 
 ## Known bugs (shipped, deferred)
+
+- **3. Hint-3 duplicate-letter tile bug — ⏩ COMMITTED near-term (`roadmap.md` → near-term item 5).** On the
+  **tier-3 full-scramble** écriture hint, when the answer contains **two identical letters** (two `e`s, two
+  `d`s), tapping one tile grays/disables **the other** identical tile. The **tapped** tile should deplete.
+  **Likely cause:** `usedScrambleTiles` in `lib/scramble.ts` — the exact-vs-fold matching that picks which
+  tile a typed character consumes. **Same helper as the v0.12.9 accent-collision fix** (`13898f3`, "scramble
+  tile depletion — exact-glyph match before fold"); this is the **duplicate-glyph** case rather than the
+  accent case, so expect a related but distinct fix in the same matching pass.
+
+- **6. Add-flow doesn't auto-show the card.** Adding a word **sometimes** doesn't surface its card
+  automatically — the user has to click in to see it. **Suspected the accept-the-lemma path** (user typed a
+  conjugated form → chose the lemma at the interstitial), which takes a different save/route branch than a
+  plain add. **Intermittent — diagnose before fixing** (reproduce and identify the branch; don't patch the
+  routing blind). Not yet scheduled.
 
 - ~~**⚠️ `review_logs` insert has written the wrong key column since inception → table empty for ALL users.**~~ **FIXED (commit `96c25f7`, post-v0.8.9); RE-CONFIRMED live v0.12.25 session — `/api/review` inserts `card_id`, table holds 794 rows.** The "empty since inception" warning is fully stale; the reps-sourcing of the /account "révisions" stat (chosen *because* the logger was thought broken) now has no live justification but is deliberately left unchanged (see `PROJECT_STATE.md` head note). `app/api/review/route.ts`'s log insert sent `word_id: row.word_id`, but `review_logs` has **no `word_id` column** and is keyed by **`card_id` (uuid, NOT NULL)** — so every insert failed with Postgres **42703** and was swallowed (`console.warn` + the route still returned `{ok:true}` since the card update already succeeded). The table had been empty across all users since the feature shipped, while `review_cards` advanced normally; diagnosed because the /account révisions strip read 0 while `sum(review_cards.reps)` = 532 real reviews. **Fix:** payload `word_id` → `card_id: cardId`; `console.warn` → `console.error`. Verified live (count climbed 0→1→2 with matching card_id). **NO backfill (accepted, irreversible):** the ~532 historical reviews were never logged and their `time_ms`/`rating`/`reviewed_at` are unrecoverable; logging accumulates from the fix forward and the Home review-time estimate (which silently ran on the 12000 ms/card fallback) self-heals as new reviews land. (M5.5i had already re-sourced the révisions stat to `Σ review_cards.reps`, so that figure was correct throughout regardless.)
 

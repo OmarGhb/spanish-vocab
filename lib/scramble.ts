@@ -39,27 +39,45 @@ function fold(c: string): string {
 }
 
 // Per-tile "used" flags for the scramble Indice: each entered letter (typed OR tapped) consumes one
-// matching tile, so tiles grey out one by one. Two passes so tapping a specific tile greys THAT tile
-// even when accent variants collide (plain "o" vs "ó"):
+// matching tile, so tiles grey out one by one. Three passes:
+//   0. TAPPED pass (identity, v0.12.29) — a tile the user actually TOUCHED claims one entered char
+//      with its exact glyph, so THAT tile greys even when a byte-identical twin sits earlier in the
+//      row ("bebe" → tapping the 2nd "b" must not grey the 1st). Glyph alone can't decide this: the
+//      twins are indistinguishable, so pass 1 always picked the lower index. `tapped` carries the
+//      caller's tile indices, in tap order; a tile whose glyph is no longer in the answer (deleted)
+//      is skipped and releases for free.
 //   1. EXACT pass — an entered char consumes a tile with the identical glyph. A tapped tile inserts
 //      its exact glyph, so this attributes a tapped "o" to the plain-o tile and a tapped "ó" to the
-//      "ó" tile (for true duplicate tiles it greys an equivalent one — visually identical).
+//      "ó" tile (the v0.12.9 accent-collision fix).
 //   2. FOLD pass — a char left unmatched (e.g. a TYPED plain "o" when only "ó" tiles remain; the
 //      keyboard can't easily produce accents) consumes the first remaining tile that folds to it.
-// Purely derived from the answer string, so deletion recomputes for free. A letter not in the pool
-// (or beyond its count) consumes nothing.
-export function usedScrambleTiles(tiles: string[], typed: string): boolean[] {
+// Still purely derived from the answer string + tap log, so deletion recomputes for free. A letter
+// not in the pool (or beyond its count) consumes nothing. `tapped` defaults to [] — omitting it
+// reproduces the pre-v0.12.29 behaviour exactly (pass 0 no-ops).
+export function usedScrambleTiles(tiles: string[], typed: string, tapped: number[] = []): boolean[] {
   const used = new Array(tiles.length).fill(false)
   // Meaningful entered chars (skip whitespace/empties, same guard as before).
   const chars = [...typed].filter((c) => fold(c).trim() !== '')
+  // Which entered chars a tapped tile already accounted for, so passes 1–2 don't double-consume.
+  const claimed = new Array(chars.length).fill(false)
 
-  // Pass 1 — exact glyph.
+  // Pass 0 — tapped tile identity.
+  for (const idx of tapped) {
+    if (idx < 0 || idx >= tiles.length || used[idx]) continue
+    const ci = chars.findIndex((c, i) => !claimed[i] && c === tiles[idx])
+    if (ci >= 0) {
+      claimed[ci] = true
+      used[idx] = true
+    }
+  }
+  // Pass 1 — exact glyph, over the chars no tapped tile claimed.
   const leftover: string[] = []
-  for (const c of chars) {
-    const idx = tiles.findIndex((t, i) => !used[i] && t === c)
+  chars.forEach((c, i) => {
+    if (claimed[i]) return
+    const idx = tiles.findIndex((t, j) => !used[j] && t === c)
     if (idx >= 0) used[idx] = true
     else leftover.push(c)
-  }
+  })
   // Pass 2 — accent/case fold, over whatever the exact pass didn't claim.
   for (const c of leftover) {
     const f = fold(c)

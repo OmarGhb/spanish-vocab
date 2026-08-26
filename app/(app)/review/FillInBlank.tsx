@@ -131,6 +131,11 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
   const [hintLevel, setHintLevel] = useState(0) // 0–3 tiered Indice
   const [result, setResult] = useState<RatingResult | null>(null)
   const [frozenTimeMs, setFrozenTimeMs] = useState(0)
+  // Scramble tiles the user TAPPED (tile indices, in tap order). Depletion can't be derived from the
+  // answer string alone: two identical letters give byte-identical tiles, so glyph-matching always
+  // greyed the earlier twin regardless of which one was touched. Reset is the per-card remount
+  // (ReviewSession mounts <FillInBlank key={card.id}>) — there is no in-place card swap.
+  const [tappedTiles, setTappedTiles] = useState<number[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
   const sentenceRef = useRef<HTMLDivElement>(null)
   // Tap-to-insert for the scramble tiles (shares the caret mechanic with AccentBar).
@@ -205,7 +210,7 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
             <div className="flex flex-wrap gap-1.5">
               {/* Tiles deplete as their letters are entered (typed OR tapped); a used tile is
                   disabled so it can't over-insert. */}
-              {usedScrambleTiles(scrambled, answer).map((used, i) => (
+              {usedScrambleTiles(scrambled, answer, tappedTiles).map((used, i) => (
                 <button
                   key={i}
                   type="button"
@@ -217,6 +222,9 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
                   onPointerDown={(e) => {
                     if (used) return
                     e.preventDefault()
+                    // Record WHICH tile was touched before inserting its glyph — the insert alone is
+                    // indistinguishable from typing the same letter (see usedScrambleTiles pass 0).
+                    setTappedTiles((t) => [...t, i])
                     insertLetter(scrambled[i])
                   }}
                   className={`inline-flex items-center justify-center w-[30px] h-[34px] rounded-lg border font-serif text-[17px] transition-colors ${
