@@ -211,6 +211,7 @@
 
 ## Mobile UX polish
 - **Hit-target ≥44px expansion (deferred from M5.7).** M5.7's press-feedback pass was scoped feedback-only ("ajoute uniquement le feedback d'interaction" — no layout change), but the guidance also lists a ≥44px minimum tap target. Several interactive elements sit below it — nav pills (~32px tall), the home/avatar round icons (36px), the word-detail ⋮ + discover close (38px), the stepper buttons (36px), the clear-search × (22px). Expanding them (taller pills, invisible tactile padding on the icons) is a **layout pass**, deliberately out of the feedback-only change. Pick it up as its own small slice. Note this also interacts with the deferred nav-IA pass (pill sizing).
+  - **Concrete instance — the écriture tier-3 scramble tiles** (`FillInBlank.tsx`): `w-[30px] h-[34px]` with `gap-1.5` (6px), the smallest tap targets in a *primary* interaction (not a secondary control). Surfaced during the v0.12.29 duplicate-tile investigation: a thumb near-miss landing on the adjacent tile **mimics the symptom of the bug just fixed** — "the wrong tile greyed" — so it can masquerade as a logic defect. It was **not** the cause there (root cause was a stale tap log; see `roadmap.md` → near-term item 5), but it stays a live source of the same-looking report. Prioritize these tiles in the pass: the letters are a fixed-width row, so the fix is invisible tactile padding / a larger tap zone, not a bigger glyph.
 - **Press feedback left focus-ring-only on two minor surfaces (from M5.7).** The `/words` sort text-toggles (Trier · Date · Familiarité · Alpha) and the ephemeral discover coming-soon **toast-dismiss ×** got the global keyboard focus ring but no `press-*` veil — a veil over tiny inline text / a caret-adjacent toggle reads worse than the no-op. Low priority; revisit if either feels unresponsive in use (a small scale-only press, no veil, would be the fix).
 - ~~`select-none` on transient toast text to prevent accidental text-selection.~~ **DONE in M5.4b (v0.7.1)** — applied to the deferred-delete undo toast. (The add-page toasts can adopt it too if it ever bites there.)
 - Mobile review polish (deferred from earlier milestones — revisit after extended mobile use).
@@ -325,13 +326,25 @@
 
 ## Known bugs (shipped, deferred)
 
-- **3. Hint-3 duplicate-letter tile bug — ⏩ COMMITTED near-term (`roadmap.md` → near-term item 5).** On the
-  **tier-3 full-scramble** écriture hint, when the answer contains **two identical letters** (two `e`s, two
-  `d`s), tapping one tile grays/disables **the other** identical tile. The **tapped** tile should deplete.
-  **Likely cause:** `usedScrambleTiles` in `lib/scramble.ts` — the exact-vs-fold matching that picks which
-  tile a typed character consumes. **Same helper as the v0.12.9 accent-collision fix** (`13898f3`, "scramble
-  tile depletion — exact-glyph match before fold"); this is the **duplicate-glyph** case rather than the
-  accent case, so expect a related but distinct fix in the same matching pass.
+- ~~**3. Hint-3 duplicate-letter tile bug.**~~ **✅ RESOLVED (v0.12.29), device-verified.** On the tier-3
+  full-scramble écriture hint, tapping one of two identical letter tiles greyed **the other** twin.
+  **TWO defects, not one** — the first fix was correct but incomplete:
+  - **(i) No tile identity.** The tap handler discarded the tile index (`insertLetter(scrambled[i])` only),
+    so used-flags were derived from the answer string alone and `findIndex` always took the lowest-indexed
+    match. Byte-identical twins are indistinguishable by glyph. Fixed with an optional `tapped: number[]`
+    third arg on `usedScrambleTiles` + a **pass 0** where a touched tile claims its own char first.
+    _(The **v0.12.9** two-pass fix (`13898f3`) addressed the **accent** collision — different glyphs — and
+    could not resolve this; its own comment conceded it greyed "an equivalent one" for true duplicates.)_
+  - **(ii) Stale tap log.** `tappedTiles` only appended, never pruned on deletion, so stranded indices
+    greedily re-claimed a re-entered glyph: tap a(3) → tap a(5) → delete both → tap a(5) ⇒ `[3,5,5]` vs
+    answer `"a"` ⇒ the **first** twin greyed. Fixed with pure **`pruneTappedTiles`** (per-**exact**-glyph
+    budget, oldest-kept/newest-dropped), applied to the **state on every answer change** — pruning only at
+    the call site still greys the wrong tile. All three answer-write paths route through one handler.
+  - **Process note (the reusable lesson):** three static-analysis passes were wrong. Instrumentation
+    settled it — but the logs alone read "working correctly"; the defect only surfaced when the **visually
+    greyed tile** was compared against the array index. When a UI bug's logs look clean, verify the
+    rendered artefact, not just the state.
+  - Accent two-pass intact; default path (`tapped` omitted) byte-identical. Suite 590 → 609.
 
 - **6. Add-flow doesn't auto-show the card.** Adding a word **sometimes** doesn't surface its card
   automatically — the user has to click in to see it. **Suspected the accept-the-lemma path** (user typed a

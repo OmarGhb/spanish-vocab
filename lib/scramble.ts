@@ -38,6 +38,38 @@ function fold(c: string): string {
   return c.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
 }
 
+// Keep the tap log honest against the answer (v0.12.29). `tapped` only ever GROWS at the tap site,
+// so a deletion would otherwise leave stale indices behind — and a stale index greedily re-claims a
+// re-entered glyph in pass 0, greying a tile the user never touched (tap a(3), tap a(5), delete both,
+// tap a(5) again → tapped [3,5,5] vs answer "a" → pass 0 hands the single "a" to tile 3).
+//
+// Invariant: for each EXACT glyph, the number of tapped entries referencing that glyph is <= its
+// count in `typed`. Walks OLDEST → newest keeping entries while their glyph still has budget, so the
+// NEWEST excess is dropped — backspace removes the most recent character, so it should retire the
+// most recent tap. Exact-glyph budgeting (matching pass 0), so a typed plain "o" can't keep a tapped
+// "ó" alive. Out-of-range indices are shed on the way through.
+//
+// MUST be applied to the STATE on every answer change, not just at the render/call site: pruning only
+// at the call site can't fix [3,5,5] (it keeps the oldest, [3] — still the wrong tile). Pruning on
+// change collapses [3,5] → [] at the deletion, so the bad triple never forms.
+export function pruneTappedTiles(tiles: string[], typed: string, tapped: number[]): number[] {
+  const chars = [...typed].filter((c) => fold(c).trim() !== '')
+  const budget = new Map<string, number>()
+  for (const c of chars) budget.set(c, (budget.get(c) ?? 0) + 1)
+
+  const kept: number[] = []
+  for (const idx of tapped) {
+    if (idx < 0 || idx >= tiles.length) continue
+    const g = tiles[idx]
+    const n = budget.get(g) ?? 0
+    if (n > 0) {
+      budget.set(g, n - 1)
+      kept.push(idx)
+    }
+  }
+  return kept
+}
+
 // Per-tile "used" flags for the scramble Indice: each entered letter (typed OR tapped) consumes one
 // matching tile, so tiles grey out one by one. Three passes:
 //   0. TAPPED pass (identity, v0.12.29) — a tile the user actually TOUCHED claims one entered char
