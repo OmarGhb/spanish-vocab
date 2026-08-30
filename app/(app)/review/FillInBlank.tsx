@@ -16,7 +16,7 @@ import { isInParadigm } from '@/lib/conjugator'
 import { verbCue, verbGridCoords } from '@/lib/review-cue'
 import { buildConjugationGridForTense } from '@/lib/conjugation-grid'
 import { posAbbrev } from '@/lib/discovery'
-import { scrambleLetters, seedFromString, usedScrambleTiles } from '@/lib/scramble'
+import { scrambleLetters, pruneTappedTiles, seedFromString, usedScrambleTiles } from '@/lib/scramble'
 import { blankTargetInDefinition } from '@/lib/blank-definition'
 import { renderCloze } from './renderCloze'
 import { wordDiff, type DiffOp } from '@/lib/worddiff'
@@ -131,10 +131,30 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
   const [hintLevel, setHintLevel] = useState(0) // 0–3 tiered Indice
   const [result, setResult] = useState<RatingResult | null>(null)
   const [frozenTimeMs, setFrozenTimeMs] = useState(0)
+  // Scramble tiles the user TAPPED (tile indices, in tap order). Depletion can't be derived from the
+  // answer string alone: two identical letters give byte-identical tiles, so glyph-matching always
+  // greyed the earlier twin regardless of which one was touched. Reset is the per-card remount
+  // (ReviewSession mounts <FillInBlank key={card.id}>) — there is no in-place card swap.
+  const [tappedTiles, setTappedTiles] = useState<number[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
   const sentenceRef = useRef<HTMLDivElement>(null)
+  // Tile order for the tier-3 scramble. Hoisted above the change handler (which needs it to prune the
+  // tap log) — deterministic from the word + card id, so memoising is just render hygiene.
+  const scrambled = useMemo(
+    () => scrambleLetters(correctWord, seedFromString(card.id)),
+    [correctWord, card.id],
+  )
+
+  // THE single answer-write path. Every mutation (typing, tile tap, accent bar) prunes the tap log so
+  // it can never reference more instances of a glyph than the answer actually contains — otherwise a
+  // deletion strands stale indices that grey a tile the user never touched (v0.12.29).
+  function handleAnswerChange(next: string) {
+    setAnswer(next)
+    setTappedTiles((t) => pruneTappedTiles(scrambled, next, t))
+  }
+
   // Tap-to-insert for the scramble tiles (shares the caret mechanic with AccentBar).
-  const insertLetter = useCaretInsert(inputRef, answer, setAnswer)
+  const insertLetter = useCaretInsert(inputRef, answer, handleAnswerChange)
 
   useEffect(() => {
     // Start the answer-clock once the prompt has painted (not at card mount) so reading time is
@@ -177,12 +197,13 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
     const showVerbTable = hintLevel >= 2 && !!verbGrid
     const showDefinition = hintLevel >= 2 && !showVerbTable && !!definition.es
     const showScramble = hintLevel >= 3
-    const scrambled = showScramble ? scrambleLetters(correctWord, seedFromString(card.id)) : []
+    // Evaluated once per render so the tiles and their used-flags come from the same array.
+    const usedTiles = usedScrambleTiles(scrambled, answer, tappedTiles)
 
     const blank = (
       <AnswerBlank
         value={answer}
-        onChange={setAnswer}
+        onChange={handleAnswerChange}
         inputRef={inputRef}
         ghost={showFirstLetter ? correctWord[0] : undefined}
         onFocus={() => sentenceRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })}
@@ -205,7 +226,7 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
             <div className="flex flex-wrap gap-1.5">
               {/* Tiles deplete as their letters are entered (typed OR tapped); a used tile is
                   disabled so it can't over-insert. */}
-              {usedScrambleTiles(scrambled, answer).map((used, i) => (
+              {usedTiles.map((used, i) => (
                 <button
                   key={i}
                   type="button"
@@ -217,6 +238,9 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
                   onPointerDown={(e) => {
                     if (used) return
                     e.preventDefault()
+                    // Record WHICH tile was touched before inserting its glyph — the insert alone is
+                    // indistinguishable from typing the same letter (see usedScrambleTiles pass 0).
+                    setTappedTiles((t) => [...t, i])
                     insertLetter(scrambled[i])
                   }}
                   className={`inline-flex items-center justify-center w-[30px] h-[34px] rounded-lg border font-serif text-[17px] transition-colors ${
@@ -280,7 +304,7 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
           </div>
         )}
 
-        <AccentBar inputRef={inputRef} value={answer} onChange={setAnswer} />
+        <AccentBar inputRef={inputRef} value={answer} onChange={handleAnswerChange} />
 
         <div className="flex gap-2">
           <button
