@@ -111,12 +111,13 @@
 
 ## Review experience
 
-- **4. Hint-4 reveals the whole answer — ⏩ COMMITTED near-term (`roadmap.md` → near-term item 6).** The top
-  hint tier shows **all the letters in order**, which is effectively handing over the answer — the tier costs
-  the user nothing and collapses the exercise. **Rework so the highest tier still costs something** (the
-  shape of that cost is the open design question: a heavier FSRS rating penalty, a partial reveal that stops
-  short of the full string, or a different affordance entirely). Pairs naturally with the item-3 tier-3 fix
-  since both sit in the same hint ladder.
+- ~~**4. Hint-4 reveals the whole answer.**~~ **✅ RESOLVED — CLOSED, NO REWORK** (see `roadmap.md` →
+  near-term item 6). **The premise was wrong:** the écriture Indice has **three tiers, not four**, and the
+  top tier (3) is the **scramble** — letters shown *unordered*. **No tier reveals the answer in order**
+  (that only happens on the post-submit result screen). Tier 3 is also **already maximally penalized** —
+  `HINT_CAP = [4,3,2,1]` caps it at rating **1 (À revoir)**, the floor — so "make it cost something" has no
+  rating headroom left. Product decision: **intended as-is.** Logged but not actioned: the scramble's
+  difficulty scales with word length (a 2–3 letter answer is nearly given away; `aaa` returns verbatim).
 
 - **5. Card view after MCQ/FIB answer.** After answering (either format), let the user open the word's **full
   card — definition / examples / audio — in a modal** launched from the result state, without leaving the

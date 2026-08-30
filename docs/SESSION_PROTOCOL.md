@@ -22,7 +22,8 @@ Omar is in the loop for every meaningful decision. He sits between me and Claude
 3. **He sends to Claude Code, brings back the plan.** I review against the original spec. Push back if anything's off — security, scope, design coherence, missed edge cases.
 4. **He approves the plan with Claude Code.** Diffs roll in. He approves each one (manual mode, never auto-approve git/file operations).
 5. **He smoke tests after the commits land.** If something breaks, he tells me, we diagnose and send a follow-up prompt. If clean, we tag.
-6. **Tag the milestone** with `git tag -a v0.x.y -m "..."`. Single source of truth for shipped work.
+6. **Bump `package.json` `version` to match the tag** — part of the close commit, before tagging. **This drifted badly once:** the field sat at `0.12.3` from v0.12.4 through v0.12.28 (25 patches) and was only realigned at v0.12.29, so anything reading it reported a version the repo hadn't been at for months. The tag is the source of truth; `package.json` must not silently lag it.
+7. **Tag the milestone** with `git tag -a v0.x.y -m "..."`. Single source of truth for shipped work.
 
 ## Operating principles
 
