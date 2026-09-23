@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import { Clock } from 'lucide-react'
 import type { HeroState } from '@/lib/home-state'
-import { resolveChrome, HOME_CHROME, type ImmersionMode } from '@/lib/immersion'
+import { DEFAULT_CHROME_CTX, resolveChrome, HOME_CHROME, type ChromeCtx } from '@/lib/immersion'
 import Display from './Display'
 import Button from './Button'
 
@@ -18,18 +18,18 @@ export default function ReviewHero({
   state,
   count,
   minutes,
-  mode = 'fr_es',
+  ctx = DEFAULT_CHROME_CTX,
 }: {
   state: HeroState
   count: number
   minutes: number
-  mode?: ImmersionMode
+  ctx?: ChromeCtx
 }) {
   if (state === 'due') {
     return (
       <div className="bg-surface-alt border-[1.5px] border-tinted-border rounded-[18px] shadow-card px-5 pt-[13px] pb-[15px]">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-amber-deep">{resolveChrome(HOME_CHROME.reviewAvailable, mode)}</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-amber-deep">{resolveChrome(HOME_CHROME.reviewAvailable, ctx)}</p>
           {/* Minutes CHIP (was bare inline text) — a bordered crème pill top-right. */}
           <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap rounded-full bg-card border border-line px-2.5 py-1 text-[12px] font-semibold text-muted">
             <Clock size={13} strokeWidth={1.9} className="text-faint" /> ≈ {minutes} min
@@ -38,14 +38,14 @@ export default function ReviewHero({
         <div className="flex items-baseline gap-2.5 mt-[7px]">
           <Display kind="count" className="text-[46px] leading-[0.9] text-ink">{count}</Display>
           <span className="font-serif text-[19px] font-bold text-ink tracking-[-0.01em]">
-            {mode === 'fr_es'
+            {ctx.policy === 'visible'
               ? `mot${count !== 1 ? 's' : ''} à revoir`
               : `palabra${count !== 1 ? 's' : ''} por repasar`}
           </span>
         </div>
         <div className="mt-3">
           <Button variant="primary" full href="/review" className="!py-[13px] !text-[15px]">
-            {resolveChrome(HOME_CHROME.startReview, mode)} →
+            {resolveChrome(HOME_CHROME.startReview, ctx)} →
           </Button>
         </div>
       </div>
@@ -84,13 +84,13 @@ export default function ReviewHero({
             caughtUp ? 'text-faint' : 'text-amber-deep'
           }`}
         >
-          {resolveChrome(eyebrow, mode)}
+          {resolveChrome(eyebrow, ctx)}
         </p>
         <h2 className="mt-1 font-serif text-[19px] font-bold text-ink tracking-[-0.01em]">
-          {resolveChrome(headline, mode)}
+          {resolveChrome(headline, ctx)}
         </h2>
         <p className="mt-[3px] text-[12.5px] leading-[1.45] text-muted">
-          {resolveChrome(copy, mode)}
+          {resolveChrome(copy, ctx)}
         </p>
       </div>
     </div>

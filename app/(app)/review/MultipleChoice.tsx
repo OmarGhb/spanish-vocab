@@ -43,8 +43,8 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
   const { word, definition, examples, distractors } = card
   // Immersion mode gates the French gloss: visible (fr_es) · tap-to-reveal (immersion) · hidden
   // (totale). Chrome strings without authored ES stay French (resolveChrome falls back).
-  const { immersionMode } = useSettings()
-  const gloss = glossVisibility(immersionMode)
+  const { chromeCtx } = useSettings()
+  const gloss = glossVisibility(chromeCtx)
 
   // Deterministic seed — stable across SSR and hydration.
   const seed = useMemo(() => seedFromId(card.id), [card.id])
@@ -168,7 +168,7 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
           verdict={chosen === word ? 'correct' : 'wrong'}
           note={
             chosen === word
-              ? resolveChrome(hintUsed ? REVIEW_CHROME.noteWithHint : REVIEW_CHROME.noteFirstTry, immersionMode)
+              ? resolveChrome(hintUsed ? REVIEW_CHROME.noteWithHint : REVIEW_CHROME.noteFirstTry, chromeCtx)
               : null
           }
           audioUrl={card.audioUrl}
@@ -180,7 +180,7 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
             state only; drops on the graded/verdict card, matching écriture (M6.1 reviser handoff). */}
         {!result && (
           <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted mb-3">
-            {resolveChrome(REVIEW_CHROME.mcInstruction, immersionMode)}
+            {resolveChrome(REVIEW_CHROME.mcInstruction, chromeCtx)}
           </p>
         )}
         {/* Same white card as the écriture prompt (FillInBlank) — QCM and Escritura now match. */}
@@ -200,7 +200,7 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
                       onClick={() => setHintUsed(true)}
                       className="text-xs text-accent mt-2"
                     >
-                      ↓ {resolveChrome(REVIEW_CHROME.revealGloss, immersionMode)}
+                      ↓ {resolveChrome(REVIEW_CHROME.revealGloss, chromeCtx)}
                     </button>
                   )
                 ))}
@@ -213,7 +213,7 @@ export default function MultipleChoice({ card, cardStartRef, onRate }: Props) {
               {gloss === 'visible' && <p className="mt-2 font-serif italic text-[13px] text-muted">{renderCloze(blankedPromptFr)}</p>}
               {gloss === 'tap' && (
                 <div className="mt-2">
-                  <TapReveal label={resolveChrome(REVIEW_CHROME.revealGloss, immersionMode)}>
+                  <TapReveal label={resolveChrome(REVIEW_CHROME.revealGloss, chromeCtx)}>
                     <p className="font-serif italic text-[13px] text-muted">{renderCloze(blankedPromptFr)}</p>
                   </TapReveal>
                 </div>

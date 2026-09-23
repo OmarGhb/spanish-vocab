@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { getDictionaryState } from '@/lib/dictionary'
-import { coerceImmersionMode } from '@/lib/immersion'
+import { coerceGlossPolicy, coerceSourceLocale, type ChromeCtx } from '@/lib/immersion'
 import UnlockSync from '../UnlockSync'
 import DictionaryIndex from './DictionaryIndex'
 import LockedScreen from './LockedScreen'
@@ -12,17 +12,20 @@ export default async function DictionaryPage() {
   const supabase = await createClient()
   const [{ unlocked, memorizedCount, entries }, { data: profile }] = await Promise.all([
     getDictionaryState(supabase),
-    supabase.from('profiles').select('immersion_mode').maybeSingle(),
+    supabase.from('profiles').select('source_locale, gloss_policy').maybeSingle(),
   ])
-  const mode = coerceImmersionMode(profile?.immersion_mode)
+  const ctx: ChromeCtx = {
+    locale: coerceSourceLocale(profile?.source_locale),
+    policy: coerceGlossPolicy(profile?.gloss_policy),
+  }
 
   return (
     <>
       <UnlockSync />
       {unlocked ? (
-        <DictionaryIndex entries={entries} mode={mode} />
+        <DictionaryIndex entries={entries} ctx={ctx} />
       ) : (
-        <LockedScreen memorizedCount={memorizedCount} mode={mode} />
+        <LockedScreen memorizedCount={memorizedCount} ctx={ctx} />
       )}
     </>
   )

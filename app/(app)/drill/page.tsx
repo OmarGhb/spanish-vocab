@@ -10,7 +10,7 @@ import {
   type PersonScope,
 } from '@/lib/drill'
 import { resolveDisplayName } from '@/lib/display-name'
-import { coerceImmersionMode, resolveChrome, HOME_CHROME, NAV_CHROME } from '@/lib/immersion'
+import { coerceGlossPolicy, coerceSourceLocale, resolveChrome, HOME_CHROME, NAV_CHROME, type ChromeCtx } from '@/lib/immersion'
 import HubCardLocked from '../HubCardLocked'
 import DrillClient from './DrillClient'
 
@@ -36,11 +36,14 @@ export default async function DrillPage() {
       .from('words')
       .select('word, lemma, definition')
       .or('origin.eq.manual,discovery_status.eq.promoted'),
-    supabase.from('profiles').select('drill_tenses, drill_person_scope, immersion_mode, display_name').maybeSingle(),
+    supabase.from('profiles').select('drill_tenses, drill_person_scope, source_locale, gloss_policy, display_name').maybeSingle(),
     supabase.auth.getUser(),
   ])
 
-  const mode = coerceImmersionMode(profile?.immersion_mode)
+  const ctx: ChromeCtx = {
+    locale: coerceSourceLocale(profile?.source_locale),
+    policy: coerceGlossPolicy(profile?.gloss_policy),
+  }
 
   // Real name from onboarding (M6.2b) if captured, else the email-derived fallback.
   const displayName = resolveDisplayName(profile?.display_name, auth.user?.email)
@@ -59,14 +62,14 @@ export default async function DrillPage() {
         <div className="w-full max-w-[260px]">
           <HubCardLocked
             icon={<Rows3 size={19} strokeWidth={1.7} />}
-            title={resolveChrome(HOME_CHROME.conjTitle, mode)}
+            title={resolveChrome(HOME_CHROME.conjTitle, ctx)}
             have={pool.length}
             need={DRILL_UNLOCK_THRESHOLD}
-            unit={resolveChrome(HOME_CHROME.conjUnit, mode)}
+            unit={resolveChrome(HOME_CHROME.conjUnit, ctx)}
           />
         </div>
         <Link href="/" className="text-center text-sm text-accent">
-          ← {resolveChrome(NAV_CHROME.home, mode)}
+          ← {resolveChrome(NAV_CHROME.home, ctx)}
         </Link>
       </div>
     )

@@ -27,8 +27,8 @@ export default function AudioButton({ word, audioUrl, variant = 'inline' }: Prop
   // "Vitesse de lecture" — applied as playbackRate over the cached MP3 (which is baked at 0.9×;
   // the rate is perceivedTarget ÷ 0.9, see lib/playback-speed.ts). The Web-Speech fallback below
   // is a SEPARATE engine (no cached file) and stays at its fixed 0.9 — out of this control's scope.
-  const { playbackRate, immersionMode } = useSettings()
-  const audioAria = resolveChrome(SHARED_CHROME.audioAria, immersionMode)
+  const { playbackRate, chromeCtx } = useSettings()
+  const audioAria = resolveChrome(SHARED_CHROME.audioAria, chromeCtx)
 
   useEffect(() => {
     return () => { audioRef.current?.pause() }

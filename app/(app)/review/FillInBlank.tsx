@@ -74,9 +74,9 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
   const { word, lemma, definition } = card
   // Immersion mode gates the French gloss: visible (fr_es) · tap-to-reveal (immersion) · hidden
   // (totale). Chrome strings without authored ES stay French (resolveChrome falls back).
-  const { immersionMode } = useSettings()
-  const gloss = glossVisibility(immersionMode)
-  const revealLabel = resolveChrome(REVIEW_CHROME.revealGloss, immersionMode)
+  const { chromeCtx } = useSettings()
+  const gloss = glossVisibility(chromeCtx)
+  const revealLabel = resolveChrome(REVIEW_CHROME.revealGloss, chromeCtx)
 
   // Definition-as-hint leak guard: blank the headword where it appears in its own ES definition,
   // at RENDER time only (the stored definition + the dictionary detail view keep the full text).
@@ -213,7 +213,7 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
     return (
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">
-          {resolveChrome(picked ? REVIEW_CHROME.blankInstruction : REVIEW_CHROME.definitionEyebrow, immersionMode)}
+          {resolveChrome(picked ? REVIEW_CHROME.blankInstruction : REVIEW_CHROME.definitionEyebrow, chromeCtx)}
         </p>
 
         {/* Scramble (Indice tier 3) — placed ABOVE the prompt so the on-screen mobile keyboard
@@ -222,7 +222,7 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
             counterpart to the desktop AccentBar, and the easiest way to enter accents on a phone. */}
         {showScramble && (
           <div className="bg-card border border-line rounded-card p-4">
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted mb-2">{resolveChrome(REVIEW_CHROME.scramble, immersionMode)}</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted mb-2">{resolveChrome(REVIEW_CHROME.scramble, chromeCtx)}</p>
             <div className="flex flex-wrap gap-1.5">
               {/* Tiles deplete as their letters are entered (typed OR tapped); a used tile is
                   disabled so it can't over-insert. */}
@@ -317,29 +317,29 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
             className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-card border border-line py-3 font-sans text-sm font-semibold text-muted disabled:bg-page disabled:text-faint"
           >
             <Lightbulb size={15} />
-            {resolveChrome(REVIEW_CHROME.hintLabel, immersionMode)} · {hintLevel}/3
+            {resolveChrome(REVIEW_CHROME.hintLabel, chromeCtx)} · {hintLevel}/3
           </button>
           <button
             type="submit"
             disabled={!answer.trim()}
             className="flex-[2] rounded-card bg-accent py-3 text-center font-sans text-[15px] font-semibold text-ivory disabled:bg-amber-light disabled:text-disabled-ink transition-colors"
           >
-            {resolveChrome(REVIEW_CHROME.submit, immersionMode)} →
+            {resolveChrome(REVIEW_CHROME.submit, chromeCtx)} →
           </button>
         </div>
 
         {hintLevel > 0 && (
           <p className="text-center text-[12px] text-faint">
-            {immersionMode === 'fr_es'
+            {chromeCtx.policy === 'visible'
               ? `${hintLevel} indice${hintLevel > 1 ? 's' : ''} utilisé${hintLevel > 1 ? 's' : ''} · note max suggérée :`
               : `${hintLevel} pista${hintLevel > 1 ? 's' : ''} usada${hintLevel > 1 ? 's' : ''} · nota máxima sugerida:`}
             {' '}
-            <b className="text-sepia">{resolveChrome(RATING_LABELS[HINT_CAP_RATING[hintLevel]], immersionMode)}</b>
+            <b className="text-sepia">{resolveChrome(RATING_LABELS[HINT_CAP_RATING[hintLevel]], chromeCtx)}</b>
           </p>
         )}
 
         <div className="rounded-lg border border-dashed border-border-soft px-3 py-2 text-center text-[12.5px] italic text-faint">
-          ↵ {resolveChrome(REVIEW_CHROME.submitHelp, immersionMode)}
+          ↵ {resolveChrome(REVIEW_CHROME.submitHelp, chromeCtx)}
         </div>
       </form>
     )
@@ -350,13 +350,13 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
   const verdict = QUALITY_TO_VERDICT[quality]
   const note =
     quality === 'exact'
-      ? resolveChrome(hintLevel > 0 ? REVIEW_CHROME.noteWithHint : REVIEW_CHROME.noteFirstTry, immersionMode)
+      ? resolveChrome(hintLevel > 0 ? REVIEW_CHROME.noteWithHint : REVIEW_CHROME.noteFirstTry, chromeCtx)
       : quality === 'near'
-        ? immersionMode === 'fr_es'
+        ? chromeCtx.policy === 'visible'
           ? `${distance} lettre${distance > 1 ? 's' : ''} près`
           : `por ${distance} letra${distance > 1 ? 's' : ''}`
         : quality === 'wrongForm'
-          ? resolveChrome(REVIEW_CHROME.noteWrongForm, immersionMode)
+          ? resolveChrome(REVIEW_CHROME.noteWrongForm, chromeCtx)
           : null
   const diffOps = quality === 'near' ? wordDiff(answer.trim(), correctWord) : []
   const example = resultHintExample(picked, card)
@@ -373,7 +373,7 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
       {/* ¡Eso es! — surface reveal with the answer in sage */}
       {quality === 'exact' && (
         <div className="fade-up bg-card border border-line rounded-card p-4" style={{ animationDelay: '0.1s' }}>
-          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">{resolveChrome(REVIEW_CHROME.yourAnswer, immersionMode)}</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">{resolveChrome(REVIEW_CHROME.yourAnswer, chromeCtx)}</p>
           <p className="mt-1.5 font-serif text-[17px] text-ink leading-[1.6]">
             {picked ? (
               <>
@@ -392,11 +392,11 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
       {quality === 'near' && (
         <div className="fade-up bg-surface-alt border border-tinted-border rounded-card p-4" style={{ animationDelay: '0.1s' }}>
           <p className="text-sm text-ink leading-snug">
-            {resolveChrome(REVIEW_CHROME.nearWrote, immersionMode)}{' '}
+            {resolveChrome(REVIEW_CHROME.nearWrote, chromeCtx)}{' '}
             <span className="font-bold text-sepia">
               <RenderTyped ops={diffOps} />
             </span>{' '}
-            {resolveChrome(REVIEW_CHROME.nearIs, immersionMode)} <span className="font-bold text-ink">{correctWord}</span>.
+            {resolveChrome(REVIEW_CHROME.nearIs, chromeCtx)} <span className="font-bold text-ink">{correctWord}</span>.
           </p>
         </div>
       )}
@@ -414,16 +414,16 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
           highlighted (deterministic, never LLM), then the quiet "Ta réponse" line. */}
       {quality === 'wrongForm' && (
         <div className="fade-up bg-surface-alt border border-tinted-border rounded-card p-4 flex flex-col gap-3" style={{ animationDelay: '0.1s' }}>
-          <p className="text-sm text-ink leading-snug">{resolveChrome(REVIEW_CHROME.verbFormTeaching, immersionMode)}</p>
+          <p className="text-sm text-ink leading-snug">{resolveChrome(REVIEW_CHROME.verbFormTeaching, chromeCtx)}</p>
           {showVerdictTable && verbGrid ? (
             <ConjugationGrid grid={verbGrid} infinitive={verbLemma} />
           ) : (
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">{resolveChrome(REVIEW_CHROME.expectedForm, immersionMode)}</p>
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">{resolveChrome(REVIEW_CHROME.expectedForm, chromeCtx)}</p>
               <p className="mt-1 font-serif text-[1.875rem] font-bold tracking-[-0.02em] text-ink">{correctWord}</p>
             </div>
           )}
-          <p className="text-xs italic text-faint">{resolveChrome(REVIEW_CHROME.yourAnswer, immersionMode)} : {answer.trim()}</p>
+          <p className="text-xs italic text-faint">{resolveChrome(REVIEW_CHROME.yourAnswer, chromeCtx)} : {answer.trim()}</p>
         </div>
       )}
 
@@ -432,12 +432,12 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
         <div className="fade-up bg-card border border-line rounded-card p-4" style={{ animationDelay: '0.1s' }}>
           {showVerdictTable && verbGrid ? (
             <>
-              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted mb-2">{resolveChrome(REVIEW_CHROME.theAnswer, immersionMode)}</p>
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted mb-2">{resolveChrome(REVIEW_CHROME.theAnswer, chromeCtx)}</p>
               <ConjugationGrid grid={verbGrid} infinitive={verbLemma} />
             </>
           ) : (
             <>
-              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">{resolveChrome(REVIEW_CHROME.theAnswer, immersionMode)}</p>
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">{resolveChrome(REVIEW_CHROME.theAnswer, chromeCtx)}</p>
               <p className="mt-1 font-serif text-[1.875rem] font-bold tracking-[-0.02em] text-ink">{correctWord}</p>
               {/* FR meaning: shown (fr_es) · tap-to-reveal (immersion) · hidden (totale). */}
               {gloss === 'visible' && (definition.pos || definition.fr) && (
@@ -461,7 +461,7 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
             </>
           )}
           <div className="my-2.5 border-t border-border-soft" />
-          <p className="text-xs italic text-faint">{resolveChrome(REVIEW_CHROME.yourAnswer, immersionMode)} : {answer.trim()}</p>
+          <p className="text-xs italic text-faint">{resolveChrome(REVIEW_CHROME.yourAnswer, chromeCtx)} : {answer.trim()}</p>
         </div>
       )}
 
@@ -471,7 +471,7 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
           className="fade-up bg-card border-l-[3px] border-accent rounded-r-card px-3.5 py-3"
           style={{ animationDelay: '0.18s' }}
         >
-          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-accent">{resolveChrome(REVIEW_CHROME.example, immersionMode)}</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-accent">{resolveChrome(REVIEW_CHROME.example, chromeCtx)}</p>
           <p className="mt-1 font-serif text-base text-ink leading-snug">{example.es}</p>
           {/* Example FR gloss: shown (fr_es) · tap-to-reveal (immersion) · hidden (totale). */}
           {gloss === 'visible' && example.fr && (

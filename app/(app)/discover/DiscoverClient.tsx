@@ -49,12 +49,12 @@ function FocusedOverlay({ children }: { children: ReactNode }) {
 // 38px outline circle close (board chrome) — in-flow at the top-left of each modal. Reads the mode
 // itself (rendered under the provider) so its aria-label follows immersion without prop threading.
 function CircleClose({ onClose }: { onClose: () => void }) {
-  const { immersionMode } = useSettings()
+  const { chromeCtx } = useSettings()
   return (
     <button
       type="button"
       onClick={onClose}
-      aria-label={resolveChrome(DISCOVER_CHROME.close, immersionMode)}
+      aria-label={resolveChrome(DISCOVER_CHROME.close, chromeCtx)}
       className="press-icon w-[38px] h-[38px] rounded-full border border-line bg-card grid place-items-center text-muted shrink-0"
     >
       <X size={19} strokeWidth={2} />
@@ -87,7 +87,7 @@ function boldTarget(sentence: string, word: string): ReactNode {
 function FeaturedCard({
   Icon, title, sub, onTap,
 }: { Icon: LucideIcon; title: string; sub: string; onTap: () => void }) {
-  const { immersionMode } = useSettings()
+  const { chromeCtx } = useSettings()
   return (
     <button
       type="button"
@@ -102,7 +102,7 @@ function FeaturedCard({
         <div className="text-[12.5px] text-muted leading-snug mt-1">{sub}</div>
       </div>
       <span className="shrink-0 text-[9.5px] font-bold uppercase tracking-[0.1em] text-faint border border-border-soft rounded-full px-2 py-1">
-        {resolveChrome(DISCOVER_CHROME.soon, immersionMode)}
+        {resolveChrome(DISCOVER_CHROME.soon, chromeCtx)}
       </span>
     </button>
   )
@@ -121,8 +121,8 @@ export default function DiscoverClient({
 } = {}) {
   const router = useRouter()
   // Immersion mode gates the card French gloss + resolves all Discover chrome.
-  const { immersionMode } = useSettings()
-  const gloss = glossVisibility(immersionMode)
+  const { chromeCtx } = useSettings()
+  const gloss = glossVisibility(chromeCtx)
   // Onboarding first-swipe (M6.2c) mounts this with `initialTopic` (auto-start, skip the grid) +
   // `onFinish` (finish/close hands the kept count back to the flow instead of routing) + a French
   // `coachMark`. The bare /discover page passes none → grid-first, router-nav behavior unchanged.
@@ -272,28 +272,28 @@ export default function DiscoverClient({
         <div className="px-5 pt-1.5 pb-3 flex items-center gap-3.5">
           <Image src="/paco.png" alt="Paco" width={50} height={50} className="object-contain shrink-0" />
           <div>
-            <h1 className="font-serif text-[30px] font-bold tracking-[-0.02em] text-ink leading-none">{resolveChrome(DISCOVER_CHROME.title, immersionMode)}</h1>
-            <p className="text-[13px] text-muted mt-1.5">{resolveChrome(DISCOVER_CHROME.subtitle, immersionMode)}</p>
+            <h1 className="font-serif text-[30px] font-bold tracking-[-0.02em] text-ink leading-none">{resolveChrome(DISCOVER_CHROME.title, chromeCtx)}</h1>
+            <p className="text-[13px] text-muted mt-1.5">{resolveChrome(DISCOVER_CHROME.subtitle, chromeCtx)}</p>
           </div>
         </div>
 
         <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 flex flex-col gap-3">
           {/* POUR TOI — non-functional placeholders (adjacency = M5.1b, A2–B1 = content gate) */}
-          <SectionLabel>{resolveChrome(DISCOVER_CHROME.forYou, immersionMode)}</SectionLabel>
+          <SectionLabel>{resolveChrome(DISCOVER_CHROME.forYou, chromeCtx)}</SectionLabel>
           <FeaturedCard
             Icon={Share2}
-            title={resolveChrome(DISCOVER_CHROME.featured1Title, immersionMode)}
-            sub={resolveChrome(DISCOVER_CHROME.featured1Sub, immersionMode)}
+            title={resolveChrome(DISCOVER_CHROME.featured1Title, chromeCtx)}
+            sub={resolveChrome(DISCOVER_CHROME.featured1Sub, chromeCtx)}
             onTap={() => setComingSoon('adjacency')}
           />
           <FeaturedCard
             Icon={BarChart3}
-            title={resolveChrome(DISCOVER_CHROME.featured2Title, immersionMode)}
-            sub={resolveChrome(DISCOVER_CHROME.featured2Sub, immersionMode)}
+            title={resolveChrome(DISCOVER_CHROME.featured2Title, chromeCtx)}
+            sub={resolveChrome(DISCOVER_CHROME.featured2Sub, chromeCtx)}
             onTap={() => setComingSoon('level')}
           />
           <div className="mt-1">
-            <SectionLabel>{resolveChrome(DISCOVER_CHROME.byTheme, immersionMode)}</SectionLabel>
+            <SectionLabel>{resolveChrome(DISCOVER_CHROME.byTheme, chromeCtx)}</SectionLabel>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {DISCOVERY_TOPICS.map((t) => {
@@ -319,7 +319,7 @@ export default function DiscoverClient({
                     <span className="block font-serif italic text-[13px] text-muted mt-[3px]">{t.fr}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[10.5px] font-bold uppercase tracking-[0.08em] text-faint">{t.count} {resolveChrome(DISCOVER_CHROME.wordsPlural, immersionMode)}</span>
+                    <span className="text-[10.5px] font-bold uppercase tracking-[0.08em] text-faint">{t.count} {resolveChrome(DISCOVER_CHROME.wordsPlural, chromeCtx)}</span>
                     {sel && <ArrowRight size={16} className="text-accent" />}
                   </div>
                 </button>
@@ -337,12 +337,12 @@ export default function DiscoverClient({
             >
               <Sparkles size={16} className="text-amber-light shrink-0" />
               <p className="text-[14.5px] font-serif text-ivory flex-1">
-                {resolveChrome(comingSoon === 'adjacency' ? DISCOVER_CHROME.toastAdjacency : DISCOVER_CHROME.toastLevel, immersionMode)}
+                {resolveChrome(comingSoon === 'adjacency' ? DISCOVER_CHROME.toastAdjacency : DISCOVER_CHROME.toastLevel, chromeCtx)}
               </p>
               <button
                 type="button"
                 onClick={() => setComingSoon(null)}
-                aria-label={resolveChrome(DISCOVER_CHROME.close, immersionMode)}
+                aria-label={resolveChrome(DISCOVER_CHROME.close, chromeCtx)}
                 className="text-ivory/70 shrink-0 -mr-1 p-1"
               >
                 <X size={16} />
@@ -364,16 +364,16 @@ export default function DiscoverClient({
         {genError ? (
           <div className="flex-1 min-h-0 flex flex-col items-center justify-center text-center px-8 pb-10 gap-4">
             <Image src="/paco-sad.png" alt="Paco" width={72} height={72} className="object-contain" />
-            <p className="text-sm text-err font-serif">{resolveChrome(DISCOVER_CHROME.errorMsg, immersionMode)}</p>
+            <p className="text-sm text-err font-serif">{resolveChrome(DISCOVER_CHROME.errorMsg, chromeCtx)}</p>
             <Button variant="primary" type="button" onClick={() => topic && void startTopic(topic)}>
-              {resolveChrome(DISCOVER_CHROME.retry, immersionMode)}
+              {resolveChrome(DISCOVER_CHROME.retry, chromeCtx)}
             </Button>
           </div>
         ) : (
           <div className="flex-1 min-h-0 overflow-y-auto pt-1">
             <LoadingChecklist
-              title={<>{resolveChrome(DISCOVER_CHROME.genTitle, immersionMode)} <span className="text-accent">«&nbsp;{topic?.es}&nbsp;»</span></>}
-              phases={GEN_PHASE_PAIRS.map((p) => resolveChrome(p, immersionMode))}
+              title={<>{resolveChrome(DISCOVER_CHROME.genTitle, chromeCtx)} <span className="text-accent">«&nbsp;{topic?.es}&nbsp;»</span></>}
+              phases={GEN_PHASE_PAIRS.map((p) => resolveChrome(p, chromeCtx))}
               ready={genReady}
               onReveal={onGenReveal}
               phaseDwellMs={950}
@@ -395,9 +395,9 @@ export default function DiscoverClient({
         </div>
         <div className="flex-1 min-h-0 flex flex-col items-center justify-center text-center px-9 pb-6">
           <Image src="/paco-feliz.png" alt="Paco" width={104} height={104} className="object-contain mb-2.5" />
-          <h1 className="font-serif text-[28px] font-bold tracking-[-0.02em] text-ink">{resolveChrome(DISCOVER_CHROME.themeDone, immersionMode)}</h1>
+          <h1 className="font-serif text-[28px] font-bold tracking-[-0.02em] text-ink">{resolveChrome(DISCOVER_CHROME.themeDone, chromeCtx)}</h1>
           <p className="text-base text-ink leading-relaxed mt-3.5 max-w-[280px]">
-            {immersionMode === 'fr_es' ? (
+            {chromeCtx.policy === 'visible' ? (
               <>Tu as ajouté <span className="font-bold text-amber-deep">{kept}&nbsp;mot{kept !== 1 ? 's' : ''}</span> à ta collection.</>
             ) : (
               <>Has añadido <span className="font-bold text-amber-deep">{kept}&nbsp;palabra{kept !== 1 ? 's' : ''}</span> a tu colección.</>
@@ -405,7 +405,7 @@ export default function DiscoverClient({
           </p>
           {known > 0 && (
             <p className="text-[13.5px] text-faint mt-1.5">
-              {immersionMode === 'fr_es' ? (
+              {chromeCtx.policy === 'visible' ? (
                 <>{known}&nbsp;mot{known !== 1 ? 's' : ''} déjà connu{known !== 1 ? 's' : ''}.</>
               ) : (
                 <>{known}&nbsp;palabra{known !== 1 ? 's' : ''} ya conocida{known !== 1 ? 's' : ''}.</>
@@ -414,7 +414,7 @@ export default function DiscoverClient({
           )}
           {kept > 0 && (
             <p className="text-[12.5px] text-muted leading-relaxed mt-3.5 max-w-[280px]">
-              {resolveChrome(DISCOVER_CHROME.arrivalLine, immersionMode)}
+              {resolveChrome(DISCOVER_CHROME.arrivalLine, chromeCtx)}
             </p>
           )}
           <div
@@ -429,13 +429,13 @@ export default function DiscoverClient({
             ) : (
               <>
                 <Button variant="primary" full type="button" onClick={() => router.push('/review')}>
-                  {resolveChrome(DISCOVER_CHROME.reviewNow, immersionMode)} →
+                  {resolveChrome(DISCOVER_CHROME.reviewNow, chromeCtx)} →
                 </Button>
                 <Button variant="secondary" full type="button" onClick={() => router.push('/')}>
-                  {resolveChrome(DISCOVER_CHROME.backHome, immersionMode)}
+                  {resolveChrome(DISCOVER_CHROME.backHome, chromeCtx)}
                 </Button>
                 <Button variant="text" type="button" onClick={backToGrid}>
-                  {resolveChrome(DISCOVER_CHROME.discoverAnother, immersionMode)} →
+                  {resolveChrome(DISCOVER_CHROME.discoverAnother, chromeCtx)} →
                 </Button>
               </>
             )}
@@ -455,14 +455,14 @@ export default function DiscoverClient({
         <div className="flex-1 min-h-0 flex flex-col items-center justify-center text-center px-10 pb-12">
           <Image src="/paco-durmiendo.png" alt="Paco" width={196} height={196} className="object-contain mb-0.5" />
           <h1 className="font-serif text-[23px] font-bold tracking-[-0.01em] text-ink leading-snug">
-            {immersionMode === 'fr_es' ? (
+            {chromeCtx.policy === 'visible' ? (
               <>Tu as fait le tour de «&nbsp;{topic?.es}&nbsp;»</>
             ) : (
               <>Has recorrido todo «{topic?.es}»</>
             )}
           </h1>
           <p className="text-[14.5px] text-muted leading-relaxed mt-2.5 max-w-[264px]">
-            {resolveChrome(DISCOVER_CHROME.exhaustedBody, immersionMode)}
+            {resolveChrome(DISCOVER_CHROME.exhaustedBody, chromeCtx)}
           </p>
           <div className="mt-6">
             {onFinish ? (
@@ -471,7 +471,7 @@ export default function DiscoverClient({
               </Button>
             ) : (
               <Button variant="secondary" type="button" onClick={backToGrid}>
-                <Compass size={17} strokeWidth={1.9} /> {resolveChrome(DISCOVER_CHROME.chooseAnother, immersionMode)}
+                <Compass size={17} strokeWidth={1.9} /> {resolveChrome(DISCOVER_CHROME.chooseAnother, chromeCtx)}
               </Button>
             )}
           </div>
@@ -502,7 +502,7 @@ export default function DiscoverClient({
         </div>
       </div>
 
-      {/* Onboarding coach-mark (French scaffolding — stays FR regardless of the card's immersion mode) */}
+      {/* Onboarding coach-mark (French scaffolding — stays FR regardless of the card's immersion ctx) */}
       {coachMark && <div className="shrink-0 px-[22px] mt-3">{coachMark}</div>}
 
       {/* Card stack: two ghost cards behind + the swipeable top card */}
@@ -521,12 +521,12 @@ export default function DiscoverClient({
               leftWash="color-mix(in srgb, var(--color-ok) 15%, transparent)"
               rightStamp={
                 <span className="font-sans text-[21px] font-extrabold uppercase tracking-[0.04em] text-amber-deep border-[3px] border-amber-deep rounded-[11px] px-3.5 py-1.5 bg-[color-mix(in_srgb,var(--color-card)_72%,transparent)]">
-                  {resolveChrome(DISCOVER_CHROME.learnStamp, immersionMode)}
+                  {resolveChrome(DISCOVER_CHROME.learnStamp, chromeCtx)}
                 </span>
               }
               leftStamp={
                 <span className="font-sans text-[21px] font-extrabold uppercase tracking-[0.04em] text-sage-ink border-[3px] border-ok rounded-[11px] px-3.5 py-1.5 bg-[color-mix(in_srgb,var(--color-card)_72%,transparent)]">
-                  {resolveChrome(DISCOVER_CHROME.knowStamp, immersionMode)}
+                  {resolveChrome(DISCOVER_CHROME.knowStamp, chromeCtx)}
                 </span>
               }
             >
@@ -543,7 +543,7 @@ export default function DiscoverClient({
                     {gloss !== 'hidden' && <span className="text-faint">·</span>}
                     {gloss === 'visible' && <span className="font-serif italic text-[17px] text-muted">{card.fr}</span>}
                     {gloss === 'tap' && (
-                      <TapReveal label={resolveChrome(DISCOVER_CHROME.cardReveal, immersionMode)}>
+                      <TapReveal label={resolveChrome(DISCOVER_CHROME.cardReveal, chromeCtx)}>
                         <span className="font-serif italic text-[17px] text-muted">{card.fr}</span>
                       </TapReveal>
                     )}
@@ -557,7 +557,7 @@ export default function DiscoverClient({
                   )}
                   {gloss === 'tap' && (
                     <div className="mt-1.5">
-                      <TapReveal label={resolveChrome(DISCOVER_CHROME.cardReveal, immersionMode)}>
+                      <TapReveal label={resolveChrome(DISCOVER_CHROME.cardReveal, chromeCtx)}>
                         <p className="font-serif italic text-[13.5px] text-muted leading-relaxed">{card.example.fr}</p>
                       </TapReveal>
                     </div>
@@ -579,16 +579,16 @@ export default function DiscoverClient({
           onClick={() => decide('known')}
           className="flex-1 py-[13px] rounded-[14px] bg-card border-[1.5px] border-sage-border text-sage-ink flex flex-col items-center gap-[3px] font-sans font-bold text-[15px]"
         >
-          {resolveChrome(DISCOVER_CHROME.knowStamp, immersionMode)}
-          <span className="text-[10.5px] font-medium opacity-80 whitespace-nowrap">{resolveChrome(DISCOVER_CHROME.swipeLeft, immersionMode)}</span>
+          {resolveChrome(DISCOVER_CHROME.knowStamp, chromeCtx)}
+          <span className="text-[10.5px] font-medium opacity-80 whitespace-nowrap">{resolveChrome(DISCOVER_CHROME.swipeLeft, chromeCtx)}</span>
         </button>
         <button
           type="button"
           onClick={() => decide('kept')}
           className="flex-1 py-[13px] rounded-[14px] bg-accent border-[1.5px] border-accent text-ivory shadow-amber-sm flex flex-col items-center gap-[3px] font-sans font-bold text-[15px]"
         >
-          {resolveChrome(DISCOVER_CHROME.learnStamp, immersionMode)}
-          <span className="text-[10.5px] font-medium opacity-90 whitespace-nowrap">{resolveChrome(DISCOVER_CHROME.swipeRight, immersionMode)}</span>
+          {resolveChrome(DISCOVER_CHROME.learnStamp, chromeCtx)}
+          <span className="text-[10.5px] font-medium opacity-90 whitespace-nowrap">{resolveChrome(DISCOVER_CHROME.swipeRight, chromeCtx)}</span>
         </button>
       </div>
     </FocusedOverlay>

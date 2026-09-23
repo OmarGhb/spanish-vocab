@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { AZ_BUCKETS, groupAZ, type Bucket, type DictionaryEntry } from '@/lib/dictionary'
-import { resolveChrome, DICT_CHROME, NAV_CHROME, type ImmersionMode } from '@/lib/immersion'
+import { DEFAULT_CHROME_CTX, resolveChrome, DICT_CHROME, NAV_CHROME, type ChromeCtx } from '@/lib/immersion'
 import AudioButton from '../AudioButton'
 
 // Offset for the sticky top nav (matches the sections' scroll-mt-28 ≈ 112px) — used both
@@ -15,7 +15,7 @@ const NAV_OFFSET = 112
 // reps / filters / sorts. The row gloss is the Spanish sense (definition.es): this is an
 // index of words the user has ALREADY memorized, so Spanish reinforces the learning frame;
 // the French stays available at the word fiche.
-export default function DictionaryIndex({ entries, mode = 'fr_es' }: { entries: DictionaryEntry[]; mode?: ImmersionMode }) {
+export default function DictionaryIndex({ entries, ctx = DEFAULT_CHROME_CTX }: { entries: DictionaryEntry[]; ctx?: ChromeCtx }) {
   const sections = groupAZ(entries)
   const present = new Set<Bucket>(sections.map((s) => s.letter))
   const sectionRefs = useRef<Map<Bucket, HTMLElement | null>>(new Map())
@@ -104,12 +104,12 @@ export default function DictionaryIndex({ entries, mode = 'fr_es' }: { entries: 
       <div className="pl-[22px] pr-[30px] pt-1.5 pb-10 flex flex-col">
         {/* Masthead — no back chevron (top-level pill destination) */}
         <div className="pb-3">
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-accent">{resolveChrome(DICT_CHROME.personalLexicon, mode)}</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-accent">{resolveChrome(DICT_CHROME.personalLexicon, ctx)}</p>
           <h1 className="font-serif text-[34px] font-bold text-ink leading-none tracking-[-0.025em] mt-1.5">
-            {resolveChrome(NAV_CHROME.dictionary, mode)}
+            {resolveChrome(NAV_CHROME.dictionary, ctx)}
           </h1>
           <p className="text-[13.5px] text-muted mt-[7px]">
-            {mode === 'fr_es'
+            {ctx.policy === 'visible'
               ? `${count} mot${count !== 1 ? 's' : ''} dans ton dictionnaire`
               : `${count} palabra${count !== 1 ? 's' : ''} en tu diccionario`}
           </p>

@@ -15,7 +15,7 @@ import { canSubmitPasswordChange } from '@/lib/password-policy'
 // surfaces as the field error shown in the mockup, never silently changes the password.
 export default function PasswordForm({ email }: { email: string }) {
   const router = useRouter()
-  const { immersionMode: mode } = useSettings()
+  const { chromeCtx: ctx } = useSettings()
   const [current, setCurrent] = useState('')
   const [next, setNext] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -36,7 +36,7 @@ export default function PasswordForm({ email }: { email: string }) {
     // 1) Reauthenticate: verify the CURRENT password (signInWithPassword for the same user).
     const { error: signInError } = await supabase.auth.signInWithPassword({ email, password: current })
     if (signInError) {
-      setCurrentError(resolveChrome(ACCOUNT_CHROME.pwdWrongCurrent, mode))
+      setCurrentError(resolveChrome(ACCOUNT_CHROME.pwdWrongCurrent, ctx))
       setSaving(false)
       return
     }
@@ -44,7 +44,7 @@ export default function PasswordForm({ email }: { email: string }) {
     // 2) Set the new password.
     const { error: updateError } = await supabase.auth.updateUser({ password: next })
     if (updateError) {
-      setFormError(resolveChrome(ACCOUNT_CHROME.pwdUpdateFailed, mode))
+      setFormError(resolveChrome(ACCOUNT_CHROME.pwdUpdateFailed, ctx))
       setSaving(false)
       return
     }
@@ -56,7 +56,7 @@ export default function PasswordForm({ email }: { email: string }) {
   return (
     <div className="flex-1 px-[22px] pt-5 flex flex-col gap-[18px]">
       <Field
-        label={resolveChrome(ACCOUNT_CHROME.pwdCurrent, mode)}
+        label={resolveChrome(ACCOUNT_CHROME.pwdCurrent, ctx)}
         type={reveal.current ? 'text' : 'password'}
         mono={!reveal.current}
         value={current}
@@ -64,37 +64,37 @@ export default function PasswordForm({ email }: { email: string }) {
           setCurrent(v)
           if (currentError) setCurrentError(null)
         }}
-        placeholder={resolveChrome(ACCOUNT_CHROME.pwdCurrentPh, mode)}
+        placeholder={resolveChrome(ACCOUNT_CHROME.pwdCurrentPh, ctx)}
         error={currentError}
         trailing={<RevealLink shown={reveal.current} onClick={() => setReveal((r) => ({ ...r, current: !r.current }))} />}
       />
       <Field
-        label={resolveChrome(ACCOUNT_CHROME.pwdNew, mode)}
+        label={resolveChrome(ACCOUNT_CHROME.pwdNew, ctx)}
         type={reveal.next ? 'text' : 'password'}
         mono={!reveal.next}
         value={next}
         onChange={setNext}
-        placeholder={resolveChrome(ACCOUNT_CHROME.pwdNewPh, mode)}
-        help={resolveChrome(ACCOUNT_CHROME.pwdPolicy, mode)}
+        placeholder={resolveChrome(ACCOUNT_CHROME.pwdNewPh, ctx)}
+        help={resolveChrome(ACCOUNT_CHROME.pwdPolicy, ctx)}
         trailing={<RevealLink shown={reveal.next} onClick={() => setReveal((r) => ({ ...r, next: !r.next }))} />}
       />
       <Field
-        label={resolveChrome(ACCOUNT_CHROME.pwdConfirm, mode)}
+        label={resolveChrome(ACCOUNT_CHROME.pwdConfirm, ctx)}
         type={reveal.confirm ? 'text' : 'password'}
         mono={!reveal.confirm}
         value={confirm}
         onChange={setConfirm}
-        placeholder={resolveChrome(ACCOUNT_CHROME.pwdConfirmPh, mode)}
+        placeholder={resolveChrome(ACCOUNT_CHROME.pwdConfirmPh, ctx)}
         trailing={<RevealLink shown={reveal.confirm} onClick={() => setReveal((r) => ({ ...r, confirm: !r.confirm }))} />}
       />
       {formError && <p className="font-sans text-[12.5px] text-err">{formError}</p>}
       <div className="mt-1.5 flex flex-col gap-2.5">
         <Button variant="primary" full disabled={!canSubmit} onClick={handleSubmit}>
-          {saving ? resolveChrome(ACCOUNT_CHROME.pwdUpdating, mode) : resolveChrome(ACCOUNT_CHROME.pwdUpdate, mode)}
+          {saving ? resolveChrome(ACCOUNT_CHROME.pwdUpdating, ctx) : resolveChrome(ACCOUNT_CHROME.pwdUpdate, ctx)}
         </Button>
         <div className="flex justify-center">
           <Button variant="text" href="/account">
-            {resolveChrome(WORDS_CHROME.undo, mode)}
+            {resolveChrome(WORDS_CHROME.undo, ctx)}
           </Button>
         </div>
       </div>

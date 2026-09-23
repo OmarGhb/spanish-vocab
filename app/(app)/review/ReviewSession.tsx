@@ -52,7 +52,7 @@ async function fetchDueCards(limit: number): Promise<ReviewCard[]> {
 
 export default function ReviewSession({ cards: initialCards, dictionaryUnlocked, cardsPerSession }: Props) {
   const router = useRouter()
-  const { immersionMode } = useSettings()
+  const { chromeCtx } = useSettings()
   // Card deck is stateful so "Encore N" can swap in the next due batch in place.
   const [cards, setCards] = useState<ReviewCard[]>(initialCards)
   const [index, setIndex] = useState(0)
@@ -219,7 +219,7 @@ export default function ReviewSession({ cards: initialCards, dictionaryUnlocked,
           <Image src="/paco-feliz.png" alt="Paco" width={56} height={56} className="object-contain shrink-0" />
           <div>
             <Display kind="buenTrabajo" className="text-[30px] leading-none text-ink">¡Buen trabajo!</Display>
-            <p className="text-[13.5px] text-muted mt-[5px]">{resolveChrome(REVIEW_CHROME.sessionDone, immersionMode)}</p>
+            <p className="text-[13.5px] text-muted mt-[5px]">{resolveChrome(REVIEW_CHROME.sessionDone, chromeCtx)}</p>
           </div>
         </div>
 
@@ -227,9 +227,9 @@ export default function ReviewSession({ cards: initialCards, dictionaryUnlocked,
         <div className="px-[18px] shrink-0">
           <div className="flex bg-card border border-line rounded-2xl py-3.5">
             {[
-              { label: resolveChrome(REVIEW_CHROME.statReviewed, immersionMode), value: String(total) },
-              { label: resolveChrome(REVIEW_CHROME.statFirstTry, immersionMode), value: String(firstTry) },
-              { label: resolveChrome(REVIEW_CHROME.statTime, immersionMode), value: timeLabel },
+              { label: resolveChrome(REVIEW_CHROME.statReviewed, chromeCtx), value: String(total) },
+              { label: resolveChrome(REVIEW_CHROME.statFirstTry, chromeCtx), value: String(firstTry) },
+              { label: resolveChrome(REVIEW_CHROME.statTime, chromeCtx), value: timeLabel },
             ].map((s, i) => (
               <div key={s.label} className={`flex-1 text-center ${i > 0 ? 'border-l border-hair/60' : ''}`}>
                 <p className="font-serif text-[23px] font-bold tracking-[-0.02em] text-ink">{s.value}</p>
@@ -240,14 +240,14 @@ export default function ReviewSession({ cards: initialCards, dictionaryUnlocked,
         </div>
 
         {/* 2b — words that crossed into "mémorisé" this session (sage = acquisition, per the design
-            system). Shown only when ≥1 card crossed; the heading is mode-aware (FR/ES), the words
+            system). Shown only when ≥1 card crossed; the heading is ctx-aware (FR/ES), the words
             themselves are Spanish content. Sits above the per-word recap. */}
         {memorized.length > 0 && (
           <div className="px-[18px] pt-3 shrink-0">
             <div className="fade-up bg-ok-bg border border-sage-border rounded-2xl px-4 py-3">
               <p className="flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.12em] text-sage-ink">
                 <Sparkles size={13} strokeWidth={2} />
-                {resolveChrome(REVIEW_CHROME.newlyMemorized, immersionMode)}
+                {resolveChrome(REVIEW_CHROME.newlyMemorized, chromeCtx)}
               </p>
               <p className="mt-1.5 font-serif text-[15px] text-ink leading-snug">
                 {memorized.map((o) => o.word).join(' · ')}
@@ -305,10 +305,10 @@ export default function ReviewSession({ cards: initialCards, dictionaryUnlocked,
               style={{ boxShadow: '0 2px 6px rgba(154,90,28,0.28)' }}
             >
               {continuing ? (
-                resolveChrome(REVIEW_CHROME.loading, immersionMode)
+                resolveChrome(REVIEW_CHROME.loading, chromeCtx)
               ) : (
                 <>
-                  {immersionMode === 'fr_es'
+                  {chromeCtx.policy === 'visible'
                     ? `Encore ${dueRemaining} mot${dueRemaining !== 1 ? 's' : ''} à revoir`
                     : `Aún ${dueRemaining} palabra${dueRemaining !== 1 ? 's' : ''} por repasar`}
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.1} strokeLinecap="round" strokeLinejoin="round">
@@ -323,7 +323,7 @@ export default function ReviewSession({ cards: initialCards, dictionaryUnlocked,
             onClick={() => attemptExit('home')}
             className="w-full rounded-card border border-line bg-card py-[14px] text-center font-serif text-base font-semibold text-ink"
           >
-            ← {resolveChrome(REVIEW_CHROME.home, immersionMode)}
+            ← {resolveChrome(REVIEW_CHROME.home, chromeCtx)}
           </button>
         </div>
 
@@ -344,7 +344,7 @@ export default function ReviewSession({ cards: initialCards, dictionaryUnlocked,
   }
 
   const card = cards[index]
-  const mode = chooseMode(card, index)
+  const ctx = chooseMode(card, index)
   // Header + progress flip to success once an écriture answer is graded correct.
   const correct = verdict === 'exact'
 
@@ -360,7 +360,7 @@ export default function ReviewSession({ cards: initialCards, dictionaryUnlocked,
           {index + 1} / {cards.length}
         </span>
         <span className={`text-xs font-semibold uppercase tracking-widest transition-colors ${correct ? 'text-ok' : 'text-accent'}`}>
-          {resolveChrome(mode === 'blank' ? REVIEW_CHROME.modeWriting : REVIEW_CHROME.modeMcq, immersionMode)}
+          {resolveChrome(ctx === 'blank' ? REVIEW_CHROME.modeWriting : REVIEW_CHROME.modeMcq, chromeCtx)}
         </span>
       </div>
 
@@ -372,7 +372,7 @@ export default function ReviewSession({ cards: initialCards, dictionaryUnlocked,
         />
       </div>
 
-      {mode === 'blank' ? (
+      {ctx === 'blank' ? (
         <FillInBlank key={card.id} card={card} cardStartRef={cardStartRef} onRate={handleRate} onResult={setVerdict} />
       ) : (
         <MultipleChoice key={card.id} card={card} cardStartRef={cardStartRef} onRate={handleRate} />

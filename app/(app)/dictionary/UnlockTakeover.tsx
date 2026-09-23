@@ -27,7 +27,7 @@ export default function UnlockTakeover({
   onPrimary: () => void
   onDismiss: () => void
 }) {
-  const { immersionMode: mode } = useSettings()
+  const { chromeCtx: ctx } = useSettings()
   const flipped = useRef(false)
   useEffect(() => {
     if (flipped.current) return
@@ -63,13 +63,13 @@ export default function UnlockTakeover({
             className="lx-rise mt-4 text-[11px] font-bold uppercase tracking-[0.18em] text-accent"
             style={{ animationDelay: '0.15s' }}
           >
-            {resolveChrome(DICT_CHROME.unlocked, mode)}
+            {resolveChrome(DICT_CHROME.unlocked, ctx)}
           </p>
           <h1
             className="lx-rise mt-2.5 max-w-[300px] font-serif text-[28px] font-bold leading-[1.12] tracking-[-0.02em] text-ink"
             style={{ animationDelay: '0.24s' }}
           >
-            {resolveChrome(DICT_CHROME.dictUnlocked, mode)}
+            {resolveChrome(DICT_CHROME.dictUnlocked, ctx)}
           </h1>
           <div
             className="lx-rise mt-[18px] flex items-baseline gap-2.5"
@@ -78,13 +78,13 @@ export default function UnlockTakeover({
             <Display kind="milestone" className="text-[56px] leading-none text-amber-deep">
               {memorizedCount}
             </Display>
-            <span className="font-serif text-[19px] font-bold text-ink">{mode === 'fr_es' ? 'mots mémorisés' : 'palabras memorizadas'}</span>
+            <span className="font-serif text-[19px] font-bold text-ink">{ctx.policy === 'visible' ? 'mots mémorisés' : 'palabras memorizadas'}</span>
           </div>
           <p
             className="lx-rise mt-3.5 max-w-[290px] text-[14.5px] leading-[1.6] text-muted"
             style={{ animationDelay: '0.46s' }}
           >
-            {resolveChrome(DICT_CHROME.shelvedBody, mode)}
+            {resolveChrome(DICT_CHROME.shelvedBody, ctx)}
           </p>
         </div>
 
@@ -102,7 +102,7 @@ export default function UnlockTakeover({
             className="flex w-full items-center justify-center gap-2 rounded-card bg-accent py-[15px] font-serif text-base font-bold text-ivory"
             style={{ boxShadow: 'var(--shadow-amber)' }}
           >
-            {resolveChrome(DICT_CHROME.openMyDict, mode)}
+            {resolveChrome(DICT_CHROME.openMyDict, ctx)}
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.1} strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 12h14M13 6l6 6-6 6" />
             </svg>
@@ -112,7 +112,7 @@ export default function UnlockTakeover({
             onClick={onDismiss}
             className="w-full py-3 text-center font-serif text-base font-semibold text-muted"
           >
-            {resolveChrome(DICT_CHROME.later, mode)}
+            {resolveChrome(DICT_CHROME.later, ctx)}
           </button>
         </div>
       </div>

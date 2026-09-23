@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { isDue, type WordCard } from '@/lib/word-status'
-import type { ImmersionMode } from '@/lib/immersion'
+import { DEFAULT_CHROME_CTX, type ChromeCtx } from '@/lib/immersion'
 import { SELECTION_PERSISTENT } from './selection'
 import StatusPill from './StatusPill'
 import MasteryGauge from './MasteryGauge'
@@ -20,7 +20,7 @@ export default function WordRow({
   card,
   asListItem = true,
   flush = false,
-  mode = 'fr_es',
+  ctx = DEFAULT_CHROME_CTX,
 }: {
   // Optional: when absent the row renders as a non-link <div> (same anatomy). Used by
   // the add-flow ⑥ multi-success screen, where the similaire words are still being
@@ -39,7 +39,7 @@ export default function WordRow({
   flush?: boolean
   // Immersion mode for the composed StatusPill + MasteryGauge. Defaults to fr_es so unmigrated
   // consumers (the /add multi-success screen) stay French — no ES leak.
-  mode?: ImmersionMode
+  ctx?: ChromeCtx
 }) {
   const action = isDue(card)
   const wrapperCls = flush
@@ -56,8 +56,8 @@ export default function WordRow({
         {defEs && <p className="font-serif text-[13px] text-muted italic mt-[3px] line-clamp-1">{defEs}</p>}
       </div>
       <div className="flex flex-col items-center gap-2 shrink-0">
-        <StatusPill card={card} mode={mode} />
-        <MasteryGauge card={card} mode={mode} />
+        <StatusPill card={card} ctx={ctx} />
+        <MasteryGauge card={card} ctx={ctx} />
       </div>
     </>
   )

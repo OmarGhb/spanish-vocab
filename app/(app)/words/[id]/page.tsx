@@ -4,19 +4,19 @@ import { ChevronLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { oneEmbed } from '@/lib/word-status'
 import { posAbbrev } from '@/lib/discovery'
-import { coerceImmersionMode, resolveChrome, DETAIL_CHROME, type ImmersionMode } from '@/lib/immersion'
+import { coerceGlossPolicy, coerceSourceLocale, resolveChrome, DETAIL_CHROME, type ChromeCtx } from '@/lib/immersion'
 import AudioButton from '../../AudioButton'
 import StatusPill from '../../StatusPill'
 import MasteryGauge from '../../MasteryGauge'
 import WordDetailContent from './WordDetailContent'
 import WordDetailActions from './WordDetailActions'
 
-function statsLine(reps: number, lastReview: string | null, mode: ImmersionMode): string {
-  if (reps === 0 || !lastReview) return resolveChrome(DETAIL_CHROME.notReviewedYet, mode)
+function statsLine(reps: number, lastReview: string | null, ctx: ChromeCtx): string {
+  if (reps === 0 || !lastReview) return resolveChrome(DETAIL_CHROME.notReviewedYet, ctx)
   const todayMs = new Date(new Date().toDateString()).getTime()
   const lastMs = new Date(new Date(lastReview).toDateString()).getTime()
   const days = Math.round((todayMs - lastMs) / 86_400_000)
-  if (mode === 'fr_es') {
+  if (ctx.policy === 'visible') {
     const when =
       days === 0 ? "aujourd'hui" : days === 1 ? 'hier' : `il y a ${days} jour${days > 1 ? 's' : ''}`
     return `Révisé ${reps} fois — dernière révision ${when}`
@@ -37,12 +37,15 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
       .select('id, word, definition, examples, distractors, form_annotation, lemma, audio_urls, origin, discovery_status, review_cards(state, due, stability, reps, last_review)')
       .eq('id', id)
       .maybeSingle(),
-    supabase.from('profiles').select('immersion_mode').maybeSingle(),
+    supabase.from('profiles').select('source_locale, gloss_policy').maybeSingle(),
   ])
 
   if (!data) notFound()
 
-  const mode = coerceImmersionMode(profile?.immersion_mode)
+  const ctx: ChromeCtx = {
+    locale: coerceSourceLocale(profile?.source_locale),
+    policy: coerceGlossPolicy(profile?.gloss_policy),
+  }
 
   // A discovery word that isn't promoted yet is partial (no es definition, no distractors,
   // no review card) — never render it as a real collection word.
@@ -51,7 +54,7 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
   // to-one embed (UNIQUE word_id) → object; normalize for the stats/status read.
   const card = oneEmbed(data.review_cards as unknown as CardRow | CardRow[] | null)
 
-  const stats = statsLine(card?.reps ?? 0, card?.last_review ?? null, mode)
+  const stats = statsLine(card?.reps ?? 0, card?.last_review ?? null, ctx)
 
   const def = data.definition as Record<string, unknown> | null
   const defEs = typeof def?.es === 'string' ? def.es : ''
@@ -76,15 +79,15 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
             className="inline-flex items-center gap-1 -ml-1 text-sm font-semibold text-muted"
           >
             <ChevronLeft size={18} />
-            {resolveChrome(DETAIL_CHROME.myWordsBack, mode)}
+            {resolveChrome(DETAIL_CHROME.myWordsBack, ctx)}
           </Link>
-          <WordDetailActions wordId={data.id as string} word={data.word as string} mode={mode} />
+          <WordDetailActions wordId={data.id as string} word={data.word as string} ctx={ctx} />
         </div>
 
         {/* Status pill + 4-dot mastery gauge (same components as the rows). */}
         <div className="flex items-center gap-3">
-          <StatusPill card={card ?? null} mode={mode} />
-          <MasteryGauge card={card ?? null} mode={mode} />
+          <StatusPill card={card ?? null} ctx={ctx} />
+          <MasteryGauge card={card ?? null} ctx={ctx} />
         </div>
 
         {/* Word heading + inline abbreviated POS (baseline) + audio. */}
@@ -107,7 +110,7 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
           formAnnotation={formAnnotation}
           examples={examples}
           distractors={distractors}
-          mode={mode}
+          ctx={ctx}
         />
 
         {/* Stats line */}

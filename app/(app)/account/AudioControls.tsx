@@ -15,11 +15,11 @@ export function AutoplayToggle() {
 }
 
 export function SpeedSegmented() {
-  const { playbackSpeed, setPlaybackSpeed, immersionMode } = useSettings()
+  const { playbackSpeed, setPlaybackSpeed, chromeCtx } = useSettings()
   const options: readonly { value: PlaybackSpeed; label: string }[] = [
-    { value: 'lent', label: resolveChrome(ACCOUNT_CHROME.speedSlow, immersionMode) },
-    { value: 'normal', label: resolveChrome(ACCOUNT_CHROME.speedNormal, immersionMode) },
-    { value: 'rapide', label: resolveChrome(ACCOUNT_CHROME.speedFast, immersionMode) },
+    { value: 'lent', label: resolveChrome(ACCOUNT_CHROME.speedSlow, chromeCtx) },
+    { value: 'normal', label: resolveChrome(ACCOUNT_CHROME.speedNormal, chromeCtx) },
+    { value: 'rapide', label: resolveChrome(ACCOUNT_CHROME.speedFast, chromeCtx) },
   ]
   return <Segmented options={options} value={playbackSpeed} onChange={setPlaybackSpeed} />
 }

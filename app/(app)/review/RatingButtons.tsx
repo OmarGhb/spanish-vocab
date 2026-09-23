@@ -30,7 +30,7 @@ const TONE: Record<1 | 2 | 3 | 4, { selected: string; preselected: string }> = {
 const SELECT_BEAT_MS = 160
 
 export default function RatingButtons({ result, onRate }: Props) {
-  const { immersionMode } = useSettings()
+  const { chromeCtx } = useSettings()
   // The user's committed tap. null → the suggestion still renders as PRESELECTED (tint); once set,
   // that pill flips to SELECTED (solid) for a brief beat before the card advances.
   const [selected, setSelected] = useState<1 | 2 | 3 | 4 | null>(null)
@@ -77,7 +77,7 @@ export default function RatingButtons({ result, onRate }: Props) {
 
   return (
     <div>
-      <p className="font-serif text-[17px] text-ink mb-3">{resolveChrome(REVIEW_CHROME.ratingQuestion, immersionMode)}</p>
+      <p className="font-serif text-[17px] text-ink mb-3">{resolveChrome(REVIEW_CHROME.ratingQuestion, chromeCtx)}</p>
 
       <div className="grid grid-cols-4 gap-[9px]">
         {([1, 2, 3, 4] as const).map((r) => {
@@ -96,7 +96,7 @@ export default function RatingButtons({ result, onRate }: Props) {
               onClick={() => onPillClick(r)}
               className={`rounded-full border-[1.5px] py-[7px] text-center font-sans text-[13.5px] font-semibold leading-tight transition-colors ${cls}`}
             >
-              {resolveChrome(RATING_LABELS[r], immersionMode)}
+              {resolveChrome(RATING_LABELS[r], chromeCtx)}
             </button>
           )
         })}

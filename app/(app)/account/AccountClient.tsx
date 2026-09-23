@@ -15,9 +15,9 @@ import Field from '@/components/form/Field'
 // privileged route (auth.admin.deleteUser → full FK cascade), then signs out locally.
 export default function AccountActions({ totalWords }: { totalWords: number }) {
   const router = useRouter()
-  const { immersionMode: mode } = useSettings()
+  const { chromeCtx: ctx } = useSettings()
   // The confirm word is mode-aware so the ES instruction + the gate compare against the same token.
-  const CONFIRM_WORD = resolveChrome(ACCOUNT_CHROME.confirmToken, mode)
+  const CONFIRM_WORD = resolveChrome(ACCOUNT_CHROME.confirmToken, ctx)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [confirmText, setConfirmText] = useState('')
   const [deleteError, setDeleteError] = useState<string | null>(null)
@@ -44,7 +44,7 @@ export default function AccountActions({ totalWords }: { totalWords: number }) {
       const res = await fetch('/api/account/delete', { method: 'POST' })
       const data: { ok?: boolean; error?: string } = await res.json()
       if (!res.ok) {
-        setDeleteError(data.error ?? resolveChrome(ACCOUNT_CHROME.errorOccurred, mode))
+        setDeleteError(data.error ?? resolveChrome(ACCOUNT_CHROME.errorOccurred, ctx))
         setDeleting(false)
         return
       }
@@ -53,7 +53,7 @@ export default function AccountActions({ totalWords }: { totalWords: number }) {
       await supabase.auth.signOut()
       router.push('/login')
     } catch {
-      setDeleteError(resolveChrome(ACCOUNT_CHROME.networkError, mode))
+      setDeleteError(resolveChrome(ACCOUNT_CHROME.networkError, ctx))
       setDeleting(false)
     }
   }
@@ -63,11 +63,11 @@ export default function AccountActions({ totalWords }: { totalWords: number }) {
       <div className="px-4 pt-3.5 flex flex-col gap-2.5">
         <Button variant="secondary" full onClick={handleSignOut}>
           <LogOut size={17} strokeWidth={1.9} />
-          {resolveChrome(ACCOUNT_CHROME.signOut, mode)}
+          {resolveChrome(ACCOUNT_CHROME.signOut, ctx)}
         </Button>
         <Button variant="destructive" full onClick={() => setSheetOpen(true)}>
           <Trash2 size={17} strokeWidth={1.9} />
-          {resolveChrome(ACCOUNT_CHROME.deleteAccount, mode)}
+          {resolveChrome(ACCOUNT_CHROME.deleteAccount, ctx)}
         </Button>
       </div>
 
@@ -86,11 +86,11 @@ export default function AccountActions({ totalWords }: { totalWords: number }) {
                 <TriangleAlert size={20} strokeWidth={1.9} />
               </div>
               <h2 className="font-serif text-[23px] font-bold tracking-[-0.01em] text-ink">
-                {resolveChrome(ACCOUNT_CHROME.deleteTitle, mode)}
+                {resolveChrome(ACCOUNT_CHROME.deleteTitle, ctx)}
               </h2>
             </div>
             <p className="font-sans text-[13.5px] leading-[1.6] text-muted mb-[18px]">
-              {mode === 'fr_es' ? (
+              {ctx.policy === 'visible' ? (
                 <>
                   Cette action est <b className="text-terra-ink">définitive</b>. Tes{' '}
                   <b className="text-ink">{totalWords.toLocaleString('fr-FR')} mots</b>, ton historique de
@@ -105,7 +105,7 @@ export default function AccountActions({ totalWords }: { totalWords: number }) {
               )}
             </p>
             <Field
-              label={resolveChrome(ACCOUNT_CHROME.typeToConfirm, mode)}
+              label={resolveChrome(ACCOUNT_CHROME.typeToConfirm, ctx)}
               value={confirmText}
               onChange={setConfirmText}
               placeholder={CONFIRM_WORD}
@@ -120,10 +120,10 @@ export default function AccountActions({ totalWords }: { totalWords: number }) {
                 onClick={handleDelete}
               >
                 <Trash2 size={17} strokeWidth={1.9} />
-                {deleting ? resolveChrome(ACCOUNT_CHROME.deleting, mode) : resolveChrome(ACCOUNT_CHROME.deletePermanently, mode)}
+                {deleting ? resolveChrome(ACCOUNT_CHROME.deleting, ctx) : resolveChrome(ACCOUNT_CHROME.deletePermanently, ctx)}
               </Button>
               <Button variant="secondary" full onClick={closeSheet} disabled={deleting}>
-                {resolveChrome(WORDS_CHROME.undo, mode)}
+                {resolveChrome(WORDS_CHROME.undo, ctx)}
               </Button>
             </div>
           </div>

@@ -13,7 +13,7 @@ import {
 import { useRouter } from 'next/navigation'
 import { Trash2 } from 'lucide-react'
 import { deleteToastMessage } from '@/lib/delete-toast'
-import { resolveChrome, WORDS_CHROME, type ImmersionMode } from '@/lib/immersion'
+import { DEFAULT_CHROME_CTX, resolveChrome, WORDS_CHROME, type ChromeCtx } from '@/lib/immersion'
 
 // Deferred delete + undo, shaped to take a SET of ids (1 in M5.4b; M5.4c passes N).
 // Lives at the (app)-layout level — as a sibling of FocusModeProvider — so the
@@ -30,7 +30,7 @@ const UNDO_WINDOW_MS = 5000
 // The provider sits ABOVE SettingsProvider (layout nesting), so it can't read useSettings — the
 // caller (WordList / WordDetailActions, both under SettingsProvider) passes the mode in. Defaults
 // to fr_es so an omitting caller stays French.
-type Pending = { ids: string[]; labels: string[]; mode?: ImmersionMode }
+type Pending = { ids: string[]; labels: string[]; ctx?: ChromeCtx }
 
 type DeferredDeleteValue = {
   hiddenIds: Set<string>
@@ -137,13 +137,13 @@ export function DeferredDeleteProvider({ children }: { children: ReactNode }) {
             className="relative max-w-[430px] mx-auto overflow-hidden rounded-card px-4 py-3.5 shadow-menu pointer-events-auto flex items-center gap-3.5 bg-ink select-none"
           >
             <Trash2 size={16} className="text-amber-light shrink-0" />
-            <p className="text-[14.5px] font-serif text-ivory flex-1">{deleteToastMessage(pending.labels, pending.mode)}</p>
+            <p className="text-[14.5px] font-serif text-ivory flex-1">{deleteToastMessage(pending.labels, pending.ctx)}</p>
             <button
               type="button"
               onClick={undo}
               className="text-[13.5px] font-bold text-amber-mid underline underline-offset-[3px] shrink-0"
             >
-              {resolveChrome(WORDS_CHROME.undo, pending.mode ?? 'fr_es')}
+              {resolveChrome(WORDS_CHROME.undo, pending.ctx ?? DEFAULT_CHROME_CTX)}
             </button>
             <span
               aria-hidden

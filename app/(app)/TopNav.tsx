@@ -40,7 +40,7 @@ export default function TopNav({
 }) {
   const path = usePathname()
   const { focus } = useFocusMode()
-  const { immersionMode } = useSettings()
+  const { chromeCtx } = useSettings()
   const activeRef = useRef<HTMLAnchorElement>(null)
   // The locked pill never shows active styling; only the unlocked pill lights on /dictionary*.
   const dictActive = dictionaryUnlocked && (path === '/dictionary' || path.startsWith('/dictionary/'))
@@ -76,7 +76,7 @@ export default function TopNav({
         </Link>
         <Link
           href="/account"
-          aria-label={resolveChrome(NAV_CHROME.account, immersionMode)}
+          aria-label={resolveChrome(NAV_CHROME.account, chromeCtx)}
           aria-current={accountActive ? 'page' : undefined}
           className={`w-[42px] h-[42px] rounded-full flex items-center justify-center shrink-0 ${
             accountActive ? 'press-pill-amber bg-accent text-ivory shadow-amber-sm' : 'press-icon bg-tint text-accent'
@@ -109,7 +109,7 @@ export default function TopNav({
               }`}
             >
               <Icon size={16} strokeWidth={active ? 2.2 : 1.8} className={active ? undefined : 'text-accent/60'} />
-              {resolveChrome(chrome, immersionMode)}
+              {resolveChrome(chrome, chromeCtx)}
             </Link>
           )
         })}
@@ -126,16 +126,16 @@ export default function TopNav({
             }`}
           >
             <BookA size={16} strokeWidth={dictActive ? 2.2 : 1.8} className={dictActive ? undefined : 'text-accent/60'} />
-            {resolveChrome(NAV_CHROME.dictionary, immersionMode)}
+            {resolveChrome(NAV_CHROME.dictionary, chromeCtx)}
           </Link>
         ) : (
           <Link
             href="/dictionary"
-            aria-label={resolveChrome(NAV_CHROME.dictionaryLocked, immersionMode)}
+            aria-label={resolveChrome(NAV_CHROME.dictionaryLocked, chromeCtx)}
             className={`${PILL_BASE} press-pill border-dashed border-tinted-border bg-card text-faint opacity-85`}
           >
             <Lock size={16} strokeWidth={1.8} className="text-faint" />
-            {resolveChrome(NAV_CHROME.dictionary, immersionMode)}
+            {resolveChrome(NAV_CHROME.dictionary, chromeCtx)}
           </Link>
         )}
       </div>

@@ -1,49 +1,139 @@
-// FR/ES immersion layer (M6.1a) — the lightweight, mode-driven chrome resolver + French-gloss gate.
-// Deliberately NOT an i18n framework (no locale negotiation, no EN — the users are Francophone): a
-// two-language, per-user, mode-keyed toggle in the house pure-tested-helper style. Per-surface
-// opt-in, never a global <html lang> lock (onboarding scaffolding must stay French while product
-// surfaces flip).
+// The n-locale i18n layer (M8 Phase 0) — a source-locale × gloss-policy chrome resolver plus the
+// gloss-visibility gate. Generalizes the shipped FR/ES immersion layer (M6.1a–d) without changing a
+// single rendered byte: what used to be ONE enum conflating "which language do I think in" with
+// "how much translation do I want" is now two orthogonal axes.
 //
-//   fr_es      (default) → instructions/questions in French; Spanish content, FR translation on click
-//   immersion            → interface chrome in Spanish; FR translation via tap-to-reveal
-//   totale               → interface chrome in Spanish; NO French at all (not a hint, not after answering)
+//   source_locale  fr | en          the language the learner thinks in
+//   gloss_policy   visible          instructions/questions in the source locale; gloss shown
+//                  tap              interface chrome in Spanish; gloss via tap-to-reveal
+//                  hidden           interface chrome in Spanish; NO gloss at all, ever
+//
+// The legacy `immersion_mode` maps in exactly: fr_es = (fr, visible) · immersion = (fr, tap) ·
+// totale = (fr, hidden). It is DUAL-WRITTEN (see `immersionModeFor`) until Phase 2 drops the column.
+//
+// Still deliberately NOT a full i18n framework: no runtime locale negotiation, no message catalogs,
+// no ICU. Per-surface opt-in, never a global <html lang> lock (Phase 2 owns that).
 
+// ── source locale ───────────────────────────────────────────────────────────────────────────────
+export const SOURCE_LOCALES = ['fr', 'en'] as const
+export type SourceLocale = (typeof SOURCE_LOCALES)[number]
+export const DEFAULT_SOURCE_LOCALE: SourceLocale = 'fr'
+
+export function isSourceLocale(v: unknown): v is SourceLocale {
+  return typeof v === 'string' && (SOURCE_LOCALES as readonly string[]).includes(v)
+}
+// Coerce any input to a valid locale (DB read hardening). Mirrors coerceTheme.
+export function coerceSourceLocale(v: unknown): SourceLocale {
+  return isSourceLocale(v) ? v : DEFAULT_SOURCE_LOCALE
+}
+
+// ── gloss policy ────────────────────────────────────────────────────────────────────────────────
+export const GLOSS_POLICIES = ['visible', 'tap', 'hidden'] as const
+export type GlossPolicy = (typeof GLOSS_POLICIES)[number]
+export const DEFAULT_GLOSS_POLICY: GlossPolicy = 'visible'
+
+export function isGlossPolicy(v: unknown): v is GlossPolicy {
+  return typeof v === 'string' && (GLOSS_POLICIES as readonly string[]).includes(v)
+}
+export function coerceGlossPolicy(v: unknown): GlossPolicy {
+  return isGlossPolicy(v) ? v : DEFAULT_GLOSS_POLICY
+}
+
+// ── the resolver context ────────────────────────────────────────────────────────────────────────
+// The two axes travel together as ONE value: every chrome consumer takes a single `ctx` prop, so
+// adding a third axis later doesn't re-touch 265 call sites. Provided by SettingsProvider on the
+// client and prop-threaded from app/(app)/layout.tsx on the server.
+export type ChromeCtx = { locale: SourceLocale; policy: GlossPolicy }
+export const DEFAULT_CHROME_CTX: ChromeCtx = {
+  locale: DEFAULT_SOURCE_LOCALE,
+  policy: DEFAULT_GLOSS_POLICY,
+}
+
+// ── legacy bridge (deprecated) ──────────────────────────────────────────────────────────────────
+/** @deprecated Phase 0 legacy. `profiles.immersion_mode` is dual-written for rollback safety and
+ *  dropped at Phase 2 close. Read source_locale + gloss_policy in all new code. */
 export const IMMERSION_MODES = ['fr_es', 'immersion', 'totale'] as const
+/** @deprecated see IMMERSION_MODES */
 export type ImmersionMode = (typeof IMMERSION_MODES)[number]
-
+/** @deprecated see IMMERSION_MODES */
 export const DEFAULT_IMMERSION_MODE: ImmersionMode = 'fr_es'
 
+/** @deprecated see IMMERSION_MODES */
 export function isImmersionMode(v: unknown): v is ImmersionMode {
   return typeof v === 'string' && (IMMERSION_MODES as readonly string[]).includes(v)
 }
-// Coerce any input to a valid mode (DB read hardening). Mirrors coerceTheme.
+/** @deprecated see IMMERSION_MODES */
 export function coerceImmersionMode(v: unknown): ImmersionMode {
   return isImmersionMode(v) ? v : DEFAULT_IMMERSION_MODE
 }
 
-// A chrome string authored in both languages. `es` is optional: a string with no authored Spanish
-// yet degrades to French in every mode (see resolveChrome) — the graceful path while copy is filled.
-export type ChromePair = { fr: string; es?: string }
-
-// Resolve a chrome string for the active mode: French in fr_es; Spanish in immersion/totale, falling
-// back to French when the Spanish hasn't been authored yet. fr_es is therefore always byte-identical
-// to today.
-export function resolveChrome(pair: ChromePair, mode: ImmersionMode): string {
-  return mode === 'fr_es' ? pair.fr : pair.es ?? pair.fr
+// Derive the legacy column value from a ctx — the DUAL-WRITE direction. Every settings write sends
+// this alongside the new fields so a rollback to the previous deploy reads correct state.
+// The locale axis has no legacy representation: an `en` user rolled back would read as `fr_es`.
+// Unreachable in Phase 0 (the API pins source_locale to 'fr' until the Phase 1 pool backfill ships).
+export function immersionModeFor(ctx: ChromeCtx): ImmersionMode {
+  return ctx.policy === 'visible' ? 'fr_es' : ctx.policy === 'tap' ? 'immersion' : 'totale'
 }
 
-// The single French-gloss gate: how a French translation should be surfaced in the active mode.
-//   visible → render as today (fr_es)   ·   tap → behind a tap-to-reveal (immersion)   ·
-//   hidden  → suppressed entirely, incl. after answering (totale)
-export type GlossVisibility = 'visible' | 'tap' | 'hidden'
-export function glossVisibility(mode: ImmersionMode): GlossVisibility {
-  if (mode === 'fr_es') return 'visible'
-  if (mode === 'immersion') return 'tap'
-  return 'hidden'
+// The inverse — the READ direction, used by the migration's backfill semantics and by any consumer
+// still holding a legacy mode. Always yields the `fr` locale (all pre-Phase-0 users are Francophone).
+export function chromeCtxFromMode(mode: ImmersionMode): ChromeCtx {
+  return {
+    locale: 'fr',
+    policy: mode === 'fr_es' ? 'visible' : mode === 'immersion' ? 'tap' : 'hidden',
+  }
 }
 
-// Review chrome pairs — French + vetted Spanish (register: tú, es-ES). fr_es always renders the fr
-// side (byte-identical to today); immersion/totale render es. Decorative glyphs (→, ↓, ↵, ×) stay in
+// ── chrome pairs ────────────────────────────────────────────────────────────────────────────────
+// A chrome string authored per SOURCE locale, plus the optional immersion-Spanish side. `en` is
+// optional through Phase 1 and becomes REQUIRED in Phase 2 when the English copy lands — at which
+// point tsc turns the dictionaries below into the worklist. `es` is optional: a string with no
+// authored Spanish yet degrades to the source locale in every policy (see resolveChrome).
+export type ChromePair = { fr: string; en?: string; es?: string }
+
+// Every source locale required AND the immersion side required — no fallback, no optionality.
+// Used for strings where a missing translation is a CORRECTNESS bug, not a cosmetic one
+// (today: CONFIRM_TOKEN, the typed account-deletion gate). Adding a locale to SOURCE_LOCALES
+// without authoring its string fails at compile time.
+export type StrictChromePair = { [K in SourceLocale]: string } & { es: string }
+
+// Resolve a chrome string for the active context:
+//   visible     → the source-locale side
+//   tap/hidden  → the Spanish side, falling back to the source locale when ES isn't authored yet
+// (fr, visible) is therefore byte-identical to the pre-Phase-0 `fr_es`, and (fr, tap)/(fr, hidden)
+// to `immersion`/`totale` — proven line-by-line against lib/__fixtures__/chrome-golden.tsv.
+//
+// NEVER falls back across source locales: a missing string for the active locale renders as EMPTY
+// (and reports), not as the other language. Showing a French string to an English learner is the
+// silent-wrong-language bug this rule exists to prevent.
+export function resolveChrome(pair: ChromePair, ctx: ChromeCtx): string {
+  const value = ctx.policy === 'visible' ? pair[ctx.locale] : pair.es ?? pair[ctx.locale]
+  if (value === undefined) {
+    reportMissingChrome(pair, ctx)
+    return ''
+  }
+  return value
+}
+
+// Unreachable while `fr` is required by ChromePair and the only selectable locale; it becomes
+// dead-by-type in Phase 2 when `en` is required too. Kept as the runtime backstop for a malformed
+// pair arriving from a future dynamic source.
+function reportMissingChrome(pair: ChromePair, ctx: ChromeCtx): void {
+  console.warn(`[chrome] no ${ctx.locale} string for policy=${ctx.policy}:`, JSON.stringify(pair))
+}
+
+// The single gloss gate: how a source-locale translation should be surfaced.
+//   visible → render as today   ·   tap → behind a tap-to-reveal   ·
+//   hidden  → suppressed entirely, incl. after answering
+// Now a projection of the policy axis (the two were the same triple all along); kept as a named
+// function so the ~20 gloss call sites keep reading as a gate, not a field access.
+export type GlossVisibility = GlossPolicy
+export function glossVisibility(ctx: ChromeCtx): GlossVisibility {
+  return ctx.policy
+}
+
+// Review chrome pairs — French + vetted Spanish (register: tú, es-ES). `visible` renders the
+// source-locale side; `tap`/`hidden` render es. Decorative glyphs (→, ↓, ↵, ×) stay in
 // the JSX, not the copy. Pluralized / interpolated strings (hint counter, "N letras", "Aún N
 // palabras", the hint-cap caption) are built at their render site from these pieces + RATING_LABELS.
 export const REVIEW_CHROME = {
@@ -99,7 +189,7 @@ export const RATING_LABELS: Record<1 | 2 | 3 | 4, ChromePair> = {
 }
 
 // Discover chrome — French + vetted Spanish (register: tú, es-ES). Same rules as REVIEW_CHROME:
-// fr_es renders fr (byte-identical to today), immersion/totale render es. Decorative glyphs (→, «»)
+// `visible` renders the source-locale side, `tap`/`hidden` render es. Decorative glyphs (→, «»)
 // stay in JSX. The card gloss reveal uses the CARD register "Toca para traducir" (≠ Review's "Ver
 // traducción"). Pluralized / topic-interpolated lines (bilan add-line, "N palabras déjà connu",
 // exhausted heading, topic-tile count) build per-language at the render site.
@@ -383,10 +473,20 @@ export const ADD_CHROME = {
   },
 } as const satisfies Record<string, ChromePair>
 
+// The typed word the user must match to confirm account deletion (C3). StrictChromePair, NOT
+// ChromePair: this string gates a DESTRUCTIVE action, so a locale whose token is missing must fail
+// the BUILD, never fall through to a token the user can't read or — worse — resolve to '' and make
+// the confirmation field match on empty input. Adding a locale to SOURCE_LOCALES without a token
+// here is a compile error, by design. Policy-aware like every other pair, so the ES instruction
+// ("Escribe ELIMINAR") and the gate agree.
+export const CONFIRM_TOKEN: StrictChromePair = { fr: 'SUPPRIMER', en: 'DELETE', es: 'ELIMINAR' }
+
 // Account chrome (M6.1d-ii). Reuses DISCOVER_CHROME.soon ("Bientôt"→Pronto) + WORDS_CHROME.undo
-// ("Annuler"→Cancelar). NOTE: the ImmersionModePicker's OWN strings are DELIBERATELY left French
-// (it's the meta-control about the FR/ES choice + the escape hatch out of `totale`). PASSWORD_POLICY
-// is resolved here (mode-aware) so the shared FR constant stays FR for signup.
+// ("Annuler"→Cancelar). NOTE: the ImmersionModePicker's OWN strings render in the SOURCE LOCALE
+// regardless of the active policy — it is the meta-control over that choice and the escape hatch out
+// of `hidden`, so it must stay readable (it resolves with policy pinned to 'visible', see
+// ImmersionModePicker). PASSWORD_POLICY is resolved here (policy-aware) so the shared FR constant
+// stays FR for signup.
 export const ACCOUNT_CHROME = {
   // Group heads
   ghLearning: { fr: 'Apprentissage', es: 'Aprendizaje' },
@@ -450,8 +550,9 @@ export const ACCOUNT_CHROME = {
   networkError: { fr: 'Erreur réseau. Réessayez.', es: 'Error de red. Inténtalo de nuevo.' },
   errorOccurred: { fr: 'Une erreur est survenue.', es: 'Ha ocurrido un error.' },
   typeToConfirm: { fr: 'Tape SUPPRIMER pour confirmer', es: 'Escribe ELIMINAR para confirmar' },
-  // The typed word the user must match to confirm — mode-aware so the ES instruction + the gate agree.
-  confirmToken: { fr: 'SUPPRIMER', es: 'ELIMINAR' },
+  // The typed word the user must match to confirm. Aliases the strict constant below so the
+  // dictionary stays complete for consumers that iterate it; CONFIRM_TOKEN is the canonical export.
+  confirmToken: CONFIRM_TOKEN,
   // PasswordForm
   pwdCurrent: { fr: 'Mot de passe actuel', es: 'Contraseña actual' },
   pwdNew: { fr: 'Nouveau mot de passe', es: 'Nueva contraseña' },

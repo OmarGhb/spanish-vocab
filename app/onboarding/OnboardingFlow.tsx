@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowRight } from 'lucide-react'
 import Button from '../(app)/Button'
 import { useSettings } from '../(app)/SettingsProvider'
-import type { ImmersionMode } from '@/lib/immersion'
+import type { GlossPolicy } from '@/lib/immersion'
 import type { DiscoveryLevel } from '@/lib/discovery-pool'
 import { getTopic, ESENCIAL_TOPIC } from '@/lib/discovery-topics'
 import DiscoverClient from '../(app)/discover/DiscoverClient'
@@ -55,14 +55,14 @@ function patchProfile(body: Record<string, unknown>) {
 
 export default function OnboardingFlow({ poolCounts }: { poolCounts: Record<string, number> }) {
   const router = useRouter()
-  const { setImmersionMode, setTheme } = useSettings()
+  const { setGlossPolicy, setTheme } = useSettings()
   const [index, setIndex] = useState(0)
   const [saving, setSaving] = useState(false)
   const [goingBack, setGoingBack] = useState(false)
 
   // Capture state (lifted here so persistence lives in one place; steps are controlled).
   const [name, setName] = useState('')
-  const [immMode, setImmMode] = useState<ImmersionMode>('immersion') // pre-selected recommendation
+  const [immPolicy, setImmPolicy] = useState<GlossPolicy>('tap') // pre-selected recommendation
   const [level, setLevel] = useState<DiscoveryLevel | null>(null)
   const [starter, setStarter] = useState<string>(ESENCIAL_TOPIC.key) // recommended mélange, pre-selected
 
@@ -174,7 +174,7 @@ export default function OnboardingFlow({ poolCounts }: { poolCounts: Record<stri
         if (n) void patchProfile({ display_name: n })
         forward()
       } else if (step === 1) {
-        setImmersionMode(immMode)
+        setGlossPolicy(immPolicy)
         forward()
       } else if (step === 2) {
         forward() // theme already applied live on tap
@@ -187,7 +187,7 @@ export default function OnboardingFlow({ poolCounts }: { poolCounts: Record<stri
     const captureSkip = () => {
       if (step === 0) forward() // name stays null → email fallback
       else if (step === 1) {
-        setImmersionMode('fr_es')
+        setGlossPolicy('visible')
         forward()
       } else if (step === 2) {
         setTheme('sepia')
@@ -210,7 +210,7 @@ export default function OnboardingFlow({ poolCounts }: { poolCounts: Record<stri
       >
         <div key={index} className={`flex-1 min-h-0 flex flex-col ${slide}`}>
           {step === 0 && <NameStep value={name} onChange={setName} />}
-          {step === 1 && <ImmersionStep selected={immMode} onSelect={setImmMode} />}
+          {step === 1 && <ImmersionStep selected={immPolicy} onSelect={setImmPolicy} />}
           {step === 2 && <ThemeStep />}
           {step === 3 && <LevelStep selected={level} onSelect={setLevel} />}
         </div>

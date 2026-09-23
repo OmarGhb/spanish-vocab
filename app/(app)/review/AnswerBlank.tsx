@@ -24,7 +24,7 @@ type Props = {
 export default function AnswerBlank({ value, onChange, inputRef, onFocus, ghost }: Props) {
   // Aria-label follows the mode (shared by review écriture + drill; both immersion-aware). Reuses the
   // Review "Ta réponse" pair.
-  const { immersionMode } = useSettings()
+  const { chromeCtx } = useSettings()
   return (
     <span className="group relative inline-block min-w-[64px] border-b-2 border-accent px-1.5 pb-px text-center font-serif font-bold text-accent">
       {/* Visible value + faux caret (clicks fall through to the input on top). */}
@@ -43,7 +43,7 @@ export default function AnswerBlank({ value, onChange, inputRef, onFocus, ghost 
         autoCorrect="off"
         autoComplete="off"
         spellCheck={false}
-        aria-label={resolveChrome(REVIEW_CHROME.yourAnswer, immersionMode)}
+        aria-label={resolveChrome(REVIEW_CHROME.yourAnswer, chromeCtx)}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onFocus={() => onFocus?.()}

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { MoreVertical, RotateCcw, Trash2 } from 'lucide-react'
 import { useDeferredDelete } from '../../DeferredDelete'
-import { resolveChrome, DETAIL_CHROME, type ImmersionMode } from '@/lib/immersion'
+import { resolveChrome, DETAIL_CHROME, type ChromeCtx } from '@/lib/immersion'
 
 // Detail-page ⋮ overflow menu (board §06). The low-frequency Relearn + Delete moved
 // off the bottom bar into a top-right popover.
@@ -13,7 +13,7 @@ import { resolveChrome, DETAIL_CHROME, type ImmersionMode } from '@/lib/immersio
 //     refresh, which IS the confirmation.
 //   • "Supprimer" — destructive item; routes back to /words through the deferred-delete
 //     primitive (the undo toast carries over — the provider is layout-level).
-export default function WordDetailActions({ wordId, word, mode }: { wordId: string; word: string; mode: ImmersionMode }) {
+export default function WordDetailActions({ wordId, word, ctx }: { wordId: string; word: string; ctx: ChromeCtx }) {
   const router = useRouter()
   const { scheduleDelete } = useDeferredDelete()
   const [open, setOpen] = useState(false)
@@ -39,7 +39,7 @@ export default function WordDetailActions({ wordId, word, mode }: { wordId: stri
 
   function handleDelete() {
     setOpen(false)
-    scheduleDelete({ ids: [wordId], labels: [word], mode })
+    scheduleDelete({ ids: [wordId], labels: [word], ctx })
     router.push('/words')
   }
 
@@ -89,7 +89,7 @@ export default function WordDetailActions({ wordId, word, mode }: { wordId: stri
             className="press-row w-full flex items-center gap-3 px-4 py-3.5 text-left text-[14.5px] text-ink disabled:opacity-60"
           >
             <RotateCcw size={18} className="text-muted shrink-0" />
-            {resolveChrome(DETAIL_CHROME.relearn, mode)}
+            {resolveChrome(DETAIL_CHROME.relearn, ctx)}
           </button>
           <div className="h-px bg-border-soft" />
           <button
@@ -99,7 +99,7 @@ export default function WordDetailActions({ wordId, word, mode }: { wordId: stri
             className="press-row w-full flex items-center gap-3 px-4 py-3.5 text-left text-[14.5px] font-semibold text-err"
           >
             <Trash2 size={17} className="text-err shrink-0" />
-            {resolveChrome(DETAIL_CHROME.delete, mode)}
+            {resolveChrome(DETAIL_CHROME.delete, ctx)}
           </button>
         </div>
       )}

@@ -4,7 +4,7 @@ import { useRef, useState, type PointerEvent as ReactPointerEvent, type MouseEve
 import { Trash2 } from 'lucide-react'
 import { clampOffset, resolveSnap, exceedsTapSlop, DRAWER_WIDTH } from '@/lib/swipe-row'
 import { isDue, type WordCard } from '@/lib/word-status'
-import { resolveChrome, WORDS_CHROME, type ImmersionMode } from '@/lib/immersion'
+import { DEFAULT_CHROME_CTX, resolveChrome, WORDS_CHROME, type ChromeCtx } from '@/lib/immersion'
 import WordRow from '../WordRow'
 
 type Props = {
@@ -12,7 +12,7 @@ type Props = {
   word: string
   defEs: string
   card: WordCard | null
-  mode?: ImmersionMode
+  ctx?: ChromeCtx
   isOpen: boolean
   onOpen: () => void
   onClose: () => void
@@ -31,7 +31,7 @@ export default function SwipeRow({
   word,
   defEs,
   card,
-  mode = 'fr_es',
+  ctx = DEFAULT_CHROME_CTX,
   isOpen,
   onOpen,
   onClose,
@@ -124,18 +124,18 @@ export default function SwipeRow({
         className="flex"
       >
         <div className="w-full shrink-0">
-          <WordRow id={id} word={word} defEs={defEs} card={card} mode={mode} asListItem={false} flush />
+          <WordRow id={id} word={word} defEs={defEs} card={card} ctx={ctx} asListItem={false} flush />
         </div>
         {/* Destructive panel — flush, full height, terracotta variant (rare). */}
         <button
           type="button"
           onClick={onDelete}
-          aria-label={`${resolveChrome(WORDS_CHROME.delete, mode)} ${word}`}
+          aria-label={`${resolveChrome(WORDS_CHROME.delete, ctx)} ${word}`}
           style={{ width: DRAWER_WIDTH }}
           className="shrink-0 flex flex-col items-center justify-center gap-1 border-l-[1.5px] border-err bg-err-bg text-terra-ink text-[13px] font-semibold"
         >
           <Trash2 size={19} />
-          {resolveChrome(WORDS_CHROME.delete, mode)}
+          {resolveChrome(WORDS_CHROME.delete, ctx)}
         </button>
       </div>
     </li>

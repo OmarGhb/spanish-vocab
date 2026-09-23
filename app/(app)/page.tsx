@@ -5,7 +5,7 @@ import { DICTIONARY_UNLOCK_THRESHOLD, getDictionaryState } from '@/lib/dictionar
 import { buildDrillPool, DRILL_UNLOCK_THRESHOLD } from '@/lib/drill'
 import { estimateMinutes, RECENT_LOGS_WINDOW } from '@/lib/review-estimate'
 import { resolveHomeState } from '@/lib/home-state'
-import { coerceImmersionMode, resolveChrome, HOME_CHROME } from '@/lib/immersion'
+import { coerceGlossPolicy, coerceSourceLocale, resolveChrome, HOME_CHROME, type ChromeCtx } from '@/lib/immersion'
 import { resolveDisplayName } from '@/lib/display-name'
 import ReviewHero from './ReviewHero'
 import SalutBanner from './SalutBanner'
@@ -55,11 +55,14 @@ export default async function HomePage({
         .select('word, lemma, definition')
         .or('origin.eq.manual,discovery_status.eq.promoted'),
       // Immersion mode (M6.1c) + display_name (M6.2c salut banner) — server-rendered, no client hook.
-      supabase.from('profiles').select('immersion_mode, display_name').maybeSingle(),
+      supabase.from('profiles').select('source_locale, gloss_policy, display_name').maybeSingle(),
       supabase.auth.getUser(),
     ])
 
-  const mode = coerceImmersionMode(profile?.immersion_mode)
+  const ctx: ChromeCtx = {
+    locale: coerceSourceLocale(profile?.source_locale),
+    policy: coerceGlossPolicy(profile?.gloss_policy),
+  }
 
   // One-time onboarding handoff banner (M6.2c) — gated on ?welcome=1; `added` is the swipe kept-count,
   // clamped so a hand-edited URL can't render a fake tally. The banner strips the query on mount.
@@ -115,13 +118,13 @@ export default async function HomePage({
         {/* One-time onboarding handoff greeting (M6.2c) — above the hero, self-dismisses on refresh. */}
         {showWelcome && <SalutBanner name={welcomeName} added={addedCount} />}
         {/* Review hero — the loudest element; a crème+ SURFACE, never amber-filled. */}
-        <ReviewHero state={hero} count={due} minutes={minutes} mode={mode} />
+        <ReviewHero state={hero} count={due} minutes={minutes} ctx={ctx} />
 
         {/* "Continuer avec Paco" — the function rail. Horizontally-scrollable, equal-height (132px)
             cards; Ajouter is the feature card, the two gated functions render their existing-gate
             locked variant below threshold. Full-bleed (-mx-5) with a right-edge fade. */}
         <p className="px-0.5 pt-1 text-[11px] font-bold uppercase tracking-[0.14em] text-muted">
-          {resolveChrome(HOME_CHROME.continueWithPaco, mode)}
+          {resolveChrome(HOME_CHROME.continueWithPaco, ctx)}
         </p>
         <div className="-mx-5 relative">
           <div className="flex gap-[11px] overflow-x-auto no-scrollbar px-5 pb-[14px]">
@@ -129,32 +132,32 @@ export default async function HomePage({
               feature
               href="/add"
               icon={<Plus size={19} strokeWidth={1.9} />}
-              title={resolveChrome(HOME_CHROME.addTitle, mode)}
-              desc={resolveChrome(HOME_CHROME.addDesc, mode)}
+              title={resolveChrome(HOME_CHROME.addTitle, ctx)}
+              desc={resolveChrome(HOME_CHROME.addDesc, ctx)}
               className="w-[182px] h-[132px] shrink-0"
             />
             <HubCard
               href="/discover"
               icon={<Compass size={19} strokeWidth={1.9} />}
-              title={resolveChrome(HOME_CHROME.discoverTitle, mode)}
-              desc={resolveChrome(HOME_CHROME.discoverDesc, mode)}
+              title={resolveChrome(HOME_CHROME.discoverTitle, ctx)}
+              desc={resolveChrome(HOME_CHROME.discoverDesc, ctx)}
               className="w-[182px] h-[132px] shrink-0"
             />
             {drillUnlocked ? (
               <HubCard
                 href="/drill"
                 icon={<Rows3 size={19} strokeWidth={1.9} />}
-                title={resolveChrome(HOME_CHROME.conjTitle, mode)}
-                desc={resolveChrome(HOME_CHROME.conjDesc, mode)}
+                title={resolveChrome(HOME_CHROME.conjTitle, ctx)}
+                desc={resolveChrome(HOME_CHROME.conjDesc, ctx)}
                 className="w-[182px] h-[132px] shrink-0"
               />
             ) : (
               <HubCardLocked
                 icon={<Rows3 size={19} strokeWidth={1.7} />}
-                title={resolveChrome(HOME_CHROME.conjTitle, mode)}
+                title={resolveChrome(HOME_CHROME.conjTitle, ctx)}
                 have={trustedVerbCount}
                 need={DRILL_UNLOCK_THRESHOLD}
-                unit={resolveChrome(HOME_CHROME.conjUnit, mode)}
+                unit={resolveChrome(HOME_CHROME.conjUnit, ctx)}
                 className="w-[182px] h-[132px] shrink-0"
               />
             )}
@@ -162,17 +165,17 @@ export default async function HomePage({
               <HubCard
                 href="/dictionary"
                 icon={<BookA size={19} strokeWidth={1.9} />}
-                title={resolveChrome(HOME_CHROME.dictTitle, mode)}
-                desc={resolveChrome(HOME_CHROME.dictDesc, mode)}
+                title={resolveChrome(HOME_CHROME.dictTitle, ctx)}
+                desc={resolveChrome(HOME_CHROME.dictDesc, ctx)}
                 className="w-[182px] h-[132px] shrink-0"
               />
             ) : (
               <HubCardLocked
                 icon={<BookA size={19} strokeWidth={1.7} />}
-                title={resolveChrome(HOME_CHROME.dictTitle, mode)}
+                title={resolveChrome(HOME_CHROME.dictTitle, ctx)}
                 have={memorizedCount}
                 need={DICTIONARY_UNLOCK_THRESHOLD}
-                unit={resolveChrome(HOME_CHROME.dictUnit, mode)}
+                unit={resolveChrome(HOME_CHROME.dictUnit, ctx)}
                 className="w-[182px] h-[132px] shrink-0"
               />
             )}
@@ -185,7 +188,7 @@ export default async function HomePage({
 
         {/* Ta collection — header + recent preview, joined by an amber accent rail. */}
         <div className="pt-1" />
-        <CollectionSection state={collection} previews={previews} totalCount={totalWords} mode={mode} />
+        <CollectionSection state={collection} previews={previews} totalCount={totalWords} ctx={ctx} />
       </div>
     </div>
   )

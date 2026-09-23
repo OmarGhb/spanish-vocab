@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { resolveChrome, DISCOVER_CHROME, type ImmersionMode } from '@/lib/immersion'
+import { DEFAULT_CHROME_CTX, resolveChrome, DISCOVER_CHROME, type ChromeCtx } from '@/lib/immersion'
 import { RowWrap } from './SettingsCard'
 
 // The row system has TWO core states (locked contract): ACTIVE (a live control) vs BIENTÔT
@@ -49,19 +49,19 @@ export function ActiveRow({
 
 // (b) BIENTÔT — inert, on-brand, unmistakable: faint label + dashed-border ghost pill.
 // Distinct from the system's SOLID status pills. No tap target, not focusable.
-function SoonBadge({ mode }: { mode: ImmersionMode }) {
+function SoonBadge({ ctx }: { ctx: ChromeCtx }) {
   return (
     <span className="inline-flex items-center rounded-full border-[1.5px] border-dashed border-line px-3 py-[5px] font-sans text-[10.5px] font-bold tracking-[0.08em] uppercase text-faint whitespace-nowrap">
-      {resolveChrome(DISCOVER_CHROME.soon, mode)}
+      {resolveChrome(DISCOVER_CHROME.soon, ctx)}
     </span>
   )
 }
-export function SoonRow({ label, help, first, mode = 'fr_es' }: { label: string; help?: string; first?: boolean; mode?: ImmersionMode }) {
+export function SoonRow({ label, help, first, ctx = DEFAULT_CHROME_CTX }: { label: string; help?: string; first?: boolean; ctx?: ChromeCtx }) {
   return (
     <RowWrap first={first}>
       <RowText label={label} help={help} muted />
       <div className="shrink-0">
-        <SoonBadge mode={mode} />
+        <SoonBadge ctx={ctx} />
       </div>
     </RowWrap>
   )

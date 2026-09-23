@@ -1,5 +1,5 @@
 import { getWordStatus, type WordCard } from '@/lib/word-status'
-import { resolveChrome, STATUS_CHROME, type ImmersionMode } from '@/lib/immersion'
+import { DEFAULT_CHROME_CTX, resolveChrome, STATUS_CHROME, type ChromeCtx } from '@/lib/immersion'
 
 // §06 (board "Mots" cluster) — the ACTION pill. Two axes, by design: this pill is
 // "what action", the separate MasteryGauge is "how well known".
@@ -39,15 +39,15 @@ const PILL_STYLE: Record<PillKind, string> = {
 export default function StatusPill({
   card,
   className = '',
-  mode = 'fr_es',
+  ctx = DEFAULT_CHROME_CTX,
 }: {
   card: WordCard | null
   className?: string
-  mode?: ImmersionMode
+  ctx?: ChromeCtx
 }) {
   const kind = PILL_FROM_LABEL[getWordStatus(card).label] ?? 'new'
   const cls = PILL_STYLE[kind]
-  const label = resolveChrome(STATUS_CHROME[kind], mode)
+  const label = resolveChrome(STATUS_CHROME[kind], ctx)
   return (
     <span
       className={`inline-flex items-center text-[10.5px] font-semibold uppercase tracking-[0.06em] px-2.5 py-1 rounded-full whitespace-nowrap ${cls}${

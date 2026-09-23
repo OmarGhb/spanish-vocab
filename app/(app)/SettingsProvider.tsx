@@ -4,7 +4,13 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { useRouter } from 'next/navigation'
 import { playbackRateFor, DEFAULT_PLAYBACK_SPEED, type PlaybackSpeed } from '@/lib/playback-speed'
 import { DEFAULT_THEME, THEME_COOKIE, type ThemeId } from '@/lib/theme'
-import { DEFAULT_IMMERSION_MODE, type ImmersionMode } from '@/lib/immersion'
+import {
+  DEFAULT_CHROME_CTX,
+  immersionModeFor,
+  type ChromeCtx,
+  type GlossPolicy,
+  type SourceLocale,
+} from '@/lib/immersion'
 
 // App-wide AUDIO settings, server-seeded from `profiles` in app/(app)/layout.tsx and consumed by
 // every cached-audio surface (AudioButton + the review-reveal autoplay). profiles is the single
@@ -17,11 +23,14 @@ type SettingsValue = {
   playbackSpeed: PlaybackSpeed
   playbackRate: number // derived from playbackSpeed via the tested helper (÷ baked 0.9)
   theme: ThemeId
-  immersionMode: ImmersionMode
+  // The chrome resolver context — the two language axes as ONE value, so a consumer takes a single
+  // prop and a third axis never re-touches every call site.
+  chromeCtx: ChromeCtx
   setAutoplayAudio: (v: boolean) => void
   setPlaybackSpeed: (v: PlaybackSpeed) => void
   setTheme: (v: ThemeId) => void
-  setImmersionMode: (v: ImmersionMode) => void
+  setSourceLocale: (v: SourceLocale) => void
+  setGlossPolicy: (v: GlossPolicy) => void
 }
 
 // Defaults match the column defaults — used when a consumer renders outside the provider
@@ -30,7 +39,7 @@ const DEFAULTS = {
   autoplayAudio: true,
   playbackSpeed: DEFAULT_PLAYBACK_SPEED,
   theme: DEFAULT_THEME,
-  immersionMode: DEFAULT_IMMERSION_MODE,
+  chromeCtx: DEFAULT_CHROME_CTX,
 }
 
 // One-year theme cookie — read by the root layout to set <html data-theme> server-side (FOUC-free).
@@ -45,18 +54,18 @@ export function SettingsProvider({
   initialAutoplayAudio,
   initialPlaybackSpeed,
   initialTheme,
-  initialImmersionMode,
+  initialChromeCtx,
 }: {
   children: ReactNode
   initialAutoplayAudio: boolean
   initialPlaybackSpeed: PlaybackSpeed
   initialTheme: ThemeId
-  initialImmersionMode: ImmersionMode
+  initialChromeCtx: ChromeCtx
 }) {
   const [autoplayAudio, setAutoplay] = useState(initialAutoplayAudio)
   const [playbackSpeed, setSpeed] = useState<PlaybackSpeed>(initialPlaybackSpeed)
   const [theme, setThemeState] = useState<ThemeId>(initialTheme)
-  const [immersionMode, setImmersionModeState] = useState<ImmersionMode>(initialImmersionMode)
+  const [chromeCtx, setChromeCtx] = useState<ChromeCtx>(initialChromeCtx)
   const router = useRouter()
 
   // profiles is canonical: reconcile the <html data-theme> + cookie to the server-seeded theme on
@@ -104,23 +113,31 @@ export function SettingsProvider({
     },
     [patch],
   )
-  // Immersion mode drives React (the chrome resolver + gloss gate), not CSS — so unlike theme it
-  // needs NO <html> attribute and NO cookie (it's consumed only under app/(app)/, which server-seeds
-  // this provider from profiles → already FOUC-free).
+  // The language axes drive React (the chrome resolver + gloss gate), not CSS — so unlike theme they
+  // need NO <html> attribute and NO cookie (they're consumed only under app/(app)/, which
+  // server-seeds this provider from profiles → already FOUC-free).
   //
   // Optimistic local state flips CLIENT consumers (the picker, AccountClient, PasswordForm…) at once.
   // But SERVER components under (app) — the /account "Apprentissage" labels, dictionary, etc. — read
-  // immersion_mode at request time and prop-thread it, so they only reflect the new mode after a
+  // the columns at request time and prop-thread the ctx, so they only reflect the change after a
   // router.refresh() re-runs them. Refresh AFTER the PATCH resolves, else the re-render re-reads the
   // stale row; on a failed write we skip the refresh (the optimistic client state self-heals on the
   // next load, same as the other settings).
-  const setImmersionMode = useCallback(
-    (v: ImmersionMode) => {
-      setImmersionModeState(v)
+  //
+  // DUAL-WRITE (Phase 0): every write also sends the DERIVED legacy `immersion_mode`, so a rollback
+  // to the previous deploy — which still reads that column — sees correct state. Removed at Phase 2
+  // close when the column is dropped.
+  const commitCtx = useCallback(
+    (next: ChromeCtx) => {
+      setChromeCtx(next)
       fetch('/api/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ immersion_mode: v }),
+        body: JSON.stringify({
+          source_locale: next.locale,
+          gloss_policy: next.policy,
+          immersion_mode: immersionModeFor(next),
+        }),
       })
         .then((res) => {
           if (res.ok) router.refresh()
@@ -129,6 +146,14 @@ export function SettingsProvider({
     },
     [router],
   )
+  const setSourceLocale = useCallback(
+    (v: SourceLocale) => commitCtx({ locale: v, policy: chromeCtx.policy }),
+    [commitCtx, chromeCtx.policy],
+  )
+  const setGlossPolicy = useCallback(
+    (v: GlossPolicy) => commitCtx({ locale: chromeCtx.locale, policy: v }),
+    [commitCtx, chromeCtx.locale],
+  )
 
   const value = useMemo<SettingsValue>(
     () => ({
@@ -136,13 +161,14 @@ export function SettingsProvider({
       playbackSpeed,
       playbackRate: playbackRateFor(playbackSpeed),
       theme,
-      immersionMode,
+      chromeCtx,
       setAutoplayAudio,
       setPlaybackSpeed,
       setTheme,
-      setImmersionMode,
+      setSourceLocale,
+      setGlossPolicy,
     }),
-    [autoplayAudio, playbackSpeed, theme, immersionMode, setAutoplayAudio, setPlaybackSpeed, setTheme, setImmersionMode],
+    [autoplayAudio, playbackSpeed, theme, chromeCtx, setAutoplayAudio, setPlaybackSpeed, setTheme, setSourceLocale, setGlossPolicy],
   )
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>
@@ -158,6 +184,7 @@ export function useSettings(): SettingsValue {
     setAutoplayAudio: () => {},
     setPlaybackSpeed: () => {},
     setTheme: () => {},
-    setImmersionMode: () => {},
+    setSourceLocale: () => {},
+    setGlossPolicy: () => {},
   }
 }

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Check } from 'lucide-react'
 import { DRILL_TENSES, DRILL_PROMPT_COUNT, tenseLabel, type DrillTense, type PersonScope } from '@/lib/drill'
-import { resolveChrome, DRILL_CHROME, HOME_CHROME, type ImmersionMode } from '@/lib/immersion'
+import { resolveChrome, DRILL_CHROME, HOME_CHROME, type ChromeCtx } from '@/lib/immersion'
 import Button from '../Button'
 import type { DrillPrefs } from './page'
 
@@ -13,12 +13,12 @@ export default function DrillSetup({
   prefs,
   onStart,
   onExit,
-  mode,
+  ctx,
 }: {
   prefs: DrillPrefs
   onStart: (sel: DrillPrefs) => void
   onExit: () => void
-  mode: ImmersionMode
+  ctx: ChromeCtx
 }) {
   const [tenses, setTenses] = useState<Set<DrillTense>>(new Set(prefs.tenses))
   const [scope, setScope] = useState<PersonScope>(prefs.personScope)
@@ -36,12 +36,12 @@ export default function DrillSetup({
 
   return (
     <div className="flex-1 min-h-0 flex flex-col">
-      {/* Header with its own back affordance (no app nav in focus mode) */}
+      {/* Header with its own back affordance (no app nav in focus ctx) */}
       <div className="flex items-center gap-3.5 px-6 pt-[max(0.875rem,env(safe-area-inset-top))] pb-1">
         <button
           type="button"
           onClick={onExit}
-          aria-label={resolveChrome(DRILL_CHROME.back, mode)}
+          aria-label={resolveChrome(DRILL_CHROME.back, ctx)}
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-line bg-card text-ink"
         >
           <svg width="9" height="15" viewBox="0 0 9 15" fill="none">
@@ -49,16 +49,16 @@ export default function DrillSetup({
           </svg>
         </button>
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">{resolveChrome(DRILL_CHROME.eyebrow, mode)}</p>
-          <h1 className="font-serif text-[25px] font-bold leading-none tracking-[-0.02em] text-ink">{resolveChrome(HOME_CHROME.conjTitle, mode)}</h1>
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">{resolveChrome(DRILL_CHROME.eyebrow, ctx)}</p>
+          <h1 className="font-serif text-[25px] font-bold leading-none tracking-[-0.02em] text-ink">{resolveChrome(HOME_CHROME.conjTitle, ctx)}</h1>
         </div>
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto px-6 pt-6">
         {/* Temps */}
         <div className="flex items-baseline justify-between">
-          <h2 className="font-serif text-[18px] font-bold text-ink">{resolveChrome(DRILL_CHROME.time, mode)}</h2>
-          <span className="text-xs text-muted">{resolveChrome(DRILL_CHROME.severalPossible, mode)}</span>
+          <h2 className="font-serif text-[18px] font-bold text-ink">{resolveChrome(DRILL_CHROME.time, ctx)}</h2>
+          <span className="text-xs text-muted">{resolveChrome(DRILL_CHROME.severalPossible, ctx)}</span>
         </div>
         <div className="mt-3.5 flex flex-wrap gap-2.5">
           {DRILL_TENSES.map(({ tense }) => {
@@ -83,7 +83,7 @@ export default function DrillSetup({
         </div>
 
         {/* Personnes */}
-        <h2 className="mt-8 font-serif text-[18px] font-bold text-ink">{resolveChrome(DRILL_CHROME.persons, mode)}</h2>
+        <h2 className="mt-8 font-serif text-[18px] font-bold text-ink">{resolveChrome(DRILL_CHROME.persons, ctx)}</h2>
         <div className="mt-3.5 flex flex-col gap-2.5">
           <PersonOption
             on={scope === 'singular'}
@@ -112,14 +112,14 @@ export default function DrillSetup({
           disabled={!canStart}
           onClick={() => onStart({ tenses: [...tenses], personScope: scope })}
         >
-          {resolveChrome(DRILL_CHROME.start, mode)}
+          {resolveChrome(DRILL_CHROME.start, ctx)}
         </Button>
         <p className="mt-2.5 text-center text-[12.5px] text-muted">
-          {mode === 'fr_es'
+          {ctx.policy === 'visible'
             ? `${tenses.size} temps · ${personCount} personnes · `
             : `${tenses.size} tiempo${tenses.size > 1 ? 's' : ''} · ${personCount} personas · `}
           <strong className="font-semibold text-ink">
-            {DRILL_PROMPT_COUNT} {mode === 'fr_es' ? 'questions' : 'preguntas'}
+            {DRILL_PROMPT_COUNT} {ctx.policy === 'visible' ? 'questions' : 'preguntas'}
           </strong>
         </p>
       </div>

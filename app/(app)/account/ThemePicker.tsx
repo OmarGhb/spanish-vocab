@@ -11,16 +11,16 @@ import { THEME_SWATCHES, themeName } from '@/lib/theme'
 // from THEME_SWATCHES (a picker must paint every palette while another is live); the selected ring
 // uses the CURRENT theme's accent (var(--color-accent)).
 export default function ThemePicker() {
-  const { theme, setTheme, immersionMode } = useSettings()
+  const { theme, setTheme, chromeCtx } = useSettings()
 
   return (
     <div className="flex flex-col gap-1.5 px-4 py-[15px] border-t border-border-soft">
       <div className="flex items-baseline justify-between gap-3">
-        <div className="font-serif text-[16.5px] font-semibold tracking-[-0.01em] text-ink">{resolveChrome(ACCOUNT_CHROME.themeColor, immersionMode)}</div>
+        <div className="font-serif text-[16.5px] font-semibold tracking-[-0.01em] text-ink">{resolveChrome(ACCOUNT_CHROME.themeColor, chromeCtx)}</div>
         <div className="font-sans text-[13px] font-semibold text-accent">{themeName(theme)}</div>
       </div>
       <div className="font-sans text-[12.5px] text-muted mb-2">
-        {resolveChrome(ACCOUNT_CHROME.themeColorHelp, immersionMode)}
+        {resolveChrome(ACCOUNT_CHROME.themeColorHelp, chromeCtx)}
       </div>
       {/* 8 swatches overflow a phone row — scroll horizontally (no-scrollbar; the clipped last
           chip is the scroll cue). -mx-4 px-4 lets chips run edge-to-edge without clipping the ring. */}

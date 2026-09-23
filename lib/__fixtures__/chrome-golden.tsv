@@ -1,0 +1,780 @@
+ACCOUNT_CHROME.autoplay	fr_es	Lecture auto à la révélation
+ACCOUNT_CHROME.autoplay	immersion	Reproducción automática al revelar
+ACCOUNT_CHROME.autoplay	totale	Reproducción automática al revelar
+ACCOUNT_CHROME.autoplayHelp	fr_es	Prononce le mot quand la réponse s’affiche.
+ACCOUNT_CHROME.autoplayHelp	immersion	Pronuncia la palabra cuando aparece la respuesta.
+ACCOUNT_CHROME.autoplayHelp	totale	Pronuncia la palabra cuando aparece la respuesta.
+ACCOUNT_CHROME.cardsPerSession	fr_es	Cartes par session
+ACCOUNT_CHROME.cardsPerSession	immersion	Tarjetas por sesión
+ACCOUNT_CHROME.cardsPerSession	totale	Tarjetas por sesión
+ACCOUNT_CHROME.cardsPerSessionHelp	fr_es	Nombre de cartes par révision.
+ACCOUNT_CHROME.cardsPerSessionHelp	immersion	Número de tarjetas por repaso.
+ACCOUNT_CHROME.cardsPerSessionHelp	totale	Número de tarjetas por repaso.
+ACCOUNT_CHROME.changePassword	fr_es	Changer le mot de passe
+ACCOUNT_CHROME.changePassword	immersion	Cambiar la contraseña
+ACCOUNT_CHROME.changePassword	totale	Cambiar la contraseña
+ACCOUNT_CHROME.changePasswordStay	fr_es	Tu resteras connecté sur cet appareil.
+ACCOUNT_CHROME.changePasswordStay	immersion	Seguirás conectado en este dispositivo.
+ACCOUNT_CHROME.changePasswordStay	totale	Seguirás conectado en este dispositivo.
+ACCOUNT_CHROME.confirmToken	fr_es	SUPPRIMER
+ACCOUNT_CHROME.confirmToken	immersion	ELIMINAR
+ACCOUNT_CHROME.confirmToken	totale	ELIMINAR
+ACCOUNT_CHROME.dailyReminder	fr_es	Rappel quotidien de révision
+ACCOUNT_CHROME.dailyReminder	immersion	Recordatorio diario de repaso
+ACCOUNT_CHROME.dailyReminder	totale	Recordatorio diario de repaso
+ACCOUNT_CHROME.dailyReminderHelp	fr_es	Une notification à l’heure choisie.
+ACCOUNT_CHROME.dailyReminderHelp	immersion	Una notificación a la hora elegida.
+ACCOUNT_CHROME.dailyReminderHelp	totale	Una notificación a la hora elegida.
+ACCOUNT_CHROME.deleteAccount	fr_es	Supprimer mon compte
+ACCOUNT_CHROME.deleteAccount	immersion	Eliminar mi cuenta
+ACCOUNT_CHROME.deleteAccount	totale	Eliminar mi cuenta
+ACCOUNT_CHROME.deletePermanently	fr_es	Supprimer définitivement
+ACCOUNT_CHROME.deletePermanently	immersion	Eliminar definitivamente
+ACCOUNT_CHROME.deletePermanently	totale	Eliminar definitivamente
+ACCOUNT_CHROME.deleteTitle	fr_es	Supprimer ton compte ?
+ACCOUNT_CHROME.deleteTitle	immersion	¿Eliminar tu cuenta?
+ACCOUNT_CHROME.deleteTitle	totale	¿Eliminar tu cuenta?
+ACCOUNT_CHROME.deleting	fr_es	Suppression…
+ACCOUNT_CHROME.deleting	immersion	Eliminando…
+ACCOUNT_CHROME.deleting	totale	Eliminando…
+ACCOUNT_CHROME.discoveryThemes	fr_es	Thèmes Discovery
+ACCOUNT_CHROME.discoveryThemes	immersion	Temas de Descubrir
+ACCOUNT_CHROME.discoveryThemes	totale	Temas de Descubrir
+ACCOUNT_CHROME.discoveryThemesHelp	fr_es	Centres d’intérêt pour la découverte.
+ACCOUNT_CHROME.discoveryThemesHelp	immersion	Intereses para el descubrimiento.
+ACCOUNT_CHROME.discoveryThemesHelp	totale	Intereses para el descubrimiento.
+ACCOUNT_CHROME.email	fr_es	E-mail
+ACCOUNT_CHROME.email	immersion	E-mail
+ACCOUNT_CHROME.email	totale	E-mail
+ACCOUNT_CHROME.errorOccurred	fr_es	Une erreur est survenue.
+ACCOUNT_CHROME.errorOccurred	immersion	Ha ocurrido un error.
+ACCOUNT_CHROME.errorOccurred	totale	Ha ocurrido un error.
+ACCOUNT_CHROME.exportData	fr_es	Exporter mes données
+ACCOUNT_CHROME.exportData	immersion	Exportar mis datos
+ACCOUNT_CHROME.exportData	totale	Exportar mis datos
+ACCOUNT_CHROME.exportDataHelp	fr_es	Télécharger tes mots au format CSV.
+ACCOUNT_CHROME.exportDataHelp	immersion	Descarga tus palabras en formato CSV.
+ACCOUNT_CHROME.exportDataHelp	totale	Descarga tus palabras en formato CSV.
+ACCOUNT_CHROME.footer	fr_es	Paco · pré-bêta · juin 2026
+ACCOUNT_CHROME.footer	immersion	Paco · pre-beta · junio 2026
+ACCOUNT_CHROME.footer	totale	Paco · pre-beta · junio 2026
+ACCOUNT_CHROME.ghAbout	fr_es	À propos / Support
+ACCOUNT_CHROME.ghAbout	immersion	Acerca de / Soporte
+ACCOUNT_CHROME.ghAbout	totale	Acerca de / Soporte
+ACCOUNT_CHROME.ghAccount	fr_es	Compte
+ACCOUNT_CHROME.ghAccount	immersion	Cuenta
+ACCOUNT_CHROME.ghAccount	totale	Cuenta
+ACCOUNT_CHROME.ghAudio	fr_es	Audio
+ACCOUNT_CHROME.ghAudio	immersion	Audio
+ACCOUNT_CHROME.ghAudio	totale	Audio
+ACCOUNT_CHROME.ghLearning	fr_es	Apprentissage
+ACCOUNT_CHROME.ghLearning	immersion	Aprendizaje
+ACCOUNT_CHROME.ghLearning	totale	Aprendizaje
+ACCOUNT_CHROME.ghNotifications	fr_es	Notifications
+ACCOUNT_CHROME.ghNotifications	immersion	Notificaciones
+ACCOUNT_CHROME.ghNotifications	totale	Notificaciones
+ACCOUNT_CHROME.ghPreferences	fr_es	Préférences
+ACCOUNT_CHROME.ghPreferences	immersion	Preferencias
+ACCOUNT_CHROME.ghPreferences	totale	Preferencias
+ACCOUNT_CHROME.hardWords	fr_es	Mots difficiles
+ACCOUNT_CHROME.hardWords	immersion	Palabras difíciles
+ACCOUNT_CHROME.hardWords	totale	Palabras difíciles
+ACCOUNT_CHROME.hardWordsHelp	fr_es	Séance ciblée sur les mots qui résistent.
+ACCOUNT_CHROME.hardWordsHelp	immersion	Sesión centrada en las palabras que se resisten.
+ACCOUNT_CHROME.hardWordsHelp	totale	Sesión centrada en las palabras que se resisten.
+ACCOUNT_CHROME.networkError	fr_es	Erreur réseau. Réessayez.
+ACCOUNT_CHROME.networkError	immersion	Error de red. Inténtalo de nuevo.
+ACCOUNT_CHROME.networkError	totale	Error de red. Inténtalo de nuevo.
+ACCOUNT_CHROME.newCardsDay	fr_es	Nouvelles cartes / jour
+ACCOUNT_CHROME.newCardsDay	immersion	Tarjetas nuevas / día
+ACCOUNT_CHROME.newCardsDay	totale	Tarjetas nuevas / día
+ACCOUNT_CHROME.newCardsDayHelp	fr_es	Limite d’introduction quotidienne.
+ACCOUNT_CHROME.newCardsDayHelp	immersion	Límite de introducción diaria.
+ACCOUNT_CHROME.newCardsDayHelp	totale	Límite de introducción diaria.
+ACCOUNT_CHROME.playbackSpeed	fr_es	Vitesse de lecture
+ACCOUNT_CHROME.playbackSpeed	immersion	Velocidad de reproducción
+ACCOUNT_CHROME.playbackSpeed	totale	Velocidad de reproducción
+ACCOUNT_CHROME.practiceReviews	fr_es	Révisions d’entraînement
+ACCOUNT_CHROME.practiceReviews	immersion	Repasos de entrenamiento
+ACCOUNT_CHROME.practiceReviews	totale	Repasos de entrenamiento
+ACCOUNT_CHROME.practiceReviewsHelp	fr_es	Réviser hors planning, sans impact.
+ACCOUNT_CHROME.practiceReviewsHelp	immersion	Repasar fuera de la programación, sin impacto.
+ACCOUNT_CHROME.practiceReviewsHelp	totale	Repasar fuera de la programación, sin impacto.
+ACCOUNT_CHROME.preBeta	fr_es	pré-bêta
+ACCOUNT_CHROME.preBeta	immersion	pre-beta
+ACCOUNT_CHROME.preBeta	totale	pre-beta
+ACCOUNT_CHROME.privacyPolicy	fr_es	Politique de confidentialité
+ACCOUNT_CHROME.privacyPolicy	immersion	Política de privacidad
+ACCOUNT_CHROME.privacyPolicy	totale	Política de privacidad
+ACCOUNT_CHROME.pwdConfirm	fr_es	Confirmer le nouveau mot de passe
+ACCOUNT_CHROME.pwdConfirm	immersion	Confirmar la nueva contraseña
+ACCOUNT_CHROME.pwdConfirm	totale	Confirmar la nueva contraseña
+ACCOUNT_CHROME.pwdConfirmPh	fr_es	Retape le mot de passe
+ACCOUNT_CHROME.pwdConfirmPh	immersion	Vuelve a escribir la contraseña
+ACCOUNT_CHROME.pwdConfirmPh	totale	Vuelve a escribir la contraseña
+ACCOUNT_CHROME.pwdCurrent	fr_es	Mot de passe actuel
+ACCOUNT_CHROME.pwdCurrent	immersion	Contraseña actual
+ACCOUNT_CHROME.pwdCurrent	totale	Contraseña actual
+ACCOUNT_CHROME.pwdCurrentPh	fr_es	Ton mot de passe actuel
+ACCOUNT_CHROME.pwdCurrentPh	immersion	Tu contraseña actual
+ACCOUNT_CHROME.pwdCurrentPh	totale	Tu contraseña actual
+ACCOUNT_CHROME.pwdNew	fr_es	Nouveau mot de passe
+ACCOUNT_CHROME.pwdNew	immersion	Nueva contraseña
+ACCOUNT_CHROME.pwdNew	totale	Nueva contraseña
+ACCOUNT_CHROME.pwdNewPh	fr_es	Au moins 8 caractères
+ACCOUNT_CHROME.pwdNewPh	immersion	Al menos 8 caracteres
+ACCOUNT_CHROME.pwdNewPh	totale	Al menos 8 caracteres
+ACCOUNT_CHROME.pwdPolicy	fr_es	Au moins 8 caractères, dont un chiffre.
+ACCOUNT_CHROME.pwdPolicy	immersion	Al menos 8 caracteres, con al menos un número.
+ACCOUNT_CHROME.pwdPolicy	totale	Al menos 8 caracteres, con al menos un número.
+ACCOUNT_CHROME.pwdUpdate	fr_es	Mettre à jour le mot de passe
+ACCOUNT_CHROME.pwdUpdate	immersion	Actualizar la contraseña
+ACCOUNT_CHROME.pwdUpdate	totale	Actualizar la contraseña
+ACCOUNT_CHROME.pwdUpdateFailed	fr_es	Impossible de mettre à jour le mot de passe. Réessaye.
+ACCOUNT_CHROME.pwdUpdateFailed	immersion	No se ha podido actualizar la contraseña. Inténtalo de nuevo.
+ACCOUNT_CHROME.pwdUpdateFailed	totale	No se ha podido actualizar la contraseña. Inténtalo de nuevo.
+ACCOUNT_CHROME.pwdUpdating	fr_es	Mise à jour…
+ACCOUNT_CHROME.pwdUpdating	immersion	Actualizando…
+ACCOUNT_CHROME.pwdUpdating	totale	Actualizando…
+ACCOUNT_CHROME.pwdWrongCurrent	fr_es	Le mot de passe actuel est incorrect.
+ACCOUNT_CHROME.pwdWrongCurrent	immersion	La contraseña actual es incorrecta.
+ACCOUNT_CHROME.pwdWrongCurrent	totale	La contraseña actual es incorrecta.
+ACCOUNT_CHROME.retentionGoal	fr_es	Objectif de rétention
+ACCOUNT_CHROME.retentionGoal	immersion	Objetivo de retención
+ACCOUNT_CHROME.retentionGoal	totale	Objetivo de retención
+ACCOUNT_CHROME.retentionGoalHelp	fr_es	Cible de mémorisation visée.
+ACCOUNT_CHROME.retentionGoalHelp	immersion	Nivel de memorización deseado.
+ACCOUNT_CHROME.retentionGoalHelp	totale	Nivel de memorización deseado.
+ACCOUNT_CHROME.sendFeedback	fr_es	Envoyer un retour / signaler un bug
+ACCOUNT_CHROME.sendFeedback	immersion	Enviar comentarios / reportar un error
+ACCOUNT_CHROME.sendFeedback	totale	Enviar comentarios / reportar un error
+ACCOUNT_CHROME.signOut	fr_es	Se déconnecter
+ACCOUNT_CHROME.signOut	immersion	Cerrar sesión
+ACCOUNT_CHROME.signOut	totale	Cerrar sesión
+ACCOUNT_CHROME.spanishVariant	fr_es	Variante d’espagnol
+ACCOUNT_CHROME.spanishVariant	immersion	Variante de español
+ACCOUNT_CHROME.spanishVariant	totale	Variante de español
+ACCOUNT_CHROME.spanishVariantHelp	fr_es	Espagne · Amérique latine
+ACCOUNT_CHROME.spanishVariantHelp	immersion	España · América Latina
+ACCOUNT_CHROME.spanishVariantHelp	totale	España · América Latina
+ACCOUNT_CHROME.speedFast	fr_es	Rapide
+ACCOUNT_CHROME.speedFast	immersion	Rápido
+ACCOUNT_CHROME.speedFast	totale	Rápido
+ACCOUNT_CHROME.speedNormal	fr_es	Normal
+ACCOUNT_CHROME.speedNormal	immersion	Normal
+ACCOUNT_CHROME.speedNormal	totale	Normal
+ACCOUNT_CHROME.speedSlow	fr_es	Lent
+ACCOUNT_CHROME.speedSlow	immersion	Lento
+ACCOUNT_CHROME.speedSlow	totale	Lento
+ACCOUNT_CHROME.statsMemorized	fr_es	mots mémorisés
+ACCOUNT_CHROME.statsMemorized	immersion	palabras memorizadas
+ACCOUNT_CHROME.statsMemorized	totale	palabras memorizadas
+ACCOUNT_CHROME.statsReviews	fr_es	révisions
+ACCOUNT_CHROME.statsReviews	immersion	repasos
+ACCOUNT_CHROME.statsReviews	totale	repasos
+ACCOUNT_CHROME.terms	fr_es	Conditions d’utilisation
+ACCOUNT_CHROME.terms	immersion	Condiciones de uso
+ACCOUNT_CHROME.terms	totale	Condiciones de uso
+ACCOUNT_CHROME.themeColor	fr_es	Thème de couleur
+ACCOUNT_CHROME.themeColor	immersion	Tema de color
+ACCOUNT_CHROME.themeColor	totale	Tema de color
+ACCOUNT_CHROME.themeColorHelp	fr_es	L’apparence de l’app. Le vert (mémorisé) et le rouge (suppression) ne changent pas.
+ACCOUNT_CHROME.themeColorHelp	immersion	El aspecto de la app. El verde (memorizado) y el rojo (eliminar) no cambian.
+ACCOUNT_CHROME.themeColorHelp	totale	El aspecto de la app. El verde (memorizado) y el rojo (eliminar) no cambian.
+ACCOUNT_CHROME.typeToConfirm	fr_es	Tape SUPPRIMER pour confirmer
+ACCOUNT_CHROME.typeToConfirm	immersion	Escribe ELIMINAR para confirmar
+ACCOUNT_CHROME.typeToConfirm	totale	Escribe ELIMINAR para confirmar
+ACCOUNT_CHROME.version	fr_es	Version
+ACCOUNT_CHROME.version	immersion	Versión
+ACCOUNT_CHROME.version	totale	Versión
+ADD_CHROME.addAnother	fr_es	Ajouter un autre mot
+ADD_CHROME.addAnother	immersion	Añadir otra palabra
+ADD_CHROME.addAnother	totale	Añadir otra palabra
+ADD_CHROME.addToCollection	fr_es	Ajouter à ma collection
+ADD_CHROME.addToCollection	immersion	Añadir a mi colección
+ADD_CHROME.addToCollection	totale	Añadir a mi colección
+ADD_CHROME.bringTomorrow	fr_es	Paco te le ramènera demain pour ta première révision.
+ADD_CHROME.bringTomorrow	immersion	Paco te la traerá mañana para tu primer repaso.
+ADD_CHROME.bringTomorrow	totale	Paco te la traerá mañana para tu primer repaso.
+ADD_CHROME.conjugatedForm	fr_es	Forme conjuguée
+ADD_CHROME.conjugatedForm	immersion	Forma conjugada
+ADD_CHROME.conjugatedForm	totale	Forma conjugada
+ADD_CHROME.deselectAll	fr_es	Tout désélectionner
+ADD_CHROME.deselectAll	immersion	Deseleccionar todo
+ADD_CHROME.deselectAll	totale	Deseleccionar todo
+ADD_CHROME.didYouMean	fr_es	Voulais-tu dire…
+ADD_CHROME.didYouMean	immersion	¿Querías decir…?
+ADD_CHROME.didYouMean	totale	¿Querías decir…?
+ADD_CHROME.enterWord	fr_es	Entre un mot espagnol
+ADD_CHROME.enterWord	immersion	Escribe una palabra en español
+ADD_CHROME.enterWord	totale	Escribe una palabra en español
+ADD_CHROME.errorOccurred	fr_es	Une erreur s'est produite — veuillez réessayer.
+ADD_CHROME.errorOccurred	immersion	Ha ocurrido un error — inténtalo de nuevo.
+ADD_CHROME.errorOccurred	totale	Ha ocurrido un error — inténtalo de nuevo.
+ADD_CHROME.errorRetry	fr_es	Erreur — réessayer
+ADD_CHROME.errorRetry	immersion	Error — reintentar
+ADD_CHROME.errorRetry	totale	Error — reintentar
+ADD_CHROME.exampleHide	fr_es	Masquer
+ADD_CHROME.exampleHide	immersion	Ocultar
+ADD_CHROME.exampleHide	totale	Ocultar
+ADD_CHROME.familyWords	fr_es	Mots associés
+ADD_CHROME.familyWords	immersion	Palabras relacionadas
+ADD_CHROME.familyWords	totale	Palabras relacionadas
+ADD_CHROME.helperParagraph	fr_es	Paco va générer la définition, des exemples et des mots associés pour enrichir ton apprentissage.
+ADD_CHROME.helperParagraph	immersion	Paco generará la definición, ejemplos y palabras relacionadas para enriquecer tu aprendizaje.
+ADD_CHROME.helperParagraph	totale	Paco generará la definición, ejemplos y palabras relacionadas para enriquecer tu aprendizaje.
+ADD_CHROME.listoSub	fr_es	Voici ce que Paco a trouvé.
+ADD_CHROME.listoSub	immersion	Esto es lo que Paco ha encontrado.
+ADD_CHROME.listoSub	totale	Esto es lo que Paco ha encontrado.
+ADD_CHROME.newWord	fr_es	Nouveau mot
+ADD_CHROME.newWord	immersion	Nueva palabra
+ADD_CHROME.newWord	totale	Nueva palabra
+ADD_CHROME.nextReviewToday	fr_es	prochaine révision aujourd’hui
+ADD_CHROME.nextReviewToday	immersion	próximo repaso hoy
+ADD_CHROME.nextReviewToday	totale	próximo repaso hoy
+ADD_CHROME.noNeedRecreateReview	fr_es	Pas besoin de le re-créer — ouvre-le pour le réviser.
+ADD_CHROME.noNeedRecreateReview	immersion	No hace falta volver a crearla — ábrela para repasarla.
+ADD_CHROME.noNeedRecreateReview	totale	No hace falta volver a crearla — ábrela para repasarla.
+ADD_CHROME.noneOfThese	fr_es	Aucune de ces propositions
+ADD_CHROME.noneOfThese	immersion	Ninguna de estas opciones
+ADD_CHROME.noneOfThese	totale	Ninguna de estas opciones
+ADD_CHROME.notInSpanish	fr_es	Ce mot n'existe pas en espagnol
+ADD_CHROME.notInSpanish	immersion	Esta palabra no existe en español
+ADD_CHROME.notInSpanish	totale	Esta palabra no existe en español
+ADD_CHROME.search	fr_es	Rechercher
+ADD_CHROME.search	immersion	Buscar
+ADD_CHROME.search	totale	Buscar
+ADD_CHROME.searchAnother	fr_es	Chercher un autre mot
+ADD_CHROME.searchAnother	immersion	Buscar otra palabra
+ADD_CHROME.searchAnother	totale	Buscar otra palabra
+ADD_CHROME.seeCard	fr_es	Voir la fiche
+ADD_CHROME.seeCard	immersion	Ver la ficha
+ADD_CHROME.seeCard	totale	Ver la ficha
+ADD_CHROME.selectAll	fr_es	Tout sélectionner
+ADD_CHROME.selectAll	immersion	Seleccionar todo
+ADD_CHROME.selectAll	totale	Seleccionar todo
+ADD_CHROME.similarHelper	fr_es	Apprendre des mots associés en parallèle aide ton cerveau à les distinguer en contexte. Touche chaque mot pour l'ajouter à ton vocabulaire.
+ADD_CHROME.similarHelper	immersion	Aprender palabras relacionadas en paralelo ayuda a tu cerebro a distinguirlas en contexto. Toca cada palabra para añadirla a tu vocabulario.
+ADD_CHROME.similarHelper	totale	Aprender palabras relacionadas en paralelo ayuda a tu cerebro a distinguirlas en contexto. Toca cada palabra para añadirla a tu vocabulario.
+ADD_CHROME.similarNotConfuse	fr_es	Mots associés à ne pas confondre
+ADD_CHROME.similarNotConfuse	immersion	Palabras relacionadas que no debes confundir
+ADD_CHROME.similarNotConfuse	totale	Palabras relacionadas que no debes confundir
+ADD_CHROME.viewMyWords	fr_es	Voir mes mots
+ADD_CHROME.viewMyWords	immersion	Ver mis palabras
+ADD_CHROME.viewMyWords	totale	Ver mis palabras
+ADD_CHROME.wordsEnRouteHelp	fr_es	Tes mots sont en train d’être ajoutés à ta bibliothèque — ça peut prendre jusqu’à 20 secondes. Tu peux continuer à naviguer.
+ADD_CHROME.wordsEnRouteHelp	immersion	Tus palabras se están añadiendo a tu biblioteca — puede tardar hasta 20 segundos. Puedes seguir navegando.
+ADD_CHROME.wordsEnRouteHelp	totale	Tus palabras se están añadiendo a tu biblioteca — puede tardar hasta 20 segundos. Puedes seguir navegando.
+DETAIL_CHROME.definitionEyebrow	fr_es	Définition
+DETAIL_CHROME.definitionEyebrow	immersion	Definición
+DETAIL_CHROME.definitionEyebrow	totale	Definición
+DETAIL_CHROME.delete	fr_es	Supprimer
+DETAIL_CHROME.delete	immersion	Eliminar
+DETAIL_CHROME.delete	totale	Eliminar
+DETAIL_CHROME.examplesEyebrow	fr_es	Exemples
+DETAIL_CHROME.examplesEyebrow	immersion	Ejemplos
+DETAIL_CHROME.examplesEyebrow	totale	Ejemplos
+DETAIL_CHROME.formEyebrow	fr_es	Forme
+DETAIL_CHROME.formEyebrow	immersion	Forma
+DETAIL_CHROME.formEyebrow	totale	Forma
+DETAIL_CHROME.hideDef	fr_es	Masquer le français
+DETAIL_CHROME.hideDef	immersion	Ocultar traducción
+DETAIL_CHROME.hideDef	totale	Ocultar traducción
+DETAIL_CHROME.hideEx	fr_es	Masquer la traduction
+DETAIL_CHROME.hideEx	immersion	Ocultar traducción
+DETAIL_CHROME.hideEx	totale	Ocultar traducción
+DETAIL_CHROME.myWordsBack	fr_es	Mes mots
+DETAIL_CHROME.myWordsBack	immersion	Mis palabras
+DETAIL_CHROME.myWordsBack	totale	Mis palabras
+DETAIL_CHROME.notReviewedYet	fr_es	Pas encore révisé
+DETAIL_CHROME.notReviewedYet	immersion	Aún sin repasar
+DETAIL_CHROME.notReviewedYet	totale	Aún sin repasar
+DETAIL_CHROME.relearn	fr_es	Remettre à réviser
+DETAIL_CHROME.relearn	immersion	Volver a repasar
+DETAIL_CHROME.relearn	totale	Volver a repasar
+DETAIL_CHROME.revealDef	fr_es	Voir en français
+DETAIL_CHROME.revealDef	immersion	Ver traducción
+DETAIL_CHROME.revealDef	totale	Ver traducción
+DETAIL_CHROME.revealEx	fr_es	Traduction
+DETAIL_CHROME.revealEx	immersion	Traducción
+DETAIL_CHROME.revealEx	totale	Traducción
+DETAIL_CHROME.similarEyebrow	fr_es	Mots associés
+DETAIL_CHROME.similarEyebrow	immersion	Palabras relacionadas
+DETAIL_CHROME.similarEyebrow	totale	Palabras relacionadas
+DICT_CHROME.dictUnlocked	fr_es	Ton dictionnaire est débloqué !
+DICT_CHROME.dictUnlocked	immersion	¡Tu diccionario está desbloqueado!
+DICT_CHROME.dictUnlocked	totale	¡Tu diccionario está desbloqueado!
+DICT_CHROME.dictWaits	fr_es	Ton dictionnaire t’attend
+DICT_CHROME.dictWaits	immersion	Tu diccionario te espera
+DICT_CHROME.dictWaits	totale	Tu diccionario te espera
+DICT_CHROME.later	fr_es	Plus tard
+DICT_CHROME.later	immersion	Más tarde
+DICT_CHROME.later	totale	Más tarde
+DICT_CHROME.lockedBody	fr_es	Mémorise 10 mots et il s’ouvre. Chacun s’y rangera tout seul, de A à Z — ta collection à toi, rien que les mots que tu sais.
+DICT_CHROME.lockedBody	immersion	Memoriza 10 palabras y se abre. Cada una se ordenará sola, de la A a la Z — tu colección personal, solo las palabras que sabes.
+DICT_CHROME.lockedBody	totale	Memoriza 10 palabras y se abre. Cada una se ordenará sola, de la A a la Z — tu colección personal, solo las palabras que sabes.
+DICT_CHROME.openMyDict	fr_es	Ouvrir mon dictionnaire
+DICT_CHROME.openMyDict	immersion	Abrir mi diccionario
+DICT_CHROME.openMyDict	totale	Abrir mi diccionario
+DICT_CHROME.personalLexicon	fr_es	Lexique personnel
+DICT_CHROME.personalLexicon	immersion	Vocabulario personal
+DICT_CHROME.personalLexicon	totale	Vocabulario personal
+DICT_CHROME.shelvedBody	fr_es	Rangés de A à Z, rien que les tiens. Le premier rayon d’une longue étagère.
+DICT_CHROME.shelvedBody	immersion	Ordenadas de la A a la Z, solo las tuyas. El primer estante de una larga estantería.
+DICT_CHROME.shelvedBody	totale	Ordenadas de la A a la Z, solo las tuyas. El primer estante de una larga estantería.
+DICT_CHROME.unlocked	fr_es	Débloqué
+DICT_CHROME.unlocked	immersion	Desbloqueado
+DICT_CHROME.unlocked	totale	Desbloqueado
+DISCOVER_CHROME.arrivalLine	fr_es	Tes nouveaux mots arrivent dans « Mes mots » — ça peut prendre jusqu’à 30 s.
+DISCOVER_CHROME.arrivalLine	immersion	Tus nuevas palabras llegan a «Mis palabras» — puede tardar hasta 30 s.
+DISCOVER_CHROME.arrivalLine	totale	Tus nuevas palabras llegan a «Mis palabras» — puede tardar hasta 30 s.
+DISCOVER_CHROME.backHome	fr_es	Retour à l'accueil
+DISCOVER_CHROME.backHome	immersion	Volver al inicio
+DISCOVER_CHROME.backHome	totale	Volver al inicio
+DISCOVER_CHROME.byTheme	fr_es	Par thème
+DISCOVER_CHROME.byTheme	immersion	Por tema
+DISCOVER_CHROME.byTheme	totale	Por tema
+DISCOVER_CHROME.cardReveal	fr_es	Afficher en français
+DISCOVER_CHROME.cardReveal	immersion	Toca para traducir
+DISCOVER_CHROME.cardReveal	totale	Toca para traducir
+DISCOVER_CHROME.chooseAnother	fr_es	Choisir un autre thème
+DISCOVER_CHROME.chooseAnother	immersion	Elegir otro tema
+DISCOVER_CHROME.chooseAnother	totale	Elegir otro tema
+DISCOVER_CHROME.close	fr_es	Fermer
+DISCOVER_CHROME.close	immersion	Cerrar
+DISCOVER_CHROME.close	totale	Cerrar
+DISCOVER_CHROME.discoverAnother	fr_es	Découvrir un autre thème
+DISCOVER_CHROME.discoverAnother	immersion	Descubrir otro tema
+DISCOVER_CHROME.discoverAnother	totale	Descubrir otro tema
+DISCOVER_CHROME.errorMsg	fr_es	Une erreur s'est produite.
+DISCOVER_CHROME.errorMsg	immersion	Ha ocurrido un error.
+DISCOVER_CHROME.errorMsg	totale	Ha ocurrido un error.
+DISCOVER_CHROME.exhaustedBody	fr_es	Plus de nouveaux mots pour ce thème. Paco se repose — explore un autre thème.
+DISCOVER_CHROME.exhaustedBody	immersion	No hay más palabras nuevas para este tema. Paco descansa — explora otro tema.
+DISCOVER_CHROME.exhaustedBody	totale	No hay más palabras nuevas para este tema. Paco descansa — explora otro tema.
+DISCOVER_CHROME.featured1Sub	fr_es	Des mots choisis tout près de ce que tu apprends en ce moment.
+DISCOVER_CHROME.featured1Sub	immersion	Palabras elegidas muy cerca de lo que estás aprendiendo ahora.
+DISCOVER_CHROME.featured1Sub	totale	Palabras elegidas muy cerca de lo que estás aprendiendo ahora.
+DISCOVER_CHROME.featured1Title	fr_es	Dans le prolongement de tes mots
+DISCOVER_CHROME.featured1Title	immersion	A partir de tus palabras
+DISCOVER_CHROME.featured1Title	totale	A partir de tus palabras
+DISCOVER_CHROME.featured2Sub	fr_es	Le socle de vocabulaire pour passer le cap intermédiaire.
+DISCOVER_CHROME.featured2Sub	immersion	La base de vocabulario para dar el salto al nivel intermedio.
+DISCOVER_CHROME.featured2Sub	totale	La base de vocabulario para dar el salto al nivel intermedio.
+DISCOVER_CHROME.featured2Title	fr_es	L'essentiel A2–B1
+DISCOVER_CHROME.featured2Title	immersion	Lo esencial A2–B1
+DISCOVER_CHROME.featured2Title	totale	Lo esencial A2–B1
+DISCOVER_CHROME.forYou	fr_es	Pour toi
+DISCOVER_CHROME.forYou	immersion	Para ti
+DISCOVER_CHROME.forYou	totale	Para ti
+DISCOVER_CHROME.genPhaseConfuse	fr_es	Mots à ne pas confondre
+DISCOVER_CHROME.genPhaseConfuse	immersion	Palabras que no confundir
+DISCOVER_CHROME.genPhaseConfuse	totale	Palabras que no confundir
+DISCOVER_CHROME.genPhaseDefs	fr_es	Définitions & exemples
+DISCOVER_CHROME.genPhaseDefs	immersion	Definiciones y ejemplos
+DISCOVER_CHROME.genPhaseDefs	totale	Definiciones y ejemplos
+DISCOVER_CHROME.genPhasePhon	fr_es	Phonétique
+DISCOVER_CHROME.genPhasePhon	immersion	Fonética
+DISCOVER_CHROME.genPhasePhon	totale	Fonética
+DISCOVER_CHROME.genPhaseSelect	fr_es	Sélection des mots du thème
+DISCOVER_CHROME.genPhaseSelect	immersion	Selección de palabras del tema
+DISCOVER_CHROME.genPhaseSelect	totale	Selección de palabras del tema
+DISCOVER_CHROME.genTitle	fr_es	Paco choisit des mots de
+DISCOVER_CHROME.genTitle	immersion	Paco elige palabras de
+DISCOVER_CHROME.genTitle	totale	Paco elige palabras de
+DISCOVER_CHROME.knowStamp	fr_es	Je connais
+DISCOVER_CHROME.knowStamp	immersion	Ya la sé
+DISCOVER_CHROME.knowStamp	totale	Ya la sé
+DISCOVER_CHROME.learnStamp	fr_es	À apprendre
+DISCOVER_CHROME.learnStamp	immersion	Por aprender
+DISCOVER_CHROME.learnStamp	totale	Por aprender
+DISCOVER_CHROME.retry	fr_es	Réessayer
+DISCOVER_CHROME.retry	immersion	Reintentar
+DISCOVER_CHROME.retry	totale	Reintentar
+DISCOVER_CHROME.reviewNow	fr_es	Réviser maintenant
+DISCOVER_CHROME.reviewNow	immersion	Repasar ahora
+DISCOVER_CHROME.reviewNow	totale	Repasar ahora
+DISCOVER_CHROME.soon	fr_es	Bientôt
+DISCOVER_CHROME.soon	immersion	Pronto
+DISCOVER_CHROME.soon	totale	Pronto
+DISCOVER_CHROME.subtitle	fr_es	Des sélections pour toi, ou explore par thème
+DISCOVER_CHROME.subtitle	immersion	Selecciones para ti, o explora por tema
+DISCOVER_CHROME.subtitle	totale	Selecciones para ti, o explora por tema
+DISCOVER_CHROME.swipeLeft	fr_es	← glisse à gauche
+DISCOVER_CHROME.swipeLeft	immersion	← desliza a la izq.
+DISCOVER_CHROME.swipeLeft	totale	← desliza a la izq.
+DISCOVER_CHROME.swipeRight	fr_es	glisse à droite →
+DISCOVER_CHROME.swipeRight	immersion	desliza a la der. →
+DISCOVER_CHROME.swipeRight	totale	desliza a la der. →
+DISCOVER_CHROME.themeDone	fr_es	Thème terminé
+DISCOVER_CHROME.themeDone	immersion	Tema terminado
+DISCOVER_CHROME.themeDone	totale	Tema terminado
+DISCOVER_CHROME.title	fr_es	Découvrir
+DISCOVER_CHROME.title	immersion	Descubrir
+DISCOVER_CHROME.title	totale	Descubrir
+DISCOVER_CHROME.toastAdjacency	fr_es	Des mots tout près de ce que tu apprends — Paco prépare ça, bientôt !
+DISCOVER_CHROME.toastAdjacency	immersion	Palabras muy cerca de lo que aprendes — Paco lo está preparando, ¡pronto!
+DISCOVER_CHROME.toastAdjacency	totale	Palabras muy cerca de lo que aprendes — Paco lo está preparando, ¡pronto!
+DISCOVER_CHROME.toastLevel	fr_es	« L’essentiel A2–B1 » arrive bientôt — Paco la prépare avec soin.
+DISCOVER_CHROME.toastLevel	immersion	«Lo esencial A2–B1» llega pronto — Paco lo está preparando con cuidado.
+DISCOVER_CHROME.toastLevel	totale	«Lo esencial A2–B1» llega pronto — Paco lo está preparando con cuidado.
+DISCOVER_CHROME.wordsPlural	fr_es	mots
+DISCOVER_CHROME.wordsPlural	immersion	palabras
+DISCOVER_CHROME.wordsPlural	totale	palabras
+DRILL_CHROME.almost	fr_es	presque
+DRILL_CHROME.almost	immersion	casi
+DRILL_CHROME.almost	totale	casi
+DRILL_CHROME.back	fr_es	Retour
+DRILL_CHROME.back	immersion	Volver
+DRILL_CHROME.back	totale	Volver
+DRILL_CHROME.eyebrow	fr_es	Entraînement
+DRILL_CHROME.eyebrow	immersion	Entrenamiento
+DRILL_CHROME.eyebrow	totale	Entrenamiento
+DRILL_CHROME.finish	fr_es	Terminer
+DRILL_CHROME.finish	immersion	Terminar
+DRILL_CHROME.finish	totale	Terminar
+DRILL_CHROME.finishedEyebrow	fr_es	Entraînement terminé
+DRILL_CHROME.finishedEyebrow	immersion	Entrenamiento terminado
+DRILL_CHROME.finishedEyebrow	totale	Entrenamiento terminado
+DRILL_CHROME.instruction	fr_es	Complète la phrase
+DRILL_CHROME.instruction	immersion	Completa la frase
+DRILL_CHROME.instruction	totale	Completa la frase
+DRILL_CHROME.next	fr_es	Suivant
+DRILL_CHROME.next	immersion	Siguiente
+DRILL_CHROME.next	totale	Siguiente
+DRILL_CHROME.notQuite	fr_es	pas tout à fait
+DRILL_CHROME.notQuite	immersion	no del todo
+DRILL_CHROME.notQuite	totale	no del todo
+DRILL_CHROME.persons	fr_es	Personnes
+DRILL_CHROME.persons	immersion	Personas
+DRILL_CHROME.persons	totale	Personas
+DRILL_CHROME.promptHint	fr_es	La case à compléter correspond à la personne demandée —
+DRILL_CHROME.promptHint	immersion	La casilla a completar corresponde a la persona indicada —
+DRILL_CHROME.promptHint	totale	La casilla a completar corresponde a la persona indicada —
+DRILL_CHROME.quit	fr_es	Quitter l'entraînement
+DRILL_CHROME.quit	immersion	Salir del entrenamiento
+DRILL_CHROME.quit	totale	Salir del entrenamiento
+DRILL_CHROME.replay	fr_es	Rejouer
+DRILL_CHROME.replay	immersion	Jugar de nuevo
+DRILL_CHROME.replay	totale	Jugar de nuevo
+DRILL_CHROME.seeConjugation	fr_es	Voir la conjugaison
+DRILL_CHROME.seeConjugation	immersion	Ver la conjugación
+DRILL_CHROME.seeConjugation	totale	Ver la conjugación
+DRILL_CHROME.seeSummary	fr_es	Voir le bilan
+DRILL_CHROME.seeSummary	immersion	Ver el resumen
+DRILL_CHROME.seeSummary	totale	Ver el resumen
+DRILL_CHROME.severalPossible	fr_es	plusieurs possibles
+DRILL_CHROME.severalPossible	immersion	varias posibles
+DRILL_CHROME.severalPossible	totale	varias posibles
+DRILL_CHROME.start	fr_es	Commencer
+DRILL_CHROME.start	immersion	Empezar
+DRILL_CHROME.start	totale	Empezar
+DRILL_CHROME.theAnswer	fr_es	La réponse
+DRILL_CHROME.theAnswer	immersion	La respuesta
+DRILL_CHROME.theAnswer	totale	La respuesta
+DRILL_CHROME.theConjugation	fr_es	La conjugaison
+DRILL_CHROME.theConjugation	immersion	La conjugación
+DRILL_CHROME.theConjugation	totale	La conjugación
+DRILL_CHROME.time	fr_es	Temps
+DRILL_CHROME.time	immersion	Tiempo
+DRILL_CHROME.time	totale	Tiempo
+DRILL_CHROME.wasAnswer	fr_es	C'était
+DRILL_CHROME.wasAnswer	immersion	Era
+DRILL_CHROME.wasAnswer	totale	Era
+HOME_CHROME.addDesc	fr_es	Un nouveau mot.
+HOME_CHROME.addDesc	immersion	Una nueva palabra.
+HOME_CHROME.addDesc	totale	Una nueva palabra.
+HOME_CHROME.addTitle	fr_es	Ajouter
+HOME_CHROME.addTitle	immersion	Añadir
+HOME_CHROME.addTitle	totale	Añadir
+HOME_CHROME.addWordBtn	fr_es	+ Ajouter un mot
+HOME_CHROME.addWordBtn	immersion	+ Añadir una palabra
+HOME_CHROME.addWordBtn	totale	+ Añadir una palabra
+HOME_CHROME.allUpToDate	fr_es	Tout est à jour
+HOME_CHROME.allUpToDate	immersion	Todo al día
+HOME_CHROME.allUpToDate	totale	Todo al día
+HOME_CHROME.caughtUpCopy	fr_es	Rien à réviser — Paco se repose. Reviens un peu plus tard.
+HOME_CHROME.caughtUpCopy	immersion	Nada que repasar — Paco descansa. Vuelve un poco más tarde.
+HOME_CHROME.caughtUpCopy	totale	Nada que repasar — Paco descansa. Vuelve un poco más tarde.
+HOME_CHROME.collectionEmpty	fr_es	Ta collection est vide
+HOME_CHROME.collectionEmpty	immersion	Tu colección está vacía
+HOME_CHROME.collectionEmpty	totale	Tu colección está vacía
+HOME_CHROME.collectionPreparingCopy	fr_es	Paco prépare tes mots. Ils apparaîtront ici dans un instant.
+HOME_CHROME.collectionPreparingCopy	immersion	Paco está preparando tus palabras. Aparecerán aquí en un momento.
+HOME_CHROME.collectionPreparingCopy	totale	Paco está preparando tus palabras. Aparecerán aquí en un momento.
+HOME_CHROME.collectionPreparingTitle	fr_es	Tes mots arrivent
+HOME_CHROME.collectionPreparingTitle	immersion	Tus palabras están llegando
+HOME_CHROME.collectionPreparingTitle	totale	Tus palabras están llegando
+HOME_CHROME.conjDesc	fr_es	Tes verbes en contexte.
+HOME_CHROME.conjDesc	immersion	Tus verbos en contexto.
+HOME_CHROME.conjDesc	totale	Tus verbos en contexto.
+HOME_CHROME.conjTitle	fr_es	Conjugaison
+HOME_CHROME.conjTitle	immersion	Conjugación
+HOME_CHROME.conjTitle	totale	Conjugación
+HOME_CHROME.conjUnit	fr_es	verbes
+HOME_CHROME.conjUnit	immersion	verbos
+HOME_CHROME.conjUnit	totale	verbos
+HOME_CHROME.continueWithPaco	fr_es	Continuer avec Paco
+HOME_CHROME.continueWithPaco	immersion	Sigue con Paco
+HOME_CHROME.continueWithPaco	totale	Sigue con Paco
+HOME_CHROME.dictDesc	fr_es	Ton dico personnel.
+HOME_CHROME.dictDesc	immersion	Tu diccionario personal.
+HOME_CHROME.dictDesc	totale	Tu diccionario personal.
+HOME_CHROME.dictTitle	fr_es	Dictionnaire
+HOME_CHROME.dictTitle	immersion	Diccionario
+HOME_CHROME.dictTitle	totale	Diccionario
+HOME_CHROME.dictUnit	fr_es	mémorisés
+HOME_CHROME.dictUnit	immersion	memorizados
+HOME_CHROME.dictUnit	totale	memorizados
+HOME_CHROME.discoverDesc	fr_es	Des mots par thème.
+HOME_CHROME.discoverDesc	immersion	Palabras por tema.
+HOME_CHROME.discoverDesc	totale	Palabras por tema.
+HOME_CHROME.discoverTitle	fr_es	Découvrir
+HOME_CHROME.discoverTitle	immersion	Descubrir
+HOME_CHROME.discoverTitle	totale	Descubrir
+HOME_CHROME.emptyCopy	fr_es	Ajoute ton premier mot — ou laisse Paco t’en proposer par thème.
+HOME_CHROME.emptyCopy	immersion	Añade tu primera palabra — o deja que Paco te proponga algunas por tema.
+HOME_CHROME.emptyCopy	totale	Añade tu primera palabra — o deja que Paco te proponga algunas por tema.
+HOME_CHROME.firstReviewCopy	fr_es	Tu pourras lancer ta première révision dès que tu auras ajouté tes premiers mots.
+HOME_CHROME.firstReviewCopy	immersion	Podrás empezar tu primer repaso en cuanto añadas tus primeras palabras.
+HOME_CHROME.firstReviewCopy	totale	Podrás empezar tu primer repaso en cuanto añadas tus primeras palabras.
+HOME_CHROME.firstReviewEyebrow	fr_es	Première révision
+HOME_CHROME.firstReviewEyebrow	immersion	Primer repaso
+HOME_CHROME.firstReviewEyebrow	totale	Primer repaso
+HOME_CHROME.firstReviewSoon	fr_es	Bientôt ta première révision
+HOME_CHROME.firstReviewSoon	immersion	Pronto tu primer repaso
+HOME_CHROME.firstReviewSoon	totale	Pronto tu primer repaso
+HOME_CHROME.firstWords	fr_es	Tes premiers mots
+HOME_CHROME.firstWords	immersion	Tus primeras palabras
+HOME_CHROME.firstWords	totale	Tus primeras palabras
+HOME_CHROME.heroPreparingCopy	fr_es	Ta première révision commencera dès qu’ils seront prêts.
+HOME_CHROME.heroPreparingCopy	immersion	Tu primer repaso empezará en cuanto estén listas.
+HOME_CHROME.heroPreparingCopy	totale	Tu primer repaso empezará en cuanto estén listas.
+HOME_CHROME.heroPreparingHeadline	fr_es	Tes mots se préparent
+HOME_CHROME.heroPreparingHeadline	immersion	Tus palabras se están preparando
+HOME_CHROME.heroPreparingHeadline	totale	Tus palabras se están preparando
+HOME_CHROME.reviewAvailable	fr_es	Révision disponible
+HOME_CHROME.reviewAvailable	immersion	Repaso disponible
+HOME_CHROME.reviewAvailable	totale	Repaso disponible
+HOME_CHROME.reviewEyebrow	fr_es	Révision
+HOME_CHROME.reviewEyebrow	immersion	Repaso
+HOME_CHROME.reviewEyebrow	totale	Repaso
+HOME_CHROME.seeAll	fr_es	Tout voir
+HOME_CHROME.seeAll	immersion	Ver todo
+HOME_CHROME.seeAll	totale	Ver todo
+HOME_CHROME.startReview	fr_es	Commencer la révision
+HOME_CHROME.startReview	immersion	Empezar el repaso
+HOME_CHROME.startReview	totale	Empezar el repaso
+HOME_CHROME.taCollection	fr_es	Ta collection
+HOME_CHROME.taCollection	immersion	Tu colección
+HOME_CHROME.taCollection	totale	Tu colección
+NAV_CHROME.account	fr_es	Compte
+NAV_CHROME.account	immersion	Cuenta
+NAV_CHROME.account	totale	Cuenta
+NAV_CHROME.add	fr_es	Ajouter
+NAV_CHROME.add	immersion	Añadir
+NAV_CHROME.add	totale	Añadir
+NAV_CHROME.dictionary	fr_es	Dictionnaire
+NAV_CHROME.dictionary	immersion	Diccionario
+NAV_CHROME.dictionary	totale	Diccionario
+NAV_CHROME.dictionaryLocked	fr_es	Dictionnaire (verrouillé)
+NAV_CHROME.dictionaryLocked	immersion	Diccionario (bloqueado)
+NAV_CHROME.dictionaryLocked	totale	Diccionario (bloqueado)
+NAV_CHROME.discover	fr_es	Découvrir
+NAV_CHROME.discover	immersion	Descubrir
+NAV_CHROME.discover	totale	Descubrir
+NAV_CHROME.home	fr_es	Accueil
+NAV_CHROME.home	immersion	Inicio
+NAV_CHROME.home	totale	Inicio
+NAV_CHROME.myWords	fr_es	Mes mots
+NAV_CHROME.myWords	immersion	Mis palabras
+NAV_CHROME.myWords	totale	Mis palabras
+NAV_CHROME.review	fr_es	Réviser
+NAV_CHROME.review	immersion	Repaso
+NAV_CHROME.review	totale	Repaso
+RATING_LABELS.1	fr_es	À revoir
+RATING_LABELS.1	immersion	Otra vez
+RATING_LABELS.1	totale	Otra vez
+RATING_LABELS.2	fr_es	Difficile
+RATING_LABELS.2	immersion	Difícil
+RATING_LABELS.2	totale	Difícil
+RATING_LABELS.3	fr_es	Bien
+RATING_LABELS.3	immersion	Bien
+RATING_LABELS.3	totale	Bien
+RATING_LABELS.4	fr_es	Facile
+RATING_LABELS.4	immersion	Fácil
+RATING_LABELS.4	totale	Fácil
+REVIEW_CHROME.blankInstruction	fr_es	Complétez la phrase
+REVIEW_CHROME.blankInstruction	immersion	Completa la frase
+REVIEW_CHROME.blankInstruction	totale	Completa la frase
+REVIEW_CHROME.definitionEyebrow	fr_es	Définition
+REVIEW_CHROME.definitionEyebrow	immersion	Definición
+REVIEW_CHROME.definitionEyebrow	totale	Definición
+REVIEW_CHROME.example	fr_es	Exemple
+REVIEW_CHROME.example	immersion	Ejemplo
+REVIEW_CHROME.example	totale	Ejemplo
+REVIEW_CHROME.expectedForm	fr_es	La forme attendue
+REVIEW_CHROME.expectedForm	immersion	La forma esperada
+REVIEW_CHROME.expectedForm	totale	La forma esperada
+REVIEW_CHROME.hintLabel	fr_es	Indice
+REVIEW_CHROME.hintLabel	immersion	Pista
+REVIEW_CHROME.hintLabel	totale	Pista
+REVIEW_CHROME.home	fr_es	Accueil
+REVIEW_CHROME.home	immersion	Inicio
+REVIEW_CHROME.home	totale	Inicio
+REVIEW_CHROME.loading	fr_es	Chargement…
+REVIEW_CHROME.loading	immersion	Cargando…
+REVIEW_CHROME.loading	totale	Cargando…
+REVIEW_CHROME.mcInstruction	fr_es	Choisissez la bonne réponse
+REVIEW_CHROME.mcInstruction	immersion	Elige la respuesta correcta
+REVIEW_CHROME.mcInstruction	totale	Elige la respuesta correcta
+REVIEW_CHROME.modeMcq	fr_es	QCM
+REVIEW_CHROME.modeMcq	immersion	Opción múltiple
+REVIEW_CHROME.modeMcq	totale	Opción múltiple
+REVIEW_CHROME.modeWriting	fr_es	Écriture
+REVIEW_CHROME.modeWriting	immersion	Escritura
+REVIEW_CHROME.modeWriting	totale	Escritura
+REVIEW_CHROME.nearIs	fr_es	— c'est
+REVIEW_CHROME.nearIs	immersion	— es
+REVIEW_CHROME.nearIs	totale	— es
+REVIEW_CHROME.nearWrote	fr_es	Tu as écrit
+REVIEW_CHROME.nearWrote	immersion	Has escrito
+REVIEW_CHROME.nearWrote	totale	Has escrito
+REVIEW_CHROME.newlyMemorized	fr_es	Nouveaux mots mémorisés
+REVIEW_CHROME.newlyMemorized	immersion	Nuevas palabras memorizadas
+REVIEW_CHROME.newlyMemorized	totale	Nuevas palabras memorizadas
+REVIEW_CHROME.nextQuestion	fr_es	Prochaine question…
+REVIEW_CHROME.nextQuestion	immersion	Siguiente pregunta…
+REVIEW_CHROME.nextQuestion	totale	Siguiente pregunta…
+REVIEW_CHROME.noteFirstTry	fr_es	du premier coup
+REVIEW_CHROME.noteFirstTry	immersion	a la primera
+REVIEW_CHROME.noteFirstTry	totale	a la primera
+REVIEW_CHROME.noteWithHint	fr_es	avec un indice
+REVIEW_CHROME.noteWithHint	immersion	con una pista
+REVIEW_CHROME.noteWithHint	totale	con una pista
+REVIEW_CHROME.noteWrongForm	fr_es	le bon verbe, l'autre forme
+REVIEW_CHROME.noteWrongForm	immersion	el verbo correcto, otra forma
+REVIEW_CHROME.noteWrongForm	totale	el verbo correcto, otra forma
+REVIEW_CHROME.ratingQuestion	fr_es	Comment tu as trouvé ce mot ?
+REVIEW_CHROME.ratingQuestion	immersion	¿Qué tal esta palabra?
+REVIEW_CHROME.ratingQuestion	totale	¿Qué tal esta palabra?
+REVIEW_CHROME.revealGloss	fr_es	Voir en français
+REVIEW_CHROME.revealGloss	immersion	Ver traducción
+REVIEW_CHROME.revealGloss	totale	Ver traducción
+REVIEW_CHROME.scramble	fr_es	Lettres mélangées
+REVIEW_CHROME.scramble	immersion	Letras mezcladas
+REVIEW_CHROME.scramble	totale	Letras mezcladas
+REVIEW_CHROME.sessionDone	fr_es	Session terminée
+REVIEW_CHROME.sessionDone	immersion	Sesión terminada
+REVIEW_CHROME.sessionDone	totale	Sesión terminada
+REVIEW_CHROME.statFirstTry	fr_es	Sus du 1er coup
+REVIEW_CHROME.statFirstTry	immersion	A la primera
+REVIEW_CHROME.statFirstTry	totale	A la primera
+REVIEW_CHROME.statReviewed	fr_es	Révisés
+REVIEW_CHROME.statReviewed	immersion	Repasados
+REVIEW_CHROME.statReviewed	totale	Repasados
+REVIEW_CHROME.statTime	fr_es	Temps
+REVIEW_CHROME.statTime	immersion	Tiempo
+REVIEW_CHROME.statTime	totale	Tiempo
+REVIEW_CHROME.stopTimer	fr_es	Arrêter le minuteur
+REVIEW_CHROME.stopTimer	immersion	Detener el temporizador
+REVIEW_CHROME.stopTimer	totale	Detener el temporizador
+REVIEW_CHROME.submit	fr_es	Valider
+REVIEW_CHROME.submit	immersion	Comprobar
+REVIEW_CHROME.submit	totale	Comprobar
+REVIEW_CHROME.submitHelp	fr_es	Entrée pour valider
+REVIEW_CHROME.submitHelp	immersion	Intro para comprobar
+REVIEW_CHROME.submitHelp	totale	Intro para comprobar
+REVIEW_CHROME.theAnswer	fr_es	La réponse
+REVIEW_CHROME.theAnswer	immersion	La respuesta
+REVIEW_CHROME.theAnswer	totale	La respuesta
+REVIEW_CHROME.verbFormTeaching	fr_es	Tu connais le verbe — ce n'est pas la forme attendue ici.
+REVIEW_CHROME.verbFormTeaching	immersion	Conoces el verbo — no es la forma esperada aquí.
+REVIEW_CHROME.verbFormTeaching	totale	Conoces el verbo — no es la forma esperada aquí.
+REVIEW_CHROME.yourAnswer	fr_es	Ta réponse
+REVIEW_CHROME.yourAnswer	immersion	Tu respuesta
+REVIEW_CHROME.yourAnswer	totale	Tu respuesta
+SHARED_CHROME.audioAria	fr_es	Écouter la prononciation
+SHARED_CHROME.audioAria	immersion	Escuchar la pronunciación
+SHARED_CHROME.audioAria	totale	Escuchar la pronunciación
+SHARED_CHROME.genFor	fr_es	Paco creuse pour
+SHARED_CHROME.genFor	immersion	Paco busca para
+SHARED_CHROME.genFor	totale	Paco busca para
+SHARED_CHROME.loadingWait	fr_es	Pendant que tu attends
+SHARED_CHROME.loadingWait	immersion	Mientras esperas
+SHARED_CHROME.loadingWait	totale	Mientras esperas
+STATUS_CHROME.memorise	fr_es	Mémorisé
+STATUS_CHROME.memorise	immersion	Memorizado
+STATUS_CHROME.memorise	totale	Memorizado
+STATUS_CHROME.new	fr_es	Nouveau
+STATUS_CHROME.new	immersion	Nuevo
+STATUS_CHROME.new	totale	Nuevo
+STATUS_CHROME.progress	fr_es	En cours
+STATUS_CHROME.progress	immersion	En curso
+STATUS_CHROME.progress	totale	En curso
+STATUS_CHROME.review	fr_es	À réviser
+STATUS_CHROME.review	immersion	Por repasar
+STATUS_CHROME.review	totale	Por repasar
+WORDS_CHROME.addWord	fr_es	Ajouter un mot
+WORDS_CHROME.addWord	immersion	Añadir una palabra
+WORDS_CHROME.addWord	totale	Añadir una palabra
+WORDS_CHROME.caughtUpCopy	fr_es	Tu es à jour. Paco se repose — reviens un peu plus tard.
+WORDS_CHROME.caughtUpCopy	immersion	Estás al día. Paco descansa — vuelve un poco más tarde.
+WORDS_CHROME.caughtUpCopy	totale	Estás al día. Paco descansa — vuelve un poco más tarde.
+WORDS_CHROME.clearSearch	fr_es	Effacer la recherche
+WORDS_CHROME.clearSearch	immersion	Borrar la búsqueda
+WORDS_CHROME.clearSearch	totale	Borrar la búsqueda
+WORDS_CHROME.delete	fr_es	Supprimer
+WORDS_CHROME.delete	immersion	Eliminar
+WORDS_CHROME.delete	totale	Eliminar
+WORDS_CHROME.filterAll	fr_es	Tous
+WORDS_CHROME.filterAll	immersion	Todas
+WORDS_CHROME.filterAll	totale	Todas
+WORDS_CHROME.filterMemorised	fr_es	Mémorisés
+WORDS_CHROME.filterMemorised	immersion	Memorizadas
+WORDS_CHROME.filterMemorised	totale	Memorizadas
+WORDS_CHROME.filterReview	fr_es	À revoir
+WORDS_CHROME.filterReview	immersion	Por repasar
+WORDS_CHROME.filterReview	totale	Por repasar
+WORDS_CHROME.firstWordCopy	fr_es	Ajoute un mot et Paco s’en souviendra avec toi — il te le ramènera au bon moment.
+WORDS_CHROME.firstWordCopy	immersion	Añade una palabra y Paco la recordará contigo — te la traerá en el momento justo.
+WORDS_CHROME.firstWordCopy	totale	Añade una palabra y Paco la recordará contigo — te la traerá en el momento justo.
+WORDS_CHROME.firstWordWaiting	fr_es	Ton premier mot t’attend
+WORDS_CHROME.firstWordWaiting	immersion	Tu primera palabra te espera
+WORDS_CHROME.firstWordWaiting	totale	Tu primera palabra te espera
+WORDS_CHROME.memorisedEmptyCopy	fr_es	Continue tes révisions — tes mots arriveront ici une fois bien ancrés.
+WORDS_CHROME.memorisedEmptyCopy	immersion	Sigue con tus repasos — tus palabras llegarán aquí una vez bien afianzadas.
+WORDS_CHROME.memorisedEmptyCopy	totale	Sigue con tus repasos — tus palabras llegarán aquí una vez bien afianzadas.
+WORDS_CHROME.myWords	fr_es	Mes mots
+WORDS_CHROME.myWords	immersion	Mis palabras
+WORDS_CHROME.myWords	totale	Mis palabras
+WORDS_CHROME.noResults	fr_es	Aucun résultat
+WORDS_CHROME.noResults	immersion	Sin resultados
+WORDS_CHROME.noResults	totale	Sin resultados
+WORDS_CHROME.noneMemorised	fr_es	Aucun mot mémorisé
+WORDS_CHROME.noneMemorised	immersion	Ninguna palabra memorizada
+WORDS_CHROME.noneMemorised	totale	Ninguna palabra memorizada
+WORDS_CHROME.nothingToReview	fr_es	Rien à réviser
+WORDS_CHROME.nothingToReview	immersion	Nada que repasar
+WORDS_CHROME.nothingToReview	totale	Nada que repasar
+WORDS_CHROME.searchAria	fr_es	Rechercher un mot
+WORDS_CHROME.searchAria	immersion	Buscar una palabra
+WORDS_CHROME.searchAria	totale	Buscar una palabra
+WORDS_CHROME.searchPlaceholder	fr_es	Rechercher…
+WORDS_CHROME.searchPlaceholder	immersion	Buscar…
+WORDS_CHROME.searchPlaceholder	totale	Buscar…
+WORDS_CHROME.sortAlpha	fr_es	Alphabétique
+WORDS_CHROME.sortAlpha	immersion	Alfabético
+WORDS_CHROME.sortAlpha	totale	Alfabético
+WORDS_CHROME.sortDate	fr_es	Date
+WORDS_CHROME.sortDate	immersion	Fecha
+WORDS_CHROME.sortDate	totale	Fecha
+WORDS_CHROME.sortFamiliarity	fr_es	Familiarité
+WORDS_CHROME.sortFamiliarity	immersion	Familiaridad
+WORDS_CHROME.sortFamiliarity	totale	Familiaridad
+WORDS_CHROME.sortLabel	fr_es	Trier
+WORDS_CHROME.sortLabel	immersion	Ordenar
+WORDS_CHROME.sortLabel	totale	Ordenar
+WORDS_CHROME.undo	fr_es	Annuler
+WORDS_CHROME.undo	immersion	Cancelar
+WORDS_CHROME.undo	totale	Cancelar

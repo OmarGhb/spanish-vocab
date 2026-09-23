@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
-import { glossVisibility, resolveChrome, DETAIL_CHROME, type ImmersionMode } from '@/lib/immersion'
+import { glossVisibility, resolveChrome, DETAIL_CHROME, type ChromeCtx } from '@/lib/immersion'
 
 type Example = { es: string; fr: string }
 
@@ -14,7 +14,7 @@ type Props = {
   formAnnotation?: string | null
   examples: Example[]
   distractors: string[]
-  mode: ImmersionMode
+  ctx: ChromeCtx
 }
 
 // Board §06 reveal toggle: amber underlined text link with a chevron, toggles BOTH
@@ -50,12 +50,12 @@ function Card({ eyebrow, children }: { eyebrow: string; children: React.ReactNod
   )
 }
 
-export default function WordDetailContent({ defEs, defFr, formAnnotation, examples, distractors, mode }: Props) {
+export default function WordDetailContent({ defEs, defFr, formAnnotation, examples, distractors, ctx }: Props) {
   const [revealedDefFr, setRevealedDefFr] = useState(false)
   const [revealedFr, setRevealedFr] = useState<boolean[]>(() => new Array(examples.length).fill(false))
   // Immersion gates the French gloss: visible (fr_es, existing toggle) · tap (immersion, same toggle,
   // ES label) · hidden (totale, no FR and no toggle at all).
-  const gloss = glossVisibility(mode)
+  const gloss = glossVisibility(ctx)
 
   function toggleFr(i: number) {
     setRevealedFr((prev) => prev.map((v, j) => (j === i ? !v : v)))
@@ -65,14 +65,14 @@ export default function WordDetailContent({ defEs, defFr, formAnnotation, exampl
     <div className="flex flex-col gap-3.5">
       {/* FORME */}
       {formAnnotation && (
-        <Card eyebrow={resolveChrome(DETAIL_CHROME.formEyebrow, mode)}>
+        <Card eyebrow={resolveChrome(DETAIL_CHROME.formEyebrow, ctx)}>
           <p className="font-serif text-base text-ink leading-relaxed">{formAnnotation}</p>
         </Card>
       )}
 
       {/* DÉFINITION */}
       {(defEs || defFr) && (
-        <Card eyebrow={resolveChrome(DETAIL_CHROME.definitionEyebrow, mode)}>
+        <Card eyebrow={resolveChrome(DETAIL_CHROME.definitionEyebrow, ctx)}>
           <p className="font-serif text-[17px] text-ink leading-relaxed">{defEs}</p>
           {defFr && gloss !== 'hidden' && (
             <>
@@ -83,7 +83,7 @@ export default function WordDetailContent({ defEs, defFr, formAnnotation, exampl
               )}
               <div className="mt-3">
                 <TextLink open={revealedDefFr} onClick={() => setRevealedDefFr((v) => !v)}>
-                  {resolveChrome(revealedDefFr ? DETAIL_CHROME.hideDef : DETAIL_CHROME.revealDef, mode)}
+                  {resolveChrome(revealedDefFr ? DETAIL_CHROME.hideDef : DETAIL_CHROME.revealDef, ctx)}
                 </TextLink>
               </div>
             </>
@@ -93,7 +93,7 @@ export default function WordDetailContent({ defEs, defFr, formAnnotation, exampl
 
       {/* EXEMPLES */}
       {examples.length > 0 && (
-        <Card eyebrow={resolveChrome(DETAIL_CHROME.examplesEyebrow, mode)}>
+        <Card eyebrow={resolveChrome(DETAIL_CHROME.examplesEyebrow, ctx)}>
           <ul className="flex flex-col">
             {examples.map((ex, i) => (
               <li key={i} className={i > 0 ? 'pt-3.5 mt-3.5 border-t border-border-soft' : ''}>
@@ -105,7 +105,7 @@ export default function WordDetailContent({ defEs, defFr, formAnnotation, exampl
                     )}
                     <div className="mt-2.5">
                       <TextLink open={revealedFr[i]} onClick={() => toggleFr(i)}>
-                        {resolveChrome(revealedFr[i] ? DETAIL_CHROME.hideEx : DETAIL_CHROME.revealEx, mode)}
+                        {resolveChrome(revealedFr[i] ? DETAIL_CHROME.hideEx : DETAIL_CHROME.revealEx, ctx)}
                       </TextLink>
                     </div>
                   </>
@@ -121,7 +121,7 @@ export default function WordDetailContent({ defEs, defFr, formAnnotation, exampl
           family words, so the label is "Mots associés" / "Palabras relacionadas" — "similaires"
           overclaimed sameness and "même famille" would mislabel the data. */}
       {distractors.length > 0 && (
-        <Card eyebrow={resolveChrome(DETAIL_CHROME.similarEyebrow, mode)}>
+        <Card eyebrow={resolveChrome(DETAIL_CHROME.similarEyebrow, ctx)}>
           <div className="flex flex-wrap gap-2">
             {distractors.map((d) => (
               <span

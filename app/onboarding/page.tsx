@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { SettingsProvider } from '../(app)/SettingsProvider'
 import { DEFAULT_PLAYBACK_SPEED, type PlaybackSpeed } from '@/lib/playback-speed'
 import { coerceTheme } from '@/lib/theme'
-import { coerceImmersionMode } from '@/lib/immersion'
+import { coerceGlossPolicy, coerceSourceLocale } from '@/lib/immersion'
 import { countByTheme } from '@/lib/discovery-topics'
 import OnboardingFlow from './OnboardingFlow'
 
@@ -24,7 +24,7 @@ export default async function OnboardingPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('onboarding_completed, theme, immersion_mode, autoplay_audio, playback_speed')
+    .select('onboarding_completed, theme, source_locale, gloss_policy, autoplay_audio, playback_speed')
     .maybeSingle()
   if (profile?.onboarding_completed === true) redirect('/')
 
@@ -38,7 +38,10 @@ export default async function OnboardingPage() {
       initialAutoplayAudio={profile?.autoplay_audio ?? true}
       initialPlaybackSpeed={(profile?.playback_speed as PlaybackSpeed) ?? DEFAULT_PLAYBACK_SPEED}
       initialTheme={coerceTheme(profile?.theme)}
-      initialImmersionMode={coerceImmersionMode(profile?.immersion_mode)}
+      initialChromeCtx={{
+        locale: coerceSourceLocale(profile?.source_locale),
+        policy: coerceGlossPolicy(profile?.gloss_policy),
+      }}
     >
       <OnboardingFlow poolCounts={poolCounts} />
     </SettingsProvider>

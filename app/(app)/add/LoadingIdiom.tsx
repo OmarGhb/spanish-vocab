@@ -27,14 +27,14 @@ type Props = {
 export default function LoadingIdiom({ status, word, result, onReveal, onRetry }: Props) {
   // The loading choreography (phase-stepping + floor + reveal gate) lives in the shared
   // LoadingChecklist; this component owns only the ¡Listo! reveal + error + the CTA.
-  const { immersionMode: mode } = useSettings()
+  const { chromeCtx: ctx } = useSettings()
   // Phase labels — mode-aware, reused by the LoadingChecklist + the ¡Listo! recap. Reuses the
   // detail eyebrows + discovery's Phonétique/Fonética.
   const phases = [
-    resolveChrome(DETAIL_CHROME.definitionEyebrow, mode),
-    resolveChrome(DETAIL_CHROME.examplesEyebrow, mode),
-    resolveChrome(ADD_CHROME.familyWords, mode),
-    resolveChrome(DISCOVER_CHROME.genPhasePhon, mode),
+    resolveChrome(DETAIL_CHROME.definitionEyebrow, ctx),
+    resolveChrome(DETAIL_CHROME.examplesEyebrow, ctx),
+    resolveChrome(ADD_CHROME.familyWords, ctx),
+    resolveChrome(DISCOVER_CHROME.genPhasePhon, ctx),
   ]
   const [showListo, setShowListo] = useState(false)
 
@@ -45,11 +45,11 @@ export default function LoadingIdiom({ status, word, result, onReveal, onRetry }
         <div className="flex items-center gap-3">
           <Image src="/paco-sad.png" alt="Paco" width={44} height={44} className="object-contain shrink-0" />
           <p className="text-sm text-err font-serif">
-            {resolveChrome(ADD_CHROME.errorOccurred, mode)}
+            {resolveChrome(ADD_CHROME.errorOccurred, ctx)}
           </p>
         </div>
         <Button variant="secondary" full type="button" onClick={onRetry}>
-          {resolveChrome(DISCOVER_CHROME.retry, mode)}
+          {resolveChrome(DISCOVER_CHROME.retry, ctx)}
         </Button>
       </div>
     )
@@ -65,7 +65,7 @@ export default function LoadingIdiom({ status, word, result, onReveal, onRetry }
             <div>
               {/* The SOLE Fraunces usage in the add flow — the allowlist Display primitive. */}
               <Display kind="listo" className="text-[34px] leading-none text-ink">¡Listo!</Display>
-              <p className="text-[13.5px] text-muted mt-2">{resolveChrome(ADD_CHROME.listoSub, mode)}</p>
+              <p className="text-[13.5px] text-muted mt-2">{resolveChrome(ADD_CHROME.listoSub, ctx)}</p>
             </div>
           </div>
 
@@ -95,7 +95,7 @@ export default function LoadingIdiom({ status, word, result, onReveal, onRetry }
             same proven pattern as the fiche; replaces the brittle min-h column that clipped it. */}
         <StickyActions>
           <Button variant="primary" full type="button" onClick={onReveal}>
-            {resolveChrome(ADD_CHROME.seeCard, mode)} →
+            {resolveChrome(ADD_CHROME.seeCard, ctx)} →
           </Button>
         </StickyActions>
       </>
@@ -105,7 +105,7 @@ export default function LoadingIdiom({ status, word, result, onReveal, onRetry }
   // ── LOADING (shared choreography) ──
   return (
     <LoadingChecklist
-      title={<>{resolveChrome(SHARED_CHROME.genFor, mode)} <span className="text-accent">{word}</span></>}
+      title={<>{resolveChrome(SHARED_CHROME.genFor, ctx)} <span className="text-accent">{word}</span></>}
       phases={phases}
       ready={status === 'ready'}
       onReveal={() => setShowListo(true)}

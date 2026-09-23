@@ -1,25 +1,25 @@
 import { Volume2, Eye, Lock, RefreshCw } from 'lucide-react'
-import type { ImmersionMode } from '@/lib/immersion'
+import type { GlossPolicy } from '@/lib/immersion'
 
 // Immersion selector (onb-immersion-variants.jsx `ImmPropLive`) — the recomposing live-preview version.
 // Three segmented chips (pre-selecting Immersion), an ES/FR proportion meter, and two preview cards
 // (a Découvrir word card + a Réviser fill-in-blank) rendered in the SELECTED mode's language treatment,
-// so the consequence of each mode is legible. Controlled by the flow; Continue commits via the real
-// setImmersionMode (M6.1a). The onboarding chrome stays French — only the PREVIEW content follows the
-// mode (CD's vetted mock copy, not authored here).
+// so the consequence of each option is legible. Controlled by the flow; Continue commits via the real
+// setGlossPolicy (M6.1a, generalized M8 Phase 0). The onboarding chrome stays French until Phase 3 —
+// only the PREVIEW content follows the policy (CD's vetted mock copy, not authored here).
 
-type ModeMeta = { id: ImmersionMode; label: string; recommended?: boolean; es: number; fr: 'visible' | 'tap' | 'none'; frNote: string; tagline: string }
+type ModeMeta = { id: GlossPolicy; label: string; recommended?: boolean; es: number; fr: 'visible' | 'tap' | 'none'; frNote: string; tagline: string }
 const MODES: ModeMeta[] = [
-  { id: 'fr_es', label: 'FR / ES', es: 50, fr: 'visible', frNote: 'Consignes en français · traduction au clic', tagline: 'La façon la plus douce de commencer.' },
-  { id: 'immersion', label: 'Immersion', recommended: true, es: 90, fr: 'tap', frNote: 'Tout en espagnol · traduction au clic', tagline: 'En espagnol, avec le français à portée de clic.' },
-  { id: 'totale', label: 'Immersion totale', es: 100, fr: 'none', frNote: 'Tout en espagnol, aucune traduction', tagline: 'Sans filet. Pour quand tu te sens prêt·e.' },
+  { id: 'visible', label: 'FR / ES', es: 50, fr: 'visible', frNote: 'Consignes en français · traduction au clic', tagline: 'La façon la plus douce de commencer.' },
+  { id: 'tap', label: 'Immersion', recommended: true, es: 90, fr: 'tap', frNote: 'Tout en espagnol · traduction au clic', tagline: 'En espagnol, avec le français à portée de clic.' },
+  { id: 'hidden', label: 'Immersion totale', es: 100, fr: 'none', frNote: 'Tout en espagnol, aucune traduction', tagline: 'Sans filet. Pour quand tu te sens prêt·e.' },
 ]
 
 // Language treatment per mode (preview only) — the "consequence": chrome language + how the FR appears.
-const LANG: Record<ImmersionMode, { instr: string; verify: string; transLabel: string; cardTransLabel: string; hasTrans: boolean }> = {
-  fr_es: { instr: 'Complète la phrase', verify: 'Vérifier', transLabel: 'Voir la traduction', cardTransLabel: 'Afficher en français', hasTrans: true },
-  immersion: { instr: 'Completa la frase', verify: 'Comprobar', transLabel: 'Ver traducción', cardTransLabel: 'Toca para traducir', hasTrans: true },
-  totale: { instr: 'Completa la frase', verify: 'Comprobar', transLabel: '', cardTransLabel: '', hasTrans: false },
+const LANG: Record<GlossPolicy, { instr: string; verify: string; transLabel: string; cardTransLabel: string; hasTrans: boolean }> = {
+  visible: { instr: 'Complète la phrase', verify: 'Vérifier', transLabel: 'Voir la traduction', cardTransLabel: 'Afficher en français', hasTrans: true },
+  tap: { instr: 'Completa la frase', verify: 'Comprobar', transLabel: 'Ver traducción', cardTransLabel: 'Toca para traducir', hasTrans: true },
+  hidden: { instr: 'Completa la frase', verify: 'Comprobar', transLabel: '', cardTransLabel: '', hasTrans: false },
 }
 
 const ABRIGO_DEF_ES = 'Prenda larga que se pone sobre la ropa para no pasar frío.'
@@ -49,7 +49,7 @@ function ImmMeter({ es, fr }: { es: number; fr: 'visible' | 'tap' | 'none' }) {
   )
 }
 
-function WordCardPreview({ mode }: { mode: ImmersionMode }) {
+function WordCardPreview({ mode }: { mode: GlossPolicy }) {
   const L = LANG[mode]
   return (
     <div className="bg-card border border-line rounded-[14px] px-4 py-[15px] shadow-card-sm">
@@ -76,7 +76,7 @@ function WordCardPreview({ mode }: { mode: ImmersionMode }) {
   )
 }
 
-function BlankPreview({ mode }: { mode: ImmersionMode }) {
+function BlankPreview({ mode }: { mode: GlossPolicy }) {
   const L = LANG[mode]
   return (
     <div className="bg-card border border-line rounded-[14px] px-4 py-[15px] shadow-card-sm">
@@ -106,8 +106,8 @@ export default function ImmersionStep({
   selected,
   onSelect,
 }: {
-  selected: ImmersionMode
-  onSelect: (id: ImmersionMode) => void
+  selected: GlossPolicy
+  onSelect: (id: GlossPolicy) => void
 }) {
   const M = MODES.find((m) => m.id === selected) ?? MODES[0]
   return (

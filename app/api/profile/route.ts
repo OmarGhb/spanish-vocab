@@ -11,6 +11,13 @@ const ProfileSchema = z
     autoplay_audio: z.boolean().optional(),
     playback_speed: z.enum(['lent', 'normal', 'rapide']).optional(),
     theme: z.enum(['sepia', 'ardoise', 'indigo', 'nuit', 'fiesta', 'olive', 'prune', 'aubergine']).optional(),
+    // The two language axes (M8 Phase 0). `source_locale` is deliberately pinned to 'fr' even though
+    // the column's CHECK already admits 'en': English is not selectable until the Phase 1
+    // discovery_pool EN backfill has shipped, so the API stays closed while the schema is ready.
+    source_locale: z.enum(['fr']).optional(),
+    gloss_policy: z.enum(['visible', 'tap', 'hidden']).optional(),
+    // DEPRECATED — dual-written by SettingsProvider for rollback safety during the apply-on-deploy
+    // window. Dropped at Phase 2 close along with the column.
     immersion_mode: z.enum(['fr_es', 'immersion', 'totale']).optional(),
     onboarding_completed: z.boolean().optional(),
     display_name: z.string().trim().min(1).max(40).nullable().optional(),
