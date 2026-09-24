@@ -6,9 +6,13 @@ export type CollectionCard = {
   id: string
   word: string
   fr: string
+  // M8 Phase 1a — additive. Optional through Phase 1 because the pool's EN glosses land in 1b and
+  // `fr` stays required while FR is the only selectable source locale. Phase 2 (when the draw path
+  // becomes locale-aware) is where `fr` becomes optional and a locale picks the side.
+  en?: string
   pos: string
   gender: Gender
-  example: { es: string; fr: string }
+  example: { es: string; fr: string; en?: string }
 }
 
 // French POS eyebrow shown above the discovery collection word, e.g. "NOM · MASCULIN", "VERBE".

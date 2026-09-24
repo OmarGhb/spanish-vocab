@@ -1,6 +1,6 @@
 {
   "name": "paco",
-  "version": "0.12.31",
+  "version": "0.12.32",
   "private": true,
   "scripts": {
     "dev": "next dev",

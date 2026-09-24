@@ -13,9 +13,12 @@ export type DiscoveryPoolRow = {
   id: string
   word: string
   fr: string
+  // M8 Phase 1a — mirrors the nullable `discovery_pool.en` column (migration 20260924000000).
+  // Nothing reads it yet: the draw path stays FR-only until Phase 2 localizes it.
+  en?: string
   pos: string
   gender: Gender
-  example: { es: string; fr: string }
+  example: { es: string; fr: string; en?: string }
   band: PoolBand
   status: 'active' | 'flagged'
 }
@@ -76,7 +79,9 @@ function interleaveByPos(rows: DiscoveryPoolRow[]): DiscoveryPoolRow[] {
 }
 
 function toCard(r: DiscoveryPoolRow): CollectionCard {
-  return { id: r.id, word: r.word, fr: r.fr, pos: r.pos, gender: r.gender, example: r.example }
+  // `en` is carried through when present so a Phase 2 locale switch is a read change, not a
+  // re-plumb. Undefined today for every row until 1b's data migration lands.
+  return { id: r.id, word: r.word, fr: r.fr, en: r.en, pos: r.pos, gender: r.gender, example: r.example }
 }
 
 export function selectPoolCards({

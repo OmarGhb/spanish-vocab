@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { getWordData } from '@/lib/anthropic'
+import { coerceSourceLocale } from '@/lib/immersion'
 import { checkSpelling } from '@/lib/wordlist'
 import { getAudioForWord } from '@/lib/tts'
 import { oneEmbed } from '@/lib/word-status'
@@ -30,6 +31,14 @@ export async function POST(request: Request) {
   if (!user) {
     return Response.json({ error: 'Unauthorized.' }, { status: 401 })
   }
+
+  // The learner's source locale selects the enrichment prompt (M8 Phase 1a). Read here rather than
+  // passed from the client so it can't be spoofed into generating English content for an FR account.
+  // coerceSourceLocale hardens a missing row / unknown value to 'fr', so the FR path is what every
+  // existing user gets, unchanged. The API pins source_locale to 'fr' until Phase 2, so today this
+  // always resolves to 'fr' — the plumbing is here, dormant, and proven by unit tests.
+  const { data: profile } = await supabase.from('profiles').select('source_locale').maybeSingle()
+  const locale = coerceSourceLocale(profile?.source_locale)
 
   // Check deck first — ilike without wildcards = exact case-insensitive match.
   // RLS scopes query to the authenticated user automatically.
@@ -94,7 +103,7 @@ export async function POST(request: Request) {
   let wordAudio: { es_ES: string } | null
   try {
     ;[wordData, wordAudio] = await Promise.all([
-      getWordData(word, request.signal),
+      getWordData(word, locale, request.signal),
       getAudioForWord(word),
     ])
   } catch (e) {

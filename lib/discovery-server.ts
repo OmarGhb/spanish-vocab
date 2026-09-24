@@ -81,7 +81,7 @@ export async function runLiveDiscovery(
   signal?: AbortSignal,
 ): Promise<CollectionCard[]> {
   const excludeSet = new Set(excludeWords.map((w) => w.toLowerCase()))
-  const entries = await getDiscoveryBatch(topic.es, topic.count, excludeWords, signal)
+  const entries = await getDiscoveryBatch(topic.es, topic.count, excludeWords, 'fr', signal)
 
   const seen = new Set<string>()
   const fresh = entries.filter((e) => {
@@ -96,6 +96,17 @@ export async function runLiveDiscovery(
     supabase,
     userId,
     topic.key,
-    fresh.map((e) => ({ word: e.word, fr: e.fr, pos: e.pos, gender: e.gender, example: e.example })),
+    // Live generation is FR-only through Phase 1 (getDiscoveryBatch defaults to 'fr' above and the
+    // API pins source_locale to 'fr'), so the schema's locale refine already guarantees `fr` on
+    // every entry. TS can't see that through the optional gloss type, so narrow explicitly rather
+    // than cast — an entry that somehow lacks it is dropped and logged, never written as undefined.
+    fresh.flatMap((e) => {
+      if (typeof e.fr !== 'string') {
+        console.warn(`[discovery] dropped entry with no FR gloss: ${JSON.stringify(e.word)}`)
+        return []
+      }
+      const example = { es: e.example.es, fr: e.example.fr ?? '' }
+      return [{ word: e.word, fr: e.fr, pos: e.pos, gender: e.gender, example }]
+    }),
   )
 }

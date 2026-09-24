@@ -47,3 +47,5 @@ next-env.d.ts
 .*.swo
 
 certificates
+# One-off script outputs (re-gloss review files) — inputs to human review, not artifacts.
+scripts/out/
