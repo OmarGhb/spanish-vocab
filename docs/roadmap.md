@@ -16,9 +16,9 @@ The next committed milestones. Items in `docs/backlog.md` are deferred until pro
 
 The committed order from here (detail for each lives in its section below or in `backlog.md`):
 
-- **NEXT (near-term committed — re-sequenced post-v0.12.28; build IN THIS ORDER):** **(1) Discovery-pool seed migration ✅** (v0.12.27) · **(2) Whitelist-only signups ✅** (v0.12.28) · **(3) Difficulty-naming — ⊘ CLOSED, NO RENAME** (diagnosed: the three concepts are already lexically disjoint) · **(4) First-name capture + display — ⊘ CLOSED, NO BUILD** (already shipped M6.2b/v0.11.0) · **(5) Hint-3 duplicate-letter tile bug ✅** (v0.12.29) · **(6) Hint-4 — ⊘ CLOSED, NO REWORK** (diagnosed: only 3 tiers, tier 3 already max-penalized) · **(7) Domain move** (trademark check first) ← **NEXT UP** · **(8) English as a language — Phase 0 ✅ SHIPPED (v0.12.30), Phases 1–3 OPEN** — content-included, not chrome-only; the load-bearing item, and the one that generalizes the shipped FR/ES immersion layer into real n-locale i18n. **Now sequenced as four sub-milestones**, each its own plan gate + single commit + tag: **0** locale model ✅ (v0.12.30) · **1a** content model + native EN prompt ✅ (v0.12.32) · **1b** the re-gloss run + data migration · **2** UI generalization · **3** onboarding/pre-auth/auth-email strings · **(9) LinkedIn showcase post** (needs 7 + 8) · **(10) Daily crosswords** (needs the shared generation/cache layer first) · **(11) Writing correction feature** (needs the item-8 content-locale decision). Full detail in the **"Near-term committed work"** section below.
+- **NEXT (near-term committed — re-sequenced post-v0.12.28; build IN THIS ORDER):** **(1) Discovery-pool seed migration ✅** (v0.12.27) · **(2) Whitelist-only signups ✅** (v0.12.28) · **(3) Difficulty-naming — ⊘ CLOSED, NO RENAME** (diagnosed: the three concepts are already lexically disjoint) · **(4) First-name capture + display — ⊘ CLOSED, NO BUILD** (already shipped M6.2b/v0.11.0) · **(5) Hint-3 duplicate-letter tile bug ✅** (v0.12.29) · **(6) Hint-4 — ⊘ CLOSED, NO REWORK** (diagnosed: only 3 tiers, tier 3 already max-penalized) · **(7) Domain move** (trademark check first) ← **NEXT UP** · **(8) English as a language — Phase 0 ✅ SHIPPED (v0.12.30), Phases 1–3 OPEN** — content-included, not chrome-only; the load-bearing item, and the one that generalizes the shipped FR/ES immersion layer into real n-locale i18n. **Now sequenced as four sub-milestones**, each its own plan gate + single commit + tag: **0** locale model ✅ (v0.12.30) · **1a** content model + native EN prompt ✅ (v0.12.32) · **1b** the re-gloss run + data migration ✅ (v0.12.33) · **2** UI generalization · **3** onboarding/pre-auth/auth-email strings · **(8b) oreja/malo example-sentence fix** (small FR content fix; found in 1b review) · **(9) LinkedIn showcase post** (needs 7 + 8) · **(10) Daily crosswords** (needs the shared generation/cache layer first) · **(11) Writing correction feature** (needs the item-8 content-locale decision). Full detail in the **"Near-term committed work"** section below.
 - **NOW:** M5.3c verb drill ✅ (shipped) · **List management — COMPLETE:** M5.4a free-text search + load-on-scroll ✅ (v0.7.0), M5.4b per-word delete + undo + Relearn ✅ (v0.7.1); **M5.4c bulk / multi-select / bulk delete — DROPPED** (decided not to build); **archive** (soft-delete + `archived` column) stays deferred (`backlog.md`).
-- **PRE-BETA:** **Cost cap** [**RELAXED post-v0.12.26** — with **whitelist-only signups** (near-term item above) gating who can touch the app, the cost cap is **no longer a hard soft-launch gate**; relocated to a still-wanted parked item in `backlog.md` → "Post-beta wants". Note it also protects against Omar's own heavy sessions (a burst of adds overdrew the API credit this session)] (soft-launch gate before any external user touches the app — budget / rate guards on the two paid paths: the Anthropic enrich call + the Google Cloud TTS call; synergy with the content gate below — pre-seeded discovery content reduces live generation calls, lowering the spend the cap guards) · **Design pass** (umbrella: holistic UX/design audit + more Paco mood variations & placements from Claude Design + the parked Astuce/tip redesign + **FINAL STEP — design-led rework of signup / login / onboarding**, Claude Design first) · _(**FR/ES immersion layer — SHIPPED**, M6.1a–d: `lib/immersion.ts` `resolveChrome`/`glossVisibility`, the three modes `fr_es`/`immersion`/`totale`, `ImmersionModePicker`, live across every product surface. **GENERALIZED at M8 Phase 0 (v0.12.30)** — the three modes are now `source_locale` (fr|en) × `gloss_policy` (visible|tap|hidden), `resolveChrome` takes a `ChromeCtx`, and `profiles.immersion_mode` is deprecated-but-dual-written until Phase 2 drops it. **No standalone "language layer" row remains** — the remaining English work is item 8 below.)_ · **Onboarding + signup build** (follows the designed screens — the FR/ES language layer it rides is already shipped, see above; backend hardening = **empty states** + the **Auth hardening (pre-beta)** cluster below — re-enable email confirmation · personalized verification email · SSO) · **Content gate — A2/B1 coverage seeding**, three components: **(a) verb conjugation coverage — ⛔ STILL OPEN, now concretely scoped** (per the M5.3b/écriture trace): the deterministic conjugator **computes 11 tenses/moods** with a **two-tier design** — it can *compute* a form for anything, but only *displays/drills* a paradigm when **`canDisplayParadigm(lemma)`** passes, gated on the **~78 reference-verified `TRUSTED_LEMMAS`** (the golden-fixture harness `lib/conjugator.expected.ts`). Live-deck hit rate **~87.5% (42/48 verb rows)**. **Near-term work:** admit **`conocer` / `crecer`** (`-zco` yo) **/ `andar`** (irregular `anduve`) via the vetted full-paradigm fixture process → **~94%**. **Permanently excluded (with reasons):** `haber` (auxiliary — no meaningful learner imperative), `poder` (weak gerund `pudiendo` needs a gerund-only special-case), `creer` (preterite hiatus accents `creíste/creímos`), `llover` (impersonal/weather), `acordar` (o→ue stem-changer not in the set). **This gate also unblocks the conjugate-transform** (inflected-target distractors — `backlog.md` → Review experience), which needs `TRUSTED_LEMMAS` coverage on both the target-derivation and distractor-conjugation sides; **(b) discovery depth ✅ DONE** — the 8 themes are pre-seeded into the shared `discovery_pool` (comida/casa/cuerpo/ropa/familia/fiesta/trabajo 60 each, viaje 63 — **~60/theme, below the original ≥100/theme target but deemed sufficient for the beta cohort**); **(c) A2/B1 essentials ✅ DONE** — the curated `esencial` set (187 words: 117 core / 70 extended), the "mélange conseillé" starter pool. **Seeding is CURATED (hand-authored SQL run directly against Supabase — see PROJECT_STATE "SEEDED STATE"), NOT AI-generated, and not backed by a commit.** ~~**open scoping Q:** (b)+(c) imply a shared/global seed pool vs today's per-user on-demand `pending` discovery rows~~ **RESOLVED — the shared/global seed pool is M8's `discovery_pool` (v0.10.0)**; the pre-seeding addresses the M5.1 cold-generation latency and lowers API/TTS cost as intended · **M5.3d compound (perfect) tenses** for the drill + grid (*he comido* / *había comido* — **IMPORTANT, A2** core; trails the content gate — `haber` verification rides the same fixture process) · **Learning-curve review + blank reviews** (analysis-first) — tail.
+- **PRE-BETA:** **Cost cap** [**RELAXED post-v0.12.26** — with **whitelist-only signups** (near-term item above) gating who can touch the app, the cost cap is **no longer a hard soft-launch gate**; relocated to a still-wanted parked item in `backlog.md` → "Post-beta wants". Note it also protects against Omar's own heavy sessions (a burst of adds overdrew the API credit this session)] (soft-launch gate before any external user touches the app — budget / rate guards on the two paid paths: the Anthropic enrich call + the Google Cloud TTS call; synergy with the content gate below — pre-seeded discovery content reduces live generation calls, lowering the spend the cap guards) · **Design pass** (umbrella: holistic UX/design audit + more Paco mood variations & placements from Claude Design + the parked Astuce/tip redesign + **FINAL STEP — design-led rework of signup / login / onboarding**, Claude Design first) · _(**FR/ES immersion layer — SHIPPED**, M6.1a–d: `lib/immersion.ts` `resolveChrome`/`glossVisibility`, the three modes `fr_es`/`immersion`/`totale`, `ImmersionModePicker`, live across every product surface. **GENERALIZED at M8 Phase 0 (v0.12.30)** — the three modes are now `source_locale` (fr|en) × `gloss_policy` (visible|tap|hidden), `resolveChrome` takes a `ChromeCtx`, and `profiles.immersion_mode` is deprecated-but-dual-written until Phase 2 drops it. **No standalone "language layer" row remains** — the remaining English work is item 8 below.)_ · **Onboarding + signup build** (follows the designed screens — the FR/ES language layer it rides is already shipped, see above; backend hardening = **empty states** + the **Auth hardening (pre-beta)** cluster below — re-enable email confirmation · personalized verification email · SSO) · **Content gate — A2/B1 coverage seeding**, three components: **(a) verb conjugation coverage — ⛔ STILL OPEN, now concretely scoped** (per the M5.3b/écriture trace): the deterministic conjugator **computes 11 tenses/moods** with a **two-tier design** — it can *compute* a form for anything, but only *displays/drills* a paradigm when **`canDisplayParadigm(lemma)`** passes, gated on the **~78 reference-verified `TRUSTED_LEMMAS`** (the golden-fixture harness `lib/conjugator.expected.ts`). Live-deck hit rate **~87.5% (42/48 verb rows)**. **Near-term work:** admit **`conocer` / `crecer`** (`-zco` yo) **/ `andar`** (irregular `anduve`) via the vetted full-paradigm fixture process → **~94%**. **Permanently excluded (with reasons):** `haber` (auxiliary — no meaningful learner imperative), `poder` (weak gerund `pudiendo` needs a gerund-only special-case), `creer` (preterite hiatus accents `creíste/creímos`), `llover` (impersonal/weather), `acordar` (o→ue stem-changer not in the set). **This gate also unblocks the conjugate-transform** (inflected-target distractors — `backlog.md` → Review experience), which needs `TRUSTED_LEMMAS` coverage on both the target-derivation and distractor-conjugation sides; **(b) discovery depth ✅ DONE** — the 8 themes are pre-seeded into the shared `discovery_pool` (comida/casa/cuerpo/ropa/familia/fiesta/trabajo 60 each, viaje 63 — **~60/theme, below the original ≥100/theme target but deemed sufficient for the beta cohort**); **(c) A2/B1 essentials ✅ DONE** — the curated `esencial` set (187 words: 117 core / 70 extended), the "mélange conseillé" starter pool. **Seeding is CURATED (hand-authored SQL run directly against Supabase — see PROJECT_STATE "SEEDED STATE"), NOT AI-generated.** ~~not backed by a commit~~ — **STRUCK at v0.12.33**: the pool has been backed by a committed, idempotent seed migration since v0.12.27 (`supabase/migrations/20260824000000_discovery_pool_seed.sql`, 672 rows, `ON CONFLICT (theme_key, lower(word)) DO NOTHING`), and its EN glosses by `20260924000100_pool_en_gloss_data.sql` (M8 Phase 1b). This clause had contradicted `PROJECT_STATE.md` → SEEDED STATE since v0.12.27. ~~**open scoping Q:** (b)+(c) imply a shared/global seed pool vs today's per-user on-demand `pending` discovery rows~~ **RESOLVED — the shared/global seed pool is M8's `discovery_pool` (v0.10.0)**; the pre-seeding addresses the M5.1 cold-generation latency and lowers API/TTS cost as intended · **M5.3d compound (perfect) tenses** for the drill + grid (*he comido* / *había comido* — **IMPORTANT, A2** core; trails the content gate — `haber` verification rides the same fixture process) · **Learning-curve review + blank reviews** (analysis-first) — tail.
 - **STRATEGIC:** **Crossword** (scoping → build; shares the (iii) generation + cache layer with the drill) · **Native apps** Android + iOS (**approach decision FIRST — Capacitor / PWA / rewrite** — then build).
 - **LATER:** **English UI** · **M7 companion** (data-gated on ~100+ words).
 
@@ -85,7 +85,7 @@ existed); **item 4 closed without a build** (already shipped in M6.2b); **item 5
 - **⚠️ Trademark sanity-check FIRST** — a kids' TV character named *Paco* exists; confirm the name is safe **before buying**.
 - Its gate is met: whitelist-only signups are live (item 2), so a real public URL is no longer the open-signup hazard it would have been. **Blocks item 9** (the LinkedIn post needs a real domain to point at).
 
-### 8. English as a language — **content-included, not chrome-only** — Phase 0 ✅ SHIPPED (v0.12.30)
+### 8. English as a language — **content-included, not chrome-only** — Phases 0, 1a, 1b ✅ SHIPPED (v0.12.30–33); Phase 2 open
 > The load-bearing item of this sequence. **Not** a UI-string translation pass — the *content itself* has to exist in English.
 
 - **(a) Re-gloss the corpus** — the **599-word** word corpus **+ the ~672 discovery rows** need English glosses.
@@ -132,7 +132,7 @@ belong to FR users, and EN users' words are enriched in EN at save time).
   imports only the prompt constants and reads `data/idioms.json` off disk — never the selector, never
   `lib/idioms.ts`. `lib/anthropic-schema.test.ts` holds a **verbatim inlined copy** of the pre-change
   schemas and asserts accept/reject parity over an 11-payload table. Suite 628 → 654.
-- **Phase 1b — the re-gloss run (NEXT).** `scripts/regloss-pool.ts` ships in 1a but has **not been
+- **Phase 1b — the re-gloss run ✅ SHIPPED (v0.12.33).** `scripts/regloss-pool.ts` ships in 1a but has **not been
   run**. Its `--dry-run` sends one row and prints the model the API actually **resolved** (not the
   string requested), aborting on mismatch — a silent substitution would put a different model's prose
   into a corpus committed forever. Then the full ~672-row run writes a reviewable TSV
@@ -142,11 +142,25 @@ belong to FR users, and EN users' words are enriched in EN at save time).
   any point** — the script never writes to Supabase. The 10 idioms get `literal_en` / `meaning_en` /
   `explanation_en` as **additive optional keys** in the same pass. Estimated ~$1.42 per run on
   `claude-opus-5-5`; budget under $3 including a re-run.
-  **At Phase 1b close:** strike the stale *"not backed by a commit"* clause in the Content-gate bullet
-  above, citing `supabase/migrations/20260824000000_discovery_pool_seed.sql` — it already contradicts
-  `PROJECT_STATE.md` → SEEDED STATE, corrected at v0.12.27. **Do NOT** retire the *"apply/replay not
-  executed against a live Postgres"* risk: the data migration is an `UPDATE` against existing rows and
-  exercises none of the seed's `INSERT … ON CONFLICT DO NOTHING` replay path.
+  **What actually ran:** `claude-opus-5-5`, 28 chunks of 24, **zero failed chunks, zero error rows,
+  672/672 generated**. Flags before review: 484 clean · 130 `sense` · 45 `false-friend` · 13 `idiom`.
+  Cost ≈ **$0.64** for the pool pass + **$0.0962** measured for the idioms — well under the dry run's
+  $4.26 linear projection, which had extrapolated from a *flagged* row when 72% came back clean.
+  **Review edits before emit:** the verb convention settled (display glosses take "to", `target_gloss`
+  stays bare — 142 rows normalized); US English (faucet/tap, apartment/flat, pants/trousers,
+  closet/wardrobe, city center), US word first in split glosses; `ser`/`estar`/`saber`/`conocer`
+  disambiguated, since all four collapsed to "to be"/"to know" and would have been indistinguishable
+  in a multiple-choice exercise; an unverifiable Don Quixote origin claim removed from
+  `buscar-tres-pies`. `data/idioms.json` gained `literal_en`/`meaning_en`/`explanation_en` on all 10
+  entries as a **purely additive** diff (30 insertions, 0 deletions) — merged by surgical text
+  insertion rather than parse/stringify, because the file stores `"origin"` inline and re-serializing
+  would rewrite every entry and break the FR fixture.
+  **Struck at close:** the stale *"not backed by a commit"* clause in the Content-gate bullet above.
+  **NOT struck, deliberately:** the *"apply/replay not executed against a live Postgres"* risk in
+  `PROJECT_STATE.md` → SEEDED STATE. The data migration is an `UPDATE` against rows that already
+  exist; applying it live exercises **none** of the seed's `INSERT … ON CONFLICT DO NOTHING` replay
+  path, which is what that risk is about. It stays open until the seed itself is replayed against a
+  real Postgres.
 - **⚠️ SCOPING CORRECTION (recorded v0.12.32): "EN becomes selectable" moved from Phase 1 close to
   PHASE 2 close.** The original plan had the API's `source_locale` pin widening at Phase 1 close. The
   Phase 1 audit found that wrong on two counts. **(1) The draw path writes French into every new
@@ -203,6 +217,44 @@ belong to FR users, and EN users' words are enriched in EN at save time).
 - **Decisions locked at scoping (do not re-litigate):** additive `en` keys, no `glosses` JSONB · no
   cross-source-language fallback, ever · internal ids stay French (`lent`/`normal`/`rapide`, theme ids) ·
   the 599-word user corpus is NOT backfilled · each phase ships as its own sub-milestone.
+
+### 8b. oreja / malo — example sentences missing their own headword — **NEXT** (small FR content fix)
+
+> Found during the Phase 1b EN re-gloss review (v0.12.33). Promoted out of the backlog by Omar at 1b
+> close: it is a **silent review bug**, not a content blemish.
+
+- **The defect.** Two seeded `discovery_pool` rows have an `example_es` that does not contain the word
+  it is an example *of*: **`oreja`** (the sentence uses `oído`) and **`malo`** (uses `mal`).
+- **Why it matters beyond the gloss.** `lib/review-cloze.ts` masks the headword inside the example to
+  build the fill-in-the-blank. A row whose example lacks its headword **cannot produce a cloze and
+  degrades silently** — no error, no log, just a card that never drills properly. Both words are in
+  the `esencial` starter set, so they reach every new user.
+- **Root cause.** The enrichment prompt has required the target verbatim since M2.5 ("The target word
+  must appear verbatim in the Spanish sentence"). These two predate it — they are from the
+  hand-curated seed, which never passed through that prompt.
+- **The fix.** Replace both `example_es` sentences so each contains its headword, then regenerate the
+  matching `example.fr` **and** `example.en` for those two rows only. A follow-on data migration in
+  the `20260924000100` family; **do not edit `20260824000000_discovery_pool_seed.sql`** — same rule
+  that has held all through M8.
+- **⚠️ Plan around this:** it is the **first FR-content change since the byte-identity invariant was
+  established** (v0.12.30). `lib/__fixtures__/prompt-golden.txt` pins the FR prompts and the idiom FR
+  fields, not pool rows, so it will not fail — but the precedent matters. This work needs its own
+  before/after capture of the two affected rows and **must not ride inside an M8 phase**, whose whole
+  premise is that French output does not move.
+- **Also worth auditing while in there:** whether any *other* pool row has the same problem. A
+  deterministic check (`normalizeSearch(example.es).includes(normalizeSearch(word))`, allowing for
+  inflection) over all 672 rows costs nothing and either closes the question or finds more.
+
+### 8c. FR idiom explanations disputed by the EN pass — parked (post-M8)
+
+> Also from the Phase 1b review. Unlike 8b these are **judgement calls, not defects**, so they are
+> recorded rather than scheduled.
+
+- The EN idiom pass disputed the French `explanation` on **`ponerse-las-pilas`**, **`estar-en-bolas`**
+  and **`hablar-por-codos`**, and questioned whether **`echar-agua-mar`** is an established idiom at
+  all. (It also softened `eramos-pocos`'s regional claim, which Omar accepted at review.)
+- FR-side content questions; out of scope for M8 by the same invariant as 8b. Revisit with 8b if a
+  French content pass happens, since both touch the curated corpus.
 
 ### 9. LinkedIn showcase post
 - French, playful **"built it for myself, maybe I'll let you in"** framing. **DM-gated — no public signup URL.**
