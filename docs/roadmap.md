@@ -16,7 +16,7 @@ The next committed milestones. Items in `docs/backlog.md` are deferred until pro
 
 The committed order from here (detail for each lives in its section below or in `backlog.md`):
 
-- **NEXT (near-term committed — re-sequenced post-v0.12.28; build IN THIS ORDER):** **(1) Discovery-pool seed migration ✅** (v0.12.27) · **(2) Whitelist-only signups ✅** (v0.12.28) · **(3) Difficulty-naming — ⊘ CLOSED, NO RENAME** (diagnosed: the three concepts are already lexically disjoint) · **(4) First-name capture + display — ⊘ CLOSED, NO BUILD** (already shipped M6.2b/v0.11.0) · **(5) Hint-3 duplicate-letter tile bug ✅** (v0.12.29) · **(6) Hint-4 — ⊘ CLOSED, NO REWORK** (diagnosed: only 3 tiers, tier 3 already max-penalized) · **(7) Domain move** (trademark check first) ← **NEXT UP** · **(8) English as a language — Phase 0 ✅ SHIPPED (v0.12.30), Phases 1–3 OPEN** — content-included, not chrome-only; the load-bearing item, and the one that generalizes the shipped FR/ES immersion layer into real n-locale i18n. **Now sequenced as four sub-milestones**, each its own plan gate + single commit + tag: **0** locale model ✅ (v0.12.30) · **1a** content model + native EN prompt ✅ (v0.12.32) · **1b** the re-gloss run + data migration ✅ (v0.12.33) · **2** UI generalization · **3** onboarding/pre-auth/auth-email strings · **(8b) oreja/malo example-sentence fix** (small FR content fix; found in 1b review) · **(9) LinkedIn showcase post** (needs 7 + 8) · **(10) Daily crosswords** (needs the shared generation/cache layer first) · **(11) Writing correction feature** (needs the item-8 content-locale decision). Full detail in the **"Near-term committed work"** section below.
+- **NEXT (near-term committed — re-sequenced post-v0.12.28; build IN THIS ORDER):** **(1) Discovery-pool seed migration ✅** (v0.12.27) · **(2) Whitelist-only signups ✅** (v0.12.28) · **(3) Difficulty-naming — ⊘ CLOSED, NO RENAME** (diagnosed: the three concepts are already lexically disjoint) · **(4) First-name capture + display — ⊘ CLOSED, NO BUILD** (already shipped M6.2b/v0.11.0) · **(5) Hint-3 duplicate-letter tile bug ✅** (v0.12.29) · **(6) Hint-4 — ⊘ CLOSED, NO REWORK** (diagnosed: only 3 tiers, tier 3 already max-penalized) · **(7) Domain move** (trademark check first) ← **NEXT UP** · **(8) English as a language — Phase 0 ✅ SHIPPED (v0.12.30), Phases 1–3 OPEN** — content-included, not chrome-only; the load-bearing item, and the one that generalizes the shipped FR/ES immersion layer into real n-locale i18n. **Now sequenced as four sub-milestones**, each its own plan gate + single commit + tag: **0** locale model ✅ (v0.12.30) · **1a** content model + native EN prompt ✅ (v0.12.32) · **1b** the re-gloss run + data migration ✅ (v0.12.33) · **2** UI generalization · **3** onboarding/pre-auth/auth-email strings · **(8b) oreja/malo example-sentence fix ✅** (v0.12.34) · **(8d) cloze-masker coverage — 21 rows** (found by 8b's guard) · **(9) LinkedIn showcase post** (needs 7 + 8) · **(10) Daily crosswords** (needs the shared generation/cache layer first) · **(11) Writing correction feature** (needs the item-8 content-locale decision). Full detail in the **"Near-term committed work"** section below.
 - **NOW:** M5.3c verb drill ✅ (shipped) · **List management — COMPLETE:** M5.4a free-text search + load-on-scroll ✅ (v0.7.0), M5.4b per-word delete + undo + Relearn ✅ (v0.7.1); **M5.4c bulk / multi-select / bulk delete — DROPPED** (decided not to build); **archive** (soft-delete + `archived` column) stays deferred (`backlog.md`).
 - **PRE-BETA:** **Cost cap** [**RELAXED post-v0.12.26** — with **whitelist-only signups** (near-term item above) gating who can touch the app, the cost cap is **no longer a hard soft-launch gate**; relocated to a still-wanted parked item in `backlog.md` → "Post-beta wants". Note it also protects against Omar's own heavy sessions (a burst of adds overdrew the API credit this session)] (soft-launch gate before any external user touches the app — budget / rate guards on the two paid paths: the Anthropic enrich call + the Google Cloud TTS call; synergy with the content gate below — pre-seeded discovery content reduces live generation calls, lowering the spend the cap guards) · **Design pass** (umbrella: holistic UX/design audit + more Paco mood variations & placements from Claude Design + the parked Astuce/tip redesign + **FINAL STEP — design-led rework of signup / login / onboarding**, Claude Design first) · _(**FR/ES immersion layer — SHIPPED**, M6.1a–d: `lib/immersion.ts` `resolveChrome`/`glossVisibility`, the three modes `fr_es`/`immersion`/`totale`, `ImmersionModePicker`, live across every product surface. **GENERALIZED at M8 Phase 0 (v0.12.30)** — the three modes are now `source_locale` (fr|en) × `gloss_policy` (visible|tap|hidden), `resolveChrome` takes a `ChromeCtx`, and `profiles.immersion_mode` is deprecated-but-dual-written until Phase 2 drops it. **No standalone "language layer" row remains** — the remaining English work is item 8 below.)_ · **Onboarding + signup build** (follows the designed screens — the FR/ES language layer it rides is already shipped, see above; backend hardening = **empty states** + the **Auth hardening (pre-beta)** cluster below — re-enable email confirmation · personalized verification email · SSO) · **Content gate — A2/B1 coverage seeding**, three components: **(a) verb conjugation coverage — ⛔ STILL OPEN, now concretely scoped** (per the M5.3b/écriture trace): the deterministic conjugator **computes 11 tenses/moods** with a **two-tier design** — it can *compute* a form for anything, but only *displays/drills* a paradigm when **`canDisplayParadigm(lemma)`** passes, gated on the **~78 reference-verified `TRUSTED_LEMMAS`** (the golden-fixture harness `lib/conjugator.expected.ts`). Live-deck hit rate **~87.5% (42/48 verb rows)**. **Near-term work:** admit **`conocer` / `crecer`** (`-zco` yo) **/ `andar`** (irregular `anduve`) via the vetted full-paradigm fixture process → **~94%**. **Permanently excluded (with reasons):** `haber` (auxiliary — no meaningful learner imperative), `poder` (weak gerund `pudiendo` needs a gerund-only special-case), `creer` (preterite hiatus accents `creíste/creímos`), `llover` (impersonal/weather), `acordar` (o→ue stem-changer not in the set). **This gate also unblocks the conjugate-transform** (inflected-target distractors — `backlog.md` → Review experience), which needs `TRUSTED_LEMMAS` coverage on both the target-derivation and distractor-conjugation sides; **(b) discovery depth ✅ DONE** — the 8 themes are pre-seeded into the shared `discovery_pool` (comida/casa/cuerpo/ropa/familia/fiesta/trabajo 60 each, viaje 63 — **~60/theme, below the original ≥100/theme target but deemed sufficient for the beta cohort**); **(c) A2/B1 essentials ✅ DONE** — the curated `esencial` set (187 words: 117 core / 70 extended), the "mélange conseillé" starter pool. **Seeding is CURATED (hand-authored SQL run directly against Supabase — see PROJECT_STATE "SEEDED STATE"), NOT AI-generated.** ~~not backed by a commit~~ — **STRUCK at v0.12.33**: the pool has been backed by a committed, idempotent seed migration since v0.12.27 (`supabase/migrations/20260824000000_discovery_pool_seed.sql`, 672 rows, `ON CONFLICT (theme_key, lower(word)) DO NOTHING`), and its EN glosses by `20260924000100_pool_en_gloss_data.sql` (M8 Phase 1b). This clause had contradicted `PROJECT_STATE.md` → SEEDED STATE since v0.12.27. ~~**open scoping Q:** (b)+(c) imply a shared/global seed pool vs today's per-user on-demand `pending` discovery rows~~ **RESOLVED — the shared/global seed pool is M8's `discovery_pool` (v0.10.0)**; the pre-seeding addresses the M5.1 cold-generation latency and lowers API/TTS cost as intended · **M5.3d compound (perfect) tenses** for the drill + grid (*he comido* / *había comido* — **IMPORTANT, A2** core; trails the content gate — `haber` verification rides the same fixture process) · **Learning-curve review + blank reviews** (analysis-first) — tail.
 - **STRATEGIC:** **Crossword** (scoping → build; shares the (iii) generation + cache layer with the drill) · **Native apps** Android + iOS (**approach decision FIRST — Capacitor / PWA / rewrite** — then build).
@@ -218,32 +218,56 @@ belong to FR users, and EN users' words are enriched in EN at save time).
   cross-source-language fallback, ever · internal ids stay French (`lent`/`normal`/`rapide`, theme ids) ·
   the 599-word user corpus is NOT backfilled · each phase ships as its own sub-milestone.
 
-### 8b. oreja / malo — example sentences missing their own headword — **NEXT** (small FR content fix)
+### 8b. oreja / malo — example sentences missing their own headword — ✅ SHIPPED (v0.12.34)
 
 > Found during the Phase 1b EN re-gloss review (v0.12.33). Promoted out of the backlog by Omar at 1b
-> close: it is a **silent review bug**, not a content blemish.
+> close. **⚠️ CORRECTED at v0.12.34** — this bullet originally called it a "silent review bug… a card
+> that never drills properly". Verified against the code during the fix, that overstated it: see the
+> corrected impact below. The rows were still worth fixing; the framing was wrong.
 
 - **The defect.** Two seeded `discovery_pool` rows have an `example_es` that does not contain the word
   it is an example *of*: **`oreja`** (the sentence uses `oído`) and **`malo`** (uses `mal`).
-- **Why it matters beyond the gloss.** `lib/review-cloze.ts` masks the headword inside the example to
-  build the fill-in-the-blank. A row whose example lacks its headword **cannot produce a cloze and
-  degrades silently** — no error, no log, just a card that never drills properly. Both words are in
-  the `esencial` starter set, so they reach every new user.
+- **Corrected impact (v0.12.34).** `lib/review-cloze.ts` masks the headword inside the example to
+  build the fill-in-the-blank. When it can't, `pickClozeExample` returns `null` — and `FillInBlank`
+  has a **designed fallback**: it renders the blanked Spanish *definition* plus the blank
+  (`FillInBlank.tsx:216/260`, the `definitionEyebrow` branch). So the card **still drills**; it just
+  never gets a *sentence*, permanently, and its authored example is dead weight in review. Not the
+  breakage the original wording described. It is still a real defect — the example is also rendered
+  verbatim on the discovery card and the word-detail page, where a learner saw *"Le susurró algo al
+  **oído**."* offered as the example for **oreja** — and both words are in the `esencial` starter
+  set, so they reached every new user.
 - **Root cause.** The enrichment prompt has required the target verbatim since M2.5 ("The target word
   must appear verbatim in the Spanish sentence"). These two predate it — they are from the
   hand-curated seed, which never passed through that prompt.
-- **The fix.** Replace both `example_es` sentences so each contains its headword, then regenerate the
-  matching `example.fr` **and** `example.en` for those two rows only. A follow-on data migration in
-  the `20260924000100` family; **do not edit `20260824000000_discovery_pool_seed.sql`** — same rule
-  that has held all through M8.
+- **✅ Done (v0.12.34).** `supabase/migrations/20260925000000_fix_example_headword.sql`, applied live,
+  both post-apply checks at 0. `oreja` → *"Lleva un pendiente en la oreja."*; `malo` → *"Este libro es
+  muy malo."*, with matching `fr`/`en`. The statements **merge** rather than rebuild
+  (`p.example || jsonb_build_object(…)`, `jsonb_set(w.examples,'{0}', …)`) so any key added to these
+  objects later survives. The seed migration was not edited — same rule that held all through M8.
+  - **An earlier `oreja` draft was rejected at review:** *"Se tapó la oreja con la mano."* — **`taparse
+    los oídos`** is the idiomatic Spanish for covering one's ears, so it would have fixed the masking
+    by teaching an unnatural collocation. Worth remembering: a sentence that satisfies the masker can
+    still be bad Spanish.
+  - **Saved copies were backfilled too.** `insertPendingCards` copies the example **by value** into
+    each user's `words` row, so fixing the pool alone would have left every already-drawn card
+    degraded. That UPDATE is guarded twice — only element 0, and only where its `es` is still exactly
+    the string being replaced — so a user-edited or differently-sourced row is untouched.
+  - **Full record:** `lib/__fixtures__/8b-before-after.md` (every field, both rows, all three
+    languages, before and after).
 - **⚠️ Plan around this:** it is the **first FR-content change since the byte-identity invariant was
   established** (v0.12.30). `lib/__fixtures__/prompt-golden.txt` pins the FR prompts and the idiom FR
   fields, not pool rows, so it will not fail — but the precedent matters. This work needs its own
   before/after capture of the two affected rows and **must not ride inside an M8 phase**, whose whole
   premise is that French output does not move.
-- **Also worth auditing while in there:** whether any *other* pool row has the same problem. A
-  deterministic check (`normalizeSearch(example.es).includes(normalizeSearch(word))`, allowing for
-  inflection) over all 672 rows costs nothing and either closes the question or finds more.
+- **The sweep found no other row of this kind.** All 672 were checked with a layered
+  inflection-aware matcher, then the survivors re-checked against the app's **own** masker. Exactly
+  two rows genuinely lack their headword; both are fixed. What the sweep *did* surface is item 8d
+  below.
+- **New permanent guard:** `lib/pool-examples.test.ts` runs `maskSentence` / `maskVerbSentence` over
+  every row, from a fixture derived from the committed SQL by `scripts/dump-pool-examples.ts` (no DB,
+  no credentials). It tests the real property — *can this row produce a cloze?* — rather than
+  re-deriving an inflection heuristic that would need stem changes, orthographic changes, suppletion
+  and apocope. This class of defect cannot return unnoticed.
 
 ### 8c. FR idiom explanations disputed by the EN pass — parked (post-M8)
 
@@ -255,6 +279,49 @@ belong to FR users, and EN users' words are enriched in EN at save time).
   all. (It also softened `eramos-pocos`'s regional claim, which Omar accepted at review.)
 - FR-side content questions; out of scope for M8 by the same invariant as 8b. Revisit with 8b if a
   French content pass happens, since both touch the curated corpus.
+
+### 8d. Cloze masker can't reach valid inflected forms — 21 pool rows (found by 8b's guard)
+
+> Surfaced by the maskability guard added in 8b (v0.12.34). **Not a content defect** — every one of
+> these examples *does* contain a valid inflected form of its headword; the masker cannot reach it.
+> All 21 verified by hand. They are listed in `KNOWN_UNMASKABLE` in `lib/pool-examples.test.ts`, which
+> fails in **both** directions: a fixed row must leave the list, and a new regression cannot join it
+> silently.
+
+**⚠️ The 8b plan estimated 5 rows. The real number is 21** — the estimate came from a heuristic that
+assumed *trusted lemma ⇒ maskable*, when `maskVerbSentence` also requires the surface form to be **in
+the generated paradigm**. Running the app's own masker is what produced the true figure. Recorded
+because the lesson generalizes: **approximating the code under test will under-report.**
+
+Three root causes, in order of size:
+
+1. **Untrusted verb lemma + the 4-char stem fallback (17 rows).** With no trusted paradigm,
+   `maskSentence` falls back to `\b` + the headword's first 4 characters. That misses any form
+   diverging inside those 4 chars: a stem change (`fregar`→*friego*, `poder`→*puedes*,
+   `apretar`→*aprietan*), an accent (`criar`→*crían* — `maskSentence` does **no** accent folding), or
+   simply a short stem whose 4th character is the ending vowel — **`vivir`→*vivo*** and
+   `sudar`→*sudo*. `vivir` is perfectly regular and still fails, so **the 4-char heuristic is the weak
+   point, not irregularity.** Two are phrase lemmas (`darse cuenta`, `echar de menos`) where
+   `stripReflexive`'s `(ar|er|ir)se$` anchor is a no-op, so `darse cuenta` never reduces to `dar`.
+2. **Adjective gender (2 rows).** The masker has no gender rule: `sano`→*sana*, `último`→*última*.
+3. **Imperative + enclitic, even with a TRUSTED lemma (2 rows).** `sentarse`→*Siéntate*,
+   `ponerse`→*Ponte*. `maskVerbSentence` matches bare paradigm surfaces, and a verb+clitic unit equals
+   no entry. Note `maskProcliticReflexive` handles the **pro**clitic direction (*te levantas*), not
+   this one.
+
+**Why it matters:** these rows have been silently taking the definition-prompt fallback for the life
+of the corpus — the same invisible degradation 8b fixed, at ten times the scale. ~23 of 672 rows
+(3.4%) never produced a sentence cloze.
+
+**Possible fixes, roughly in order of value.** Not scoped yet:
+- Make `maskSentence`'s fallback accent-folding and stem-length aware (would fix `criar`, `vivir`,
+  `sudar`, `nacer` and others with no paradigm work at all) — **the cheapest large win.**
+- Admit `andar`, `oler`, `reír`, `soler`, `fregar`, `tender`, `impedir`, `apretar`, `curarse`,
+  `criar`, `nacer`, `vivir`, `sudar` to `TRUSTED_LEMMAS` via the vetted full-paradigm fixture process
+  (`lib/conjugator.expected.ts`). Note `andar` is already named as a near-term candidate in the
+  Content-gate bullet above, and `poder` is **deliberately excluded** there (weak gerund *pudiendo*).
+- Teach the masker enclitic imperatives, and `stripReflexive` phrase lemmas.
+- Adjective gender agreement in `maskSentence`.
 
 ### 9. LinkedIn showcase post
 - French, playful **"built it for myself, maybe I'll let you in"** framing. **DM-gated — no public signup URL.**
