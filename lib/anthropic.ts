@@ -129,7 +129,11 @@ Rules:
 //     the English set, not rendered into English;
 //   · its "include the French article (le marché)" rule is DELETED rather than translated — English
 //     dictionary glosses take no article, and translating the rule yields "the market" everywhere;
-//   · English verb glosses take the infinitive marker ("to scrub"), which has no French analogue;
+//   · English verb glosses take the infinitive marker ("to scrub"), which has no French analogue.
+//     NOTE the deliberate split between the two kinds of gloss in this file: DISPLAY glosses (the
+//     discovery `en` field, and discovery_pool.en) carry "to"; the `target_gloss` / candidate glosses
+//     do NOT, because those are never shown — they are fed to glossesOverlap in lib/distractors.ts
+//     for synonym detection, where a leading "to" on every verb is noise that matches nothing;
 //   · the Spanish-side rules (definition.es, pos notation, form_annotation, example construction,
 //     distractor form-matching) are held IDENTICAL to the FR prompt on purpose — they are about
 //     Spanish, so they must not drift between locales.
@@ -260,7 +264,7 @@ Return ONLY a valid JSON array — no markdown, no code blocks, no explanation. 
 Rules:
 - Produce up to ${count} entries for the given theme, ordered from most to least common.
 - "word": the canonical dictionary headword in Spanish — bare, lower-case, NO article (write "mercado", never "el mercado"), singular for nouns, infinitive for verbs. Useful, everyday A2–B1 vocabulary for the theme.
-- "en": a short English gloss (1–4 words), the kind you'd see in a bilingual dictionary. NO article — write "market", never "the market". For verbs use the bare form without "to" (write "cook", not "to cook").
+- "en": a short English gloss (1–4 words), the kind you'd see in a bilingual dictionary. NO article — write "market", never "the market". For verbs use the English infinitive with "to" (write "to cook", not "cook"); for a split sense repeat it on each side ("to scrub / to wash up").
 - "pos": part of speech in standard notation. Use exactly one of: "v." (verb), "v.pron." (pronominal verb), "n.m." (masculine noun), "n.f." (feminine noun), "adj.", "adv.", "prep.", "conj.", "pron.", "interj.".
 - "gender": "m" or "f" for nouns; null for anything that is not a gendered noun.
 - "band": coarse frequency tier. "core" = high-frequency A2 essentials a beginner meets first; "extended" = less common or more B1-level words for the theme. Bias toward "core" for the most common words and "extended" for the rest.

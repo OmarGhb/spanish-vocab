@@ -35,6 +35,7 @@ const OUT_DIR = 'scripts/out'
 const POOL_TSV = `${OUT_DIR}/discovery-pool-en.tsv`
 const IDIOMS_TSV = `${OUT_DIR}/idioms-en.tsv`
 const MIGRATION_PATH = 'supabase/migrations/20260924000100_pool_en_gloss_data.sql'
+const IDIOMS_PATH = 'data/idioms.json'
 
 const TAB = '\t'
 const HEADER = ['theme_key', 'word', 'pos', 'fr', 'en', 'example_es', 'example_en', 'flag', 'note'].join(TAB)
@@ -42,6 +43,9 @@ const HEADER = ['theme_key', 'word', 'pos', 'fr', 'en', 'example_es', 'example_e
 const DRY_RUN = process.argv.includes('--dry-run')
 const RUN = process.argv.includes('--run')
 const EMIT = process.argv.includes('--emit')
+// Generates ONLY the idioms file. Exists because --run regenerates all ~672 pool rows and would
+// overwrite a TSV that is mid-review; this mode never opens POOL_TSV for writing, by construction.
+const IDIOMS_ONLY = process.argv.includes('--idioms-only')
 
 const FLAGS = ['', 'sense', 'idiom', 'false-friend', 'error'] as const
 const RowOut = z.object({
@@ -53,6 +57,23 @@ const RowOut = z.object({
 })
 const BatchOut = z.array(RowOut)
 
+// The idiom pass has its own shape AND its own flag set. `fact` is idiom-specific: an idiom
+// explanation asserts where the expression came from, and an origin claim is a different kind of
+// doubt from an ambiguous sense — it needs verifying, not deciding. The first run (v0.12.33)
+// invented `check` and `fact` because this prompt said only "same rules as the vocabulary pass"
+// and the response was parsed as a loose Record, so nothing rejected them. Enumerated here and
+// parsed through Zod so a future run is reproducible; `check` folds into `fact`.
+const IDIOM_FLAGS = ['', 'sense', 'idiom', 'false-friend', 'fact', 'error'] as const
+const IdiomOut = z.object({
+  id: z.string().min(1),
+  literal_en: z.string().min(1),
+  meaning_en: z.string().min(1),
+  explanation_en: z.string().min(1),
+  flag: z.enum(IDIOM_FLAGS).default(''),
+  note: z.string().default(''),
+})
+const IdiomBatchOut = z.array(IdiomOut)
+
 const SYSTEM = `You are a bilingual lexicographer preparing an English gloss set for a Spanish vocabulary app.
 
 For each row you receive (a Spanish headword, its part of speech, its existing French gloss, and one Spanish example sentence), return ONE JSON object. Return ONLY a valid JSON array, no markdown, no commentary.
@@ -60,7 +81,7 @@ For each row you receive (a Spanish headword, its part of speech, its existing F
 { "word": "<the headword, echoed exactly>", "en": "...", "example_en": "...", "flag": "", "note": "" }
 
 Rules:
-- "en": a short English gloss (1-4 words), dictionary style. NO article - write "market", never "the market". For verbs use the bare form without "to" (write "cook", not "to cook"). Where Spanish has one word and English splits it, give both separated by " / " (escalera -> "stairs / ladder").
+- "en": a short English gloss (1-4 words), dictionary style. NO article - write "market", never "the market". For verbs use the English infinitive with "to" (write "to cook", not "cook"); repeat it on each side of a split sense ("to scrub / to wash up"). Where Spanish has one word and English splits it, give both separated by " / " (escalera -> "stairs / ladder").
 - "example_en": a fluent, natural English translation of the Spanish example. Translate the SPANISH, not the French. Keep the register of the original; do not add or drop information.
 - The French gloss is CONTEXT ONLY - it tells you which sense is meant. Never translate French into English; always work from the Spanish.
 - "flag": leave "" when the row is unambiguous. Otherwise exactly one of:
@@ -80,7 +101,13 @@ Rules:
 - "literal_en": a word-for-word English rendering of the SPANISH phrase. It should sound odd in English - that is the point of a literal gloss.
 - "meaning_en": what the idiom actually means, in idiomatic English. Give a natural English equivalent where one exists.
 - "explanation_en": 2-3 sentences on usage, tone and origin, written for an English speaker. Work from the Spanish and the French explanation together, but write fresh English prose - do not translate the French sentence by sentence.
-- "flag" / "note": same rules as the vocabulary pass; use "idiom" when an English equivalent does not exist and the reviewer must choose a paraphrase.
+- "flag": leave "" when the entry is unambiguous and every claim is safe. Otherwise exactly one of:
+    "idiom"        - no English equivalent exists and the reviewer must choose a paraphrase
+    "fact"         - the explanation asserts an origin, etymology or regional claim a reviewer should verify
+    "sense"        - the phrase carries senses English splits, or the intended reading is unclear
+    "false-friend" - a word in the phrase has an English cognate that misleads
+  Use no other value.
+- "note": one short sentence, ONLY when flag is non-empty, saying what the reviewer must decide or verify.
 - Echo "id" byte-for-byte.`
 
 type PoolRow = {
@@ -181,6 +208,7 @@ async function dryRun() {
 }
 
 async function runIdioms() {
+  mkdirSync(OUT_DIR, { recursive: true })
   const idioms = JSON.parse(readFileSync('data/idioms.json', 'utf8')) as IdiomRow[]
   const payload = idioms.map((i) => ({
     id: i.id,
@@ -189,19 +217,24 @@ async function runIdioms() {
     meaning_fr: i.meaning,
     explanation_fr: i.explanation,
   }))
-  const { raw } = await ask(IDIOM_SYSTEM, payload)
-  const parsed = raw as Array<Record<string, string>>
+  const { raw, usage, model } = await ask(IDIOM_SYSTEM, payload)
+  if (model !== MODEL) throw new Error(`model mismatch: asked for ${MODEL}, served ${model} - aborting`)
+  const parsed = IdiomBatchOut.parse(raw)
   const out = [['id', 'phrase', 'literal_en', 'meaning_en', 'explanation_en', 'flag', 'note'].join(TAB)]
   for (const g of parsed) {
     const src = idioms.find((i) => i.id === g.id)
     if (!src) continue
     out.push(
-      [src.id, src.phrase, g.literal_en, g.meaning_en, g.explanation_en, g.flag ?? '', g.note ?? '']
+      [src.id, src.phrase, g.literal_en, g.meaning_en, g.explanation_en, g.flag, g.note]
         .map(tsvCell)
         .join(TAB),
     )
   }
   writeFileSync(IDIOMS_TSV, out.join('\n') + '\n', 'utf8')
+  const cost = (usage.input_tokens * PRICE_IN_PER_MTOK) / 1e6 + (usage.output_tokens * PRICE_OUT_PER_MTOK) / 1e6
+  console.log(`resolved model: ${model}`)
+  console.log(`tokens        : ${usage.input_tokens} in / ${usage.output_tokens} out`)
+  console.log(`cost          : $${cost.toFixed(4)}`)
   console.log(`WROTE ${IDIOMS_TSV} (${out.length - 1} rows)`)
 }
 
@@ -309,16 +342,65 @@ NOTIFY pgrst, 'reload schema';
 `
   writeFileSync(MIGRATION_PATH, sql, 'utf8')
   console.log(`WROTE ${MIGRATION_PATH} (${values.length} rows, ${skipped} skipped)`)
+
+  emitIdioms()
+}
+
+// Merge the reviewed idiom TSV into data/idioms.json as three ADDITIVE keys per entry.
+//
+// Deliberately a surgical TEXT insertion, not JSON.parse → JSON.stringify. The file stores
+// `"origin": ["universal"]` inline; re-serializing with indent 2 would explode every origin array
+// onto its own lines and rewrite all 10 entries. The FR fields are pinned byte-for-byte by
+// lib/__fixtures__/prompt-golden.txt, so a reformat would fail the build — and would be wrong
+// regardless. Each entry gains exactly three lines, inserted before its "origin" key.
+function emitIdioms() {
+  if (!existsSync(IDIOMS_TSV)) {
+    console.log(`(no ${IDIOMS_TSV} — skipping the idiom merge)`)
+    return
+  }
+  const rows = readFileSync(IDIOMS_TSV, 'utf8').trimEnd().split('\n').slice(1)
+  let json = readFileSync(IDIOMS_PATH, 'utf8')
+  let merged = 0
+
+  for (const line of rows) {
+    const [id, , literal_en, meaning_en, explanation_en] = line.split(TAB)
+    if (!id || !literal_en || !meaning_en || !explanation_en) continue
+
+    // Locate this entry's "origin" line: the first one after the entry's own "id" key.
+    const idAt = json.indexOf(`"id": ${JSON.stringify(id)}`)
+    if (idAt === -1) {
+      console.warn(`  idiom not found in ${IDIOMS_PATH}: ${id}`)
+      continue
+    }
+    const originAt = json.indexOf('    "origin":', idAt)
+    if (originAt === -1) {
+      console.warn(`  no origin key after idiom: ${id}`)
+      continue
+    }
+    if (json.slice(idAt, originAt).includes('"literal_en"')) continue // already merged — idempotent
+
+    const block =
+      `    "literal_en": ${JSON.stringify(literal_en)},\n` +
+      `    "meaning_en": ${JSON.stringify(meaning_en)},\n` +
+      `    "explanation_en": ${JSON.stringify(explanation_en)},\n`
+    json = json.slice(0, originAt) + block + json.slice(originAt)
+    merged++
+  }
+
+  writeFileSync(IDIOMS_PATH, json, 'utf8')
+  console.log(`WROTE ${IDIOMS_PATH} (${merged} idioms merged, FR fields untouched)`)
 }
 
 async function main() {
   if (DRY_RUN) return dryRun()
+  if (IDIOMS_ONLY) return runIdioms()
   if (RUN) return fullRun()
   if (EMIT) return emit()
   console.log(
     'No mode given. One of:\n' +
-      '  --dry-run   one row; prints resolved model + usage + projected cost (start here)\n' +
-      '  --run       the full re-gloss -> scripts/out/discovery-pool-en.tsv\n' +
+      '  --dry-run     one row; prints resolved model + usage + projected cost (start here)\n' +
+      '  --run         the full re-gloss -> scripts/out/discovery-pool-en.tsv\n' +
+      '  --idioms-only just the 10 idioms -> scripts/out/idioms-en.tsv (never touches the pool TSV)\n' +
       '  --emit      approved TSV -> the committed data migration',
   )
 }

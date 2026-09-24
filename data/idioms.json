@@ -5,6 +5,9 @@
     "literal": "There were few of us and grandma gave birth",
     "meaning": "Comme si ça ne suffisait pas… / Et il ne manquait plus que ça !",
     "explanation": "Utilisé quand une situation déjà compliquée empire d'un coup. Le ton est ironique, presque résigné — jamais littéral. Image absurde d'une famille déjà nombreuse à laquelle s'ajoute un nouveau membre par surprise. Très courant en Espagne et en Amérique latine, dans la conversation quotidienne.",
+    "literal_en": "We were few and grandma gave birth",
+    "meaning_en": "As if things weren't bad enough; it never rains but it pours.",
+    "explanation_en": "Said when a situation that is already difficult suddenly gets worse, often when yet another person or problem turns up. The tone is ironic and resigned, and it is never meant literally: the absurd picture is a crowded household where, of all people, the grandmother produces one more mouth to feed. It is an everyday colloquial expression, especially widespread in Spain.",
     "origin": ["universal"]
   },
   {
@@ -13,6 +16,9 @@
     "literal": "Être comme une chèvre",
     "meaning": "Être complètement fou, déjanté",
     "explanation": "Vient des chèvres de montagne espagnoles, qui sautent de manière apparemment imprévisible sur des falaises impossibles. L'expression est presque toujours affectueuse — utilisée pour décrire quelqu'un d'excentrique ou d'imprévisible, rarement comme une vraie insulte. Équivalent du français « être barjo ».",
+    "literal_en": "To be like a goat",
+    "meaning_en": "To be completely nuts, off one's rocker, mad as a hatter",
+    "explanation_en": "Describes someone as crazy, but it is almost always affectionate. It suits an eccentric friend or a wildly unpredictable relative, and it is rarely a real insult. The image comes from goats, which leap about on sheer mountain rocks in seemingly erratic, reckless ways.",
     "origin": ["es"]
   },
   {
@@ -21,6 +27,9 @@
     "literal": "Ne pas avoir de poils sur la langue",
     "meaning": "Dire les choses franchement, sans détour",
     "explanation": "Dire ce qu'on pense sans filtre. L'image suggère qu'avoir des « poils sur la langue » empêcherait de parler clairement — donc ne pas en avoir, c'est ne rien retenir. Compliment ou critique selon le contexte : « habla sin pelos en la lengua » peut être admiratif ou alarmant.",
+    "literal_en": "Not to have hairs on the tongue",
+    "meaning_en": "Not to mince one's words; to be outspoken, to call a spade a spade",
+    "explanation_en": "Used of someone who says exactly what they think, with no filter. The idea is that hairs on the tongue would get in the way of speaking plainly, so a person without them holds nothing back. Depending on context it can be admiring or a warning, and \"habla sin pelos en la lengua\" can praise honesty or signal tactlessness.",
     "origin": ["universal"]
   },
   {
@@ -29,6 +38,9 @@
     "literal": "Prendre le cheveu à quelqu'un",
     "meaning": "Se moquer de quelqu'un, le faire marcher",
     "explanation": "Plaisanter aux dépens de quelqu'un, gentiment. « ¿Me estás tomando el pelo? » = « Tu te moques de moi ? ». L'origine est obscure — possiblement liée à de vieilles plaisanteries de barbier. Utilisé partout dans le monde hispanophone, dans des contextes plutôt légers.",
+    "literal_en": "To take the hair to someone",
+    "meaning_en": "To pull someone's leg; to tease or kid someone",
+    "explanation_en": "Means to joke at someone's expense, usually good-naturedly, as in \"¿Me estás tomando el pelo?\" (\"Are you pulling my leg?\"). It is used throughout the Spanish-speaking world in light, informal contexts, though it can also express real annoyance at being taken for a fool. The origin is uncertain, and the various explanations proposed are speculative.",
     "origin": ["universal"]
   },
   {
@@ -37,6 +49,9 @@
     "literal": "Se mettre les piles",
     "meaning": "S'y mettre sérieusement, se bouger",
     "explanation": "Comme un appareil qui s'allume quand on insère les piles. « Ponte las pilas » = « réveille-toi, concentre-toi, sois efficace ». Très courant chez les profs, parents et chefs. Utilisé partout du Mexique à l'Argentine, plus rare en Espagne où on dirait plutôt « espabilar ».",
+    "literal_en": "To put the batteries in oneself",
+    "meaning_en": "To get one's act together, pull one's socks up, get cracking",
+    "explanation_en": "Just as a device switches on once the batteries go in, \"¡Ponte las pilas!\" tells someone to wake up, focus and get moving. Teachers, parents and bosses say it constantly. It is common right across the Spanish-speaking world, Spain included, where \"espabilar\" (\"¡Espabila!\") is a near synonym.",
     "origin": ["latam"]
   },
   {
@@ -45,6 +60,9 @@
     "literal": "Jeter de l'eau à la mer",
     "meaning": "Faire quelque chose d'inutile",
     "explanation": "Action absolument futile, gaspillage d'effort. Equivalent du français « pisser dans un violon ». Souvent utilisé pour décrire des conseils donnés à quelqu'un qui n'écoutera jamais, ou un travail qui ne servira à rien.",
+    "literal_en": "To throw water into the sea",
+    "meaning_en": "To do something utterly pointless; to waste one's breath, flog a dead horse",
+    "explanation_en": "Describes a completely futile action, since adding water to the sea changes nothing. It typically refers to advice given to someone who will never listen, or to work that will make no difference. English has no single fixed match, so the right equivalent depends on context, such as \"talking to a brick wall\" for advice or \"a waste of effort\" for work.",
     "origin": ["universal"]
   },
   {
@@ -53,6 +71,9 @@
     "literal": "Être en boules",
     "meaning": "Être tout nu",
     "explanation": "Argot pour « tout nu ». Très courant en Espagne, plus rare et parfois vulgaire en Amérique latine où on préférera « estar desnudo ». Attention au contexte — c'est familier, à ne pas utiliser au travail ou avec des inconnus. Idéal pour comprendre les blagues entre amis.",
+    "literal_en": "To be in balls",
+    "meaning_en": "To be stark naked; to be in the buff, in one's birthday suit",
+    "explanation_en": "A slangy, informal way of saying someone is naked. \"Bolas\" is slang for testicles, which gives the phrase its cheeky, slightly crude tone, so avoid it at work or with strangers. It is heard both in Spain (alongside \"en pelotas\") and in parts of Latin America, and in the River Plate region \"estar en bolas\" can also mean \"to be clueless\".",
     "origin": ["es"]
   },
   {
@@ -61,6 +82,9 @@
     "literal": "Être du pain mangé",
     "meaning": "Être très facile, du gâteau",
     "explanation": "Quelque chose de trivial, sans difficulté. Équivalent exact du français « c'est du gâteau » ou de l'anglais « piece of cake » — sauf que les Espagnols préfèrent le pain. Utilisé partout dans le monde hispanophone, dans tous les registres.",
+    "literal_en": "To be eaten bread",
+    "meaning_en": "To be a piece of cake; to be a walk in the park",
+    "explanation_en": "Used for anything that is trivially easy. It is the direct counterpart of \"a piece of cake\", except that Spanish reaches for bread instead of cake. It works across the whole Spanish-speaking world and in almost any register short of the very formal.",
     "origin": ["universal"]
   },
   {
@@ -69,6 +93,9 @@
     "literal": "Parler par les coudes",
     "meaning": "Parler sans arrêt, être bavard",
     "explanation": "Décrit quelqu'un qui parle énormément, parfois trop. L'origine viendrait de l'idée que la personne parle tellement qu'elle gesticule jusqu'à parler « par les coudes ». Souvent dit avec une affection légèrement exaspérée — réservé aux gens qu'on aime bien malgré tout.",
+    "literal_en": "To talk through the elbows",
+    "meaning_en": "To talk nonstop; to talk the hind legs off a donkey, talk a mile a minute",
+    "explanation_en": "Describes someone who talks a great deal, often too much. Its origin is debated: one idea is that the person talks so much they gesture with their whole body, another is that they keep nudging the listener with an elbow to hold their attention. It is often said with fond exasperation, but it can also be a genuine complaint.",
     "origin": ["universal"]
   },
   {
@@ -77,6 +104,9 @@
     "literal": "Chercher trois pieds au chat",
     "meaning": "Chercher midi à quatorze heures",
     "explanation": "Compliquer une situation simple inutilement. Le chat a quatre pattes — chercher la troisième est aussi absurde que créer un problème là où il n'y en a pas. Utilisé quand quelqu'un sur-analyse une situation. Cervantes utilise déjà l'expression dans Don Quichotte (1605), donc elle est ancienne et bien ancrée.",
+    "literal_en": "To look for three feet on the cat",
+    "meaning_en": "To overcomplicate things; to look for problems where there are none, split hairs, overthink it",
+    "explanation_en": "Said to someone who needlessly complicates a simple matter or reads hidden problems into it, often in the form \"No le busques tres pies al gato\".",
     "origin": ["es"]
   }
 ]

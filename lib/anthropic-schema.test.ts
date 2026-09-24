@@ -274,6 +274,40 @@ describe('the EN prompt is authored, not translated', () => {
     expect(EN_SYSTEM_PROMPT).toContain('"éxito" ≠ exit')
   })
 
+  it('pins the verb-gloss convention: DISPLAY glosses take "to", the MATCHING gloss does not', () => {
+    // v0.12.33 decision. The plan text said "to scrub" while all three prompts were authored bare;
+    // the pool TSV followed the prompts. The convention is now "to" for anything a learner READS,
+    // and bare for target_gloss, which is only ever fed to glossesOverlap for synonym detection —
+    // a leading "to" on every verb there is noise that matches nothing. This test is what stops the
+    // two from silently converging or drifting apart again.
+    expect(enDiscoverySystemPrompt(12)).toContain('the English infinitive with "to"')
+    expect(enDiscoverySystemPrompt(12)).not.toContain('bare form without "to"')
+    expect(EN_SYSTEM_PROMPT).toContain('bare infinitive without "to"')
+  })
+
+  it('EN_SYSTEM_PROMPT carries EXACTLY ONE verb-form directive, on the matching gloss', () => {
+    // The structural guarantee behind the split above. If a second verb-form rule ever appears in
+    // this prompt, it is almost certainly on a DISPLAY field and should use "to" — this fails first
+    // and makes whoever added it decide, rather than letting the two conventions drift apart.
+    const directives = EN_SYSTEM_PROMPT.split('\n').filter((l) =>
+      /without "to"|infinitive with "to"|bare form/.test(l),
+    )
+    expect(directives).toHaveLength(1)
+    expect(directives[0]).toContain('"target_gloss"')
+  })
+
+  it('definition.en is PROSE, not a gloss — so the verb convention does not apply to it', () => {
+    // definition.en is 1-2 sentences, the same role as definition.fr. "to"-prefixing it would
+    // produce "to A long garment worn over clothes." This pins the field's shape so a future pass
+    // can't quietly reclassify it as a gloss and inherit the wrong rule.
+    const rule = EN_SYSTEM_PROMPT.split('\n').find((l) => l.startsWith('- "definition.en"')) ?? ''
+    expect(rule).toContain('1–2 sentences in English')
+    expect(rule).not.toMatch(/without "to"|infinitive with "to"|bare form/)
+    // And it mirrors the FR side's shape, which is what keeps the two locales comparable.
+    const frRule = SYSTEM_PROMPT.split('\n').find((l) => l.startsWith('- "definition.fr"')) ?? ''
+    expect(frRule).toContain('1–2 sentences in French')
+  })
+
   it('keeps the Spanish-side rules identical across locales — they are about Spanish', () => {
     for (const rule of [
       'Spanish grammar terminology only',
