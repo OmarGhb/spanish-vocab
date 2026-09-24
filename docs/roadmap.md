@@ -16,7 +16,7 @@ The next committed milestones. Items in `docs/backlog.md` are deferred until pro
 
 The committed order from here (detail for each lives in its section below or in `backlog.md`):
 
-- **NEXT (near-term committed — re-sequenced post-v0.12.28; build IN THIS ORDER):** **(1) Discovery-pool seed migration ✅** (v0.12.27) · **(2) Whitelist-only signups ✅** (v0.12.28) · **(3) Difficulty-naming — ⊘ CLOSED, NO RENAME** (diagnosed: the three concepts are already lexically disjoint) · **(4) First-name capture + display — ⊘ CLOSED, NO BUILD** (already shipped M6.2b/v0.11.0) · **(5) Hint-3 duplicate-letter tile bug ✅** (v0.12.29) · **(6) Hint-4 — ⊘ CLOSED, NO REWORK** (diagnosed: only 3 tiers, tier 3 already max-penalized) · **(7) Domain move** (trademark check first) ← **NEXT UP** · **(8) English as a language — Phase 0 ✅ SHIPPED (v0.12.30), Phases 1–3 OPEN** — content-included, not chrome-only; the load-bearing item, and the one that generalizes the shipped FR/ES immersion layer into real n-locale i18n. **Now sequenced as four sub-milestones**, each its own plan gate + single commit + tag: **0** locale model (schema + type, zero user-visible change) ✅ · **1** content model + EN enrich prompt + pool re-gloss · **2** UI generalization · **3** onboarding/pre-auth/auth-email strings · **(9) LinkedIn showcase post** (needs 7 + 8) · **(10) Daily crosswords** (needs the shared generation/cache layer first) · **(11) Writing correction feature** (needs the item-8 content-locale decision). Full detail in the **"Near-term committed work"** section below.
+- **NEXT (near-term committed — re-sequenced post-v0.12.28; build IN THIS ORDER):** **(1) Discovery-pool seed migration ✅** (v0.12.27) · **(2) Whitelist-only signups ✅** (v0.12.28) · **(3) Difficulty-naming — ⊘ CLOSED, NO RENAME** (diagnosed: the three concepts are already lexically disjoint) · **(4) First-name capture + display — ⊘ CLOSED, NO BUILD** (already shipped M6.2b/v0.11.0) · **(5) Hint-3 duplicate-letter tile bug ✅** (v0.12.29) · **(6) Hint-4 — ⊘ CLOSED, NO REWORK** (diagnosed: only 3 tiers, tier 3 already max-penalized) · **(7) Domain move** (trademark check first) ← **NEXT UP** · **(8) English as a language — Phase 0 ✅ SHIPPED (v0.12.30), Phases 1–3 OPEN** — content-included, not chrome-only; the load-bearing item, and the one that generalizes the shipped FR/ES immersion layer into real n-locale i18n. **Now sequenced as four sub-milestones**, each its own plan gate + single commit + tag: **0** locale model ✅ (v0.12.30) · **1a** content model + native EN prompt ✅ (v0.12.32) · **1b** the re-gloss run + data migration · **2** UI generalization · **3** onboarding/pre-auth/auth-email strings · **(9) LinkedIn showcase post** (needs 7 + 8) · **(10) Daily crosswords** (needs the shared generation/cache layer first) · **(11) Writing correction feature** (needs the item-8 content-locale decision). Full detail in the **"Near-term committed work"** section below.
 - **NOW:** M5.3c verb drill ✅ (shipped) · **List management — COMPLETE:** M5.4a free-text search + load-on-scroll ✅ (v0.7.0), M5.4b per-word delete + undo + Relearn ✅ (v0.7.1); **M5.4c bulk / multi-select / bulk delete — DROPPED** (decided not to build); **archive** (soft-delete + `archived` column) stays deferred (`backlog.md`).
 - **PRE-BETA:** **Cost cap** [**RELAXED post-v0.12.26** — with **whitelist-only signups** (near-term item above) gating who can touch the app, the cost cap is **no longer a hard soft-launch gate**; relocated to a still-wanted parked item in `backlog.md` → "Post-beta wants". Note it also protects against Omar's own heavy sessions (a burst of adds overdrew the API credit this session)] (soft-launch gate before any external user touches the app — budget / rate guards on the two paid paths: the Anthropic enrich call + the Google Cloud TTS call; synergy with the content gate below — pre-seeded discovery content reduces live generation calls, lowering the spend the cap guards) · **Design pass** (umbrella: holistic UX/design audit + more Paco mood variations & placements from Claude Design + the parked Astuce/tip redesign + **FINAL STEP — design-led rework of signup / login / onboarding**, Claude Design first) · _(**FR/ES immersion layer — SHIPPED**, M6.1a–d: `lib/immersion.ts` `resolveChrome`/`glossVisibility`, the three modes `fr_es`/`immersion`/`totale`, `ImmersionModePicker`, live across every product surface. **GENERALIZED at M8 Phase 0 (v0.12.30)** — the three modes are now `source_locale` (fr|en) × `gloss_policy` (visible|tap|hidden), `resolveChrome` takes a `ChromeCtx`, and `profiles.immersion_mode` is deprecated-but-dual-written until Phase 2 drops it. **No standalone "language layer" row remains** — the remaining English work is item 8 below.)_ · **Onboarding + signup build** (follows the designed screens — the FR/ES language layer it rides is already shipped, see above; backend hardening = **empty states** + the **Auth hardening (pre-beta)** cluster below — re-enable email confirmation · personalized verification email · SSO) · **Content gate — A2/B1 coverage seeding**, three components: **(a) verb conjugation coverage — ⛔ STILL OPEN, now concretely scoped** (per the M5.3b/écriture trace): the deterministic conjugator **computes 11 tenses/moods** with a **two-tier design** — it can *compute* a form for anything, but only *displays/drills* a paradigm when **`canDisplayParadigm(lemma)`** passes, gated on the **~78 reference-verified `TRUSTED_LEMMAS`** (the golden-fixture harness `lib/conjugator.expected.ts`). Live-deck hit rate **~87.5% (42/48 verb rows)**. **Near-term work:** admit **`conocer` / `crecer`** (`-zco` yo) **/ `andar`** (irregular `anduve`) via the vetted full-paradigm fixture process → **~94%**. **Permanently excluded (with reasons):** `haber` (auxiliary — no meaningful learner imperative), `poder` (weak gerund `pudiendo` needs a gerund-only special-case), `creer` (preterite hiatus accents `creíste/creímos`), `llover` (impersonal/weather), `acordar` (o→ue stem-changer not in the set). **This gate also unblocks the conjugate-transform** (inflected-target distractors — `backlog.md` → Review experience), which needs `TRUSTED_LEMMAS` coverage on both the target-derivation and distractor-conjugation sides; **(b) discovery depth ✅ DONE** — the 8 themes are pre-seeded into the shared `discovery_pool` (comida/casa/cuerpo/ropa/familia/fiesta/trabajo 60 each, viaje 63 — **~60/theme, below the original ≥100/theme target but deemed sufficient for the beta cohort**); **(c) A2/B1 essentials ✅ DONE** — the curated `esencial` set (187 words: 117 core / 70 extended), the "mélange conseillé" starter pool. **Seeding is CURATED (hand-authored SQL run directly against Supabase — see PROJECT_STATE "SEEDED STATE"), NOT AI-generated, and not backed by a commit.** ~~**open scoping Q:** (b)+(c) imply a shared/global seed pool vs today's per-user on-demand `pending` discovery rows~~ **RESOLVED — the shared/global seed pool is M8's `discovery_pool` (v0.10.0)**; the pre-seeding addresses the M5.1 cold-generation latency and lowers API/TTS cost as intended · **M5.3d compound (perfect) tenses** for the drill + grid (*he comido* / *había comido* — **IMPORTANT, A2** core; trails the content gate — `haber` verification rides the same fixture process) · **Learning-curve review + blank reviews** (analysis-first) — tail.
 - **STRATEGIC:** **Crossword** (scoping → build; shares the (iii) generation + cache layer with the drill) · **Native apps** Android + iOS (**approach decision FIRST — Capacitor / PWA / rewrite** — then build).
@@ -110,20 +110,52 @@ belong to FR users, and EN users' words are enriched in EN at save time).
   from day one. **Zero rendered bytes changed**, proven by `lib/__fixtures__/chrome-golden.tsv` (780
   strings captured at pre-change HEAD, sha256 identical after) + 780 equivalence assertions against an
   inlined copy of the old resolver. Suite 603 → 620. Detail in `PROJECT_STATE.md` → *From M8 Phase 0*.
-- **Phase 1 — content model + EN content (NEXT).** Additive storage, no `glosses` JSONB: `words.definition`
-  / `words.examples` gain an optional `en` key beside `fr`; `discovery_pool` gains a **nullable `en` TEXT**
-  column + an `en` key in the `example` JSONB — the existing `fr` column, the `(theme_key, lower(word))`
-  unique index, and the seed's `ON CONFLICT` contract stay untouched. A **second, natively-authored EN
-  enrich prompt** (NOT a translation of the FR one — its false-friend pedagogy, register vocabulary, and
-  "include the French article" gloss rule have no EN analogue), selected by the caller's `source_locale`.
-  `lib/bilingual.ts`'s `flatBilingual` chain rewritten to the Phase 0 rule: missing gloss for the user's
-  locale → render hidden (Spanish only) + log, **never** the other source language. The **672 pool rows**
-  are re-glossed by an AI pass through the EN prompt, written to a reviewable `word | fr | proposed en |
-  example en` file for bulk review; **only approved output becomes a committed seed migration — never
-  live-only data.** EN becomes selectable at Phase 1 close (the API's `z.enum(['fr'])` pin widens).
-  **At Phase 1 close:** strike the stale *"not backed by a commit"* clause in the Content-gate bullet
+- **Phase 1a — content model + native EN prompt ✅ SHIPPED (v0.12.32).** The machinery and the proofs,
+  no generated content. `discovery_pool` gained a **nullable `en TEXT`** column (migration
+  `20260924000000_pool_en_gloss.sql`, **applied + verified live 2026-09-24**) plus an `en` key in the
+  `example` JSONB with no DDL; `words.definition` / `words.examples` needed **no migration at all**,
+  both being JSONB already. Zod went **locale-aware** — both gloss sides optional at the type level,
+  the side matching the request's `source_locale` required by a refine, mirroring
+  `lib/distractors.ts`'s `GLOSS_LANGS` seam — so an EN request rejects an FR-only response instead of
+  storing a French gloss, and the save route reads the locale from the profile, never the request
+  body. `EN_SYSTEM_PROMPT` / `enDiscoverySystemPrompt` are **authored for English speakers, not
+  translated**: the French false-friend pairs are replaced rather than rendered into English, the
+  "include the French article" rule is **deleted** (English glosses take no article), verb glosses take
+  the bare form, and the Spanish-side rules are held identical across locales on purpose. Pure
+  selectors (`systemPromptFor` / `discoveryPromptFor` / `userPromptFor` / `discoveryUserPromptFor`)
+  make the split testable with no network. `lib/bilingual.ts` gained **`glossFor(value, locale)`** —
+  missing gloss for the requested locale → `''` so the caller renders Spanish only, **never** the other
+  source language — while `flatBilingual` is untouched, so every current FR read path is unchanged
+  (UI adoption is Phase 2). **FR byte-identity proven, not asserted:** `lib/__fixtures__/prompt-golden.txt`
+  (sha256 `0b49db8c…80256f25`, identical before and after) captures the FR prompts at 7 sections plus
+  the FR projection of all 10 idioms, generated at pre-change HEAD by `scripts/dump-prompts.ts`, which
+  imports only the prompt constants and reads `data/idioms.json` off disk — never the selector, never
+  `lib/idioms.ts`. `lib/anthropic-schema.test.ts` holds a **verbatim inlined copy** of the pre-change
+  schemas and asserts accept/reject parity over an 11-payload table. Suite 628 → 654.
+- **Phase 1b — the re-gloss run (NEXT).** `scripts/regloss-pool.ts` ships in 1a but has **not been
+  run**. Its `--dry-run` sends one row and prints the model the API actually **resolved** (not the
+  string requested), aborting on mismatch — a silent substitution would put a different model's prose
+  into a corpus committed forever. Then the full ~672-row run writes a reviewable TSV
+  (`theme_key · word · pos · fr · en · example_es · example_en · flag · note`, TSV because glosses are
+  full of commas and slashes); **Omar reviews and edits it**; only the approved file becomes the
+  committed, idempotent data migration keyed on `(theme_key, lower(word))`. **No live-only writes at
+  any point** — the script never writes to Supabase. The 10 idioms get `literal_en` / `meaning_en` /
+  `explanation_en` as **additive optional keys** in the same pass. Estimated ~$1.42 per run on
+  `claude-opus-5-5`; budget under $3 including a re-run.
+  **At Phase 1b close:** strike the stale *"not backed by a commit"* clause in the Content-gate bullet
   above, citing `supabase/migrations/20260824000000_discovery_pool_seed.sql` — it already contradicts
-  `PROJECT_STATE.md` → SEEDED STATE, corrected at v0.12.27.
+  `PROJECT_STATE.md` → SEEDED STATE, corrected at v0.12.27. **Do NOT** retire the *"apply/replay not
+  executed against a live Postgres"* risk: the data migration is an `UPDATE` against existing rows and
+  exercises none of the seed's `INSERT … ON CONFLICT DO NOTHING` replay path.
+- **⚠️ SCOPING CORRECTION (recorded v0.12.32): "EN becomes selectable" moved from Phase 1 close to
+  PHASE 2 close.** The original plan had the API's `source_locale` pin widening at Phase 1 close. The
+  Phase 1 audit found that wrong on two counts. **(1) The draw path writes French into every new
+  word:** `app/api/discovery/session/route.ts` → `selectPoolCards` → `insertPendingCards` writes
+  `definition: { es: '', fr: c.fr }`, so an EN user's discovery words would be born French-glossed
+  regardless of any pool re-gloss. **(2) Chrome stays FR-only until Phase 2**, so an EN user at Phase 1
+  close would get a French UI wrapping English definitions — a worse product state than not offering
+  English at all. `app/api/profile/route.ts` therefore keeps `source_locale: z.enum(['fr'])` through
+  all of Phase 1.
 - **Phase 2 — UI generalization.** `ChromePair.en` flips optional → **required**, turning `tsc` into the
   worklist for all 260 pairs. The ~45 inline `policy === 'visible' ? … : …` ternaries move behind a tested
   plural/interpolation helper rather than growing a third arm (EN pluralization and the hand-rolled French
@@ -134,7 +166,22 @@ belong to FR users, and EN users' words are enriched in EN at save time).
   `aria-label`, `account/page.tsx`'s `toLocaleString`, and the 10 idioms in `data/idioms.json` (translated
   to EN, with the inconsistent `literal` field normalized — entry 1 is English, entry 2 French). `<html
   lang>` becomes dynamic (it reads `"en"` today regardless of the French content — a bug fix independent
-  of this milestone). **Close:** drop `profiles.immersion_mode`.
+  of this milestone).
+  - **ADDED at v0.12.32 — localize the discovery draw path.** `app/api/discovery/session/route.ts` →
+    `selectPoolCards` → `insertPendingCards` currently writes `definition: { es: '', fr: c.fr }`. It
+    must write the gloss key for the user's `source_locale`, with the Spanish-only fallback rule
+    (`glossFor`). The route already reads `profiles` for `level`, so the locale is one extra column.
+    `lib/discovery-pool.ts` / `lib/discovery.ts` already carry `en?` from 1a; this is where
+    **`CollectionCard.fr` becomes optional** and a locale picks the side.
+  - **ADDED at v0.12.32 — retire the warn-and-drop narrowing in `lib/discovery-server.ts`.** 1a added
+    an explicit `typeof e.fr !== 'string'` guard on the live-generation path because the locale refine
+    guarantees the field but TS can't see it through the optional gloss type. Once the draw path is
+    locale-aware that guard becomes the locale branch instead of a drop.
+  - **ADDED at v0.12.32 — fix the `data/idioms.json` `literal` inconsistency.** Entry 1
+    (`eramos-pocos`) is already English; entry 2 (`estar-como-cabra`) is French. Deliberately NOT
+    fixed in Phase 1 — editing it would have broken the byte-identical proof — and **pinned by a test**
+    (`lib/anthropic-schema.test.ts`) so a tidy can't land by accident. Phase 2 owns the idiom surface.
+  **Close:** drop `profiles.immersion_mode`.
 - **Phase 3 — onboarding, pre-auth, auth emails (strings only, no layout/design changes).** The
   chicken-and-egg: onboarding must be locale-aware *before* a locale is stored, so the pre-auth shell
   seeds from `Accept-Language` into a cookie (the `THEME_COOKIE` precedent — unlike immersion, these
@@ -145,6 +192,14 @@ belong to FR users, and EN users' words are enriched in EN at save time).
   locale stored in **`auth.user_metadata`** (set at signup/invite); since `supabase/` holds no
   `config.toml` and templates are dashboard-managed, this phase delivers the **exact copy-paste template
   diff** for confirm-signup, invite, and password-reset, both language arms authored in full.
+- **⚠️ Model lifecycle note (verified against the live docs, v0.12.32).** `claude-sonnet-4-6` — the
+  model BOTH enrichment prompts use in production — and `claude-opus-5` are both **legacy but still
+  available**; the current lineup is Claude Opus 5.5 (`claude-opus-5-5`, $4/$20 per MTok) / Fable 5.1 /
+  Sonnet 5 / Haiku 4.5. Nothing is broken and the FR invariant holds, but **migrating the production
+  enrichment model is now a decision of its own** — it would change FR output, so it can never ride
+  along inside an M8 phase. The one-off re-gloss script already uses `claude-opus-5-5`. A cached model
+  table dated 2026-06-24 gave the wrong price and a legacy id during planning; **verify model ids and
+  pricing against `platform.claude.com/docs/en/about-claude/models/overview.md`, not from memory.**
 - **Decisions locked at scoping (do not re-litigate):** additive `en` keys, no `glosses` JSONB · no
   cross-source-language fallback, ever · internal ids stay French (`lent`/`normal`/`rapide`, theme ids) ·
   the 599-word user corpus is NOT backfilled · each phase ships as its own sub-milestone.
