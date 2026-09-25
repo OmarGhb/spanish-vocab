@@ -150,7 +150,7 @@ export function maskProcliticReflexive(
  * Returns the masked sentence, or null if no match was found.
  * Callers should fall back to MC mode when null is returned.
  */
-export function maskSentence(sentence: string, word: string): string | null {
+export function maskSentence(sentence: string, word: string, pos?: string): string | null {
   const trimmed = word.trim()
 
   // Strategy 1: exact case-insensitive
@@ -171,6 +171,104 @@ export function maskSentence(sentence: string, word: string): string | null {
     }
   }
 
+  // ── Strategies 3 and 4 (roadmap 8d) — APPEND-ONLY ────────────────────────────────────────────
+  // These run ONLY after S1 and S2 have both declined, so no sentence that masks today can change
+  // its result. That property is asserted over the whole corpus by the before/after columns in
+  // lib/__fixtures__/pool-mask-expectations.tsv.
+  //
+  // Why they are needed: S2's 4-char slice is the weak point, not irregularity. It fails on the
+  // perfectly regular `vivir`→"vivo" (character 4 is the ending vowel), on any accented headword
+  // (JS `\b` is ASCII-only, so `\búlti\S*` can never match "última"), and on gender agreement
+  // (`sano`→"sana"). Both strategies work on TOKENS rather than a regex over the raw sentence, which
+  // sidesteps the `\b` problem entirely and avoids index drift between folded and unfolded text.
+
+  const tokens = [...sentence.matchAll(/\S+/g)]
+  const foldedWord = normalize(trimmed)
+
+  // Strategy 3: accent-folded whole-token match.
+  for (const m of tokens) {
+    if (normalize(stripEdgePunctuation(m[0])) === foldedWord) return blankToken(sentence, m)
+  }
+
+  // Strategy 4: accent-folded stem + a plausible inflectional suffix for the pos.
+  const inflStem = inflectionStem(trimmed)
+  if (inflStem) {
+    let best: { m: RegExpMatchArray; delta: number } | null = null
+    for (const m of tokens) {
+      const folded = normalize(stripEdgePunctuation(m[0]))
+      if (!folded.startsWith(inflStem)) continue
+      if (!isPlausibleSuffix(folded.slice(inflStem.length), pos)) continue
+      // Prefer the candidate closest in length to the headword, earliest on a tie. Without this a
+      // decoy that PRECEDES the true form wins: for `nacer` in "La nación nació ayer", first-match
+      // takes "nación". (The suffix gate already rejects "nación" — `ion` is not a verb ending —
+      // but the tie-break is the second line of defence when several candidates are plausible.)
+      const delta = Math.abs(folded.length - foldedWord.length)
+      if (!best || delta < best.delta) best = { m, delta }
+    }
+    if (best) return blankToken(sentence, best.m)
+  }
+
   // No match — caller should force MC for this card
   return null
+}
+
+// Punctuation that can sit around a token without being part of the word, Spanish included.
+function stripEdgePunctuation(token: string): string {
+  return token.replace(/^[¿¡("'«»]+/, '').replace(/[.,;:!?)"'«»]+$/, '')
+}
+
+// Blank the word inside a matched token, keeping any surrounding punctuation ("¿Puedes" → "¿_____").
+function blankToken(sentence: string, m: RegExpMatchArray): string {
+  const start = m.index ?? 0
+  const token = m[0]
+  const core = stripEdgePunctuation(token)
+  const replaced = core ? token.replace(core, BLANK) : token
+  return sentence.slice(0, start) + replaced + sentence.slice(start + token.length)
+}
+
+// The stem an inflected form should share with the headword. For an infinitive, the real stem
+// (strip -ar/-er/-ir and any enclitic -se); otherwise drop the final gender/number vowel. Minimum 3
+// characters — `reír` yields "re", which would match "recto"/"reunión", so it declines rather than
+// guess. Multi-word headwords ("darse cuenta") decline: their inflection lands on the head verb and
+// blanking one token of a phrase is a different exercise.
+function inflectionStem(word: string): string | null {
+  const folded = normalize(word)
+  if (!folded || /\s/.test(folded)) return null
+  const base = /(?:ar|er|ir)(?:se)?$/.test(folded)
+    ? folded.replace(/(?:ar|er|ir)(?:se)?$/, '')
+    : folded.length >= 4
+      ? folded.slice(0, -1)
+      : folded
+  return base.length >= 3 ? base : null
+}
+
+// Regular Spanish inflectional endings, accent-folded, as an anchored alternation. A stem match only
+// counts when what follows it is one of these — otherwise a short stem blanks the wrong word
+// entirely ("sano" → "santo", "poner" → "ponche", "criar" → "crimen"). Those must return null: the
+// definition fallback is a worse exercise than a sentence, but a blank over the wrong word is worse
+// than both.
+// NOTE the absence of an empty alternative, unlike VERB_SUFFIX below. An empty remainder means the
+// token IS the stem — the headword minus its last character. For a noun or adjective that is either
+// an apocope ("malo" → "mal") or an unrelated word ("sano" → "San" in "San Juan"). The apocope case
+// is the more dangerous of the two: it masks successfully and produces an UNGRADEABLE exercise,
+// because the stored headword is "malo" while the only form that fits the slot is "mal". Requiring
+// at least one inflectional character keeps gender and number ("sana", "sanos") and rejects both.
+const NOMINAL_SUFFIX = /^(?:o|a|os|as|e|es|s)$/
+// Verb endings across present, preterite, imperfect, future, conditional, both imperfect
+// subjunctives, gerund, participle and imperative — followed by zero or more enclitics. The ending
+// IS optional here (unlike the nominal case): a bare imperative is a real form, with a clitic
+// ("pon" + "te" → "Ponte") or without ("¡Pon la mesa!").
+const VERB_SUFFIX =
+  /^(?:o|as|a|amos|ais|an|es|e|emos|eis|en|imos|is|aste|asteis|aron|i|iste|io|isteis|ieron|aba|abas|abamos|abais|aban|ia|ias|iamos|iais|ian|ar|er|ir|are|aras|ara|aremos|areis|aran|ere|eras|era|eremos|ereis|eran|ire|iras|ira|iremos|ireis|iran|aria|arias|ariamos|ariais|arian|eria|erias|eriamos|eriais|erian|iria|irias|iriamos|iriais|irian|ando|iendo|ado|ido|ad|ed|id|ase|ases|asemos|aseis|asen|aramos|arais|iese|ieses|iesemos|ieseis|iesen|iera|ieras|ieramos|ierais|ieran)?(?:me|te|se|nos|os|lo|la|le|los|las|les)*$/
+
+function isPlausibleSuffix(remainder: string, pos?: string): boolean {
+  if (pos) {
+    return pos.startsWith('v.') ? VERB_SUFFIX.test(remainder) : NOMINAL_SUFFIX.test(remainder)
+  }
+  // No pos (a legacy caller): accept either set, but NEVER an empty remainder. Only a verb has a
+  // bare-stem form — the imperative — and without a pos we can't know it is one. Allowing empty
+  // here is what let "malo" mask the apocope "mal", producing a blank whose only correct filler is
+  // a form the card doesn't store. Callers inside the review path always pass pos.
+  if (remainder === '') return false
+  return VERB_SUFFIX.test(remainder) || NOMINAL_SUFFIX.test(remainder)
 }

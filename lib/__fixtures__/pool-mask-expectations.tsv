@@ -1,0 +1,673 @@
+theme_key	word	pos	before	after	note
+casa	alfombra	n.f.	La _____ es muy suave.	La _____ es muy suave.	
+casa	alquiler	n.m.	El _____ es muy caro.	El _____ es muy caro.	
+casa	armario	n.m.	La ropa está en el _____.	La ropa está en el _____.	
+casa	barrer	v.	_____ la cocina.	_____ la cocina.	
+casa	baño	n.m.	El _____ está al fondo.	El _____ está al fondo.	
+casa	bombilla	n.f.	Se ha fundido la _____.	Se ha fundido la _____.	
+casa	cajón	n.m.	Las llaves están en el _____.	Las llaves están en el _____.	
+casa	cama	n.f.	Voy a hacer la _____.	Voy a hacer la _____.	
+casa	casa	n.f.	Estoy en _____.	Estoy en _____.	
+casa	cerradura	n.f.	La _____ está atascada.	La _____ está atascada.	
+casa	cocina	n.f.	Preparo el café en la _____.	Preparo el café en la _____.	
+casa	cortina	n.f.	Corre las _____s.	Corre las _____s.	
+casa	cuchara	n.f.	Necesito una _____ para la sopa.	Necesito una _____ para la sopa.	
+casa	cuchillo	n.m.	Corta el pan con el _____.	Corta el pan con el _____.	
+casa	cómodo	adj.	El sofá es muy _____.	El sofá es muy _____.	
+casa	descansar	v.	_____ en el sofá.	_____ en el sofá.	
+casa	dormir	v.	_____ ocho horas.	_____ ocho horas.	
+casa	dormitorio	n.m.	El _____ da al jardín.	El _____ da al jardín.	
+casa	electrodoméstico	n.m.	La cocina tiene muchos _____s.	La cocina tiene muchos _____s.	
+casa	enchufe	n.m.	Necesito un _____ para cargar.	Necesito un _____ para cargar.	
+casa	escalera	n.f.	Subo por la _____.	Subo por la _____.	
+casa	estantería	n.f.	Los libros están en la _____.	Los libros están en la _____.	
+casa	fregar	v.	NULL	NULL	
+casa	garaje	n.m.	El coche está en el _____.	El coche está en el _____.	
+casa	grifo	n.m.	El _____ gotea.	El _____ gotea.	
+casa	habitación	n.f.	Mi _____ es pequeña.	Mi _____ es pequeña.	
+casa	hogar	n.m.	No hay nada como el _____.	No hay nada como el _____.	
+casa	horno	n.m.	El pollo está en el _____.	El pollo está en el _____.	
+casa	jardín	n.m.	Comemos en el _____ en verano.	Comemos en el _____ en verano.	
+casa	limpiar	v.	_____ la casa los sábados.	_____ la casa los sábados.	
+casa	limpio	adj.	La cocina está _____	La cocina está _____	
+casa	llave	n.f.	He perdido las _____s.	He perdido las _____s.	
+casa	luz	n.f.	Apaga la _____ al salir.	Apaga la _____ al salir.	
+casa	mesa	n.f.	Pon los platos en la _____.	Pon los platos en la _____.	
+casa	mudarse	v.pron.	Nos _____ el mes que viene.	Nos _____ el mes que viene.	
+casa	mueble	n.m.	Montamos un _____ nuevo.	Montamos un _____ nuevo.	
+casa	nevera	n.f.	La leche está en la _____.	La leche está en la _____.	
+casa	olla	n.f.	La sopa hierve en la _____.	La sopa hierve en la _____.	
+casa	ordenar	v.	Tengo que _____ mi cuarto.	Tengo que _____ mi cuarto.	
+casa	pared	n.f.	El cuadro está en la _____.	El cuadro está en la _____.	
+casa	pasillo	n.m.	El baño está al final del _____.	El baño está al final del _____.	
+casa	piso	n.m.	Vivo en un _____ céntrico.	Vivo en un _____ céntrico.	
+casa	plato	n.m.	Lava los _____s, por favor.	Lava los _____s, por favor.	
+casa	puerta	n.f.	Cierra la _____, hace frío.	Cierra la _____, hace frío.	
+casa	ruido	n.m.	Hay mucho _____ en la calle.	Hay mucho _____ en la calle.	
+casa	salón	n.m.	Vemos la tele en el _____.	Vemos la tele en el _____.	
+casa	sartén	n.f.	Calienta la _____.	Calienta la _____.	
+casa	silla	n.f.	Faltan dos _____s.	Faltan dos _____s.	
+casa	sofá	n.m.	Me siento en el _____ a leer.	Me siento en el _____ a leer.	
+casa	sucio	adj.	El suelo está _____.	El suelo está _____.	
+casa	suelo	n.m.	El _____ está mojado.	El _____ está mojado.	
+casa	taza	n.f.	Una _____ de café caliente.	Una _____ de café caliente.	
+casa	techo	n.m.	La lámpara cuelga del _____.	La lámpara cuelga del _____.	
+casa	tender	v.	NULL	NULL	
+casa	tenedor	n.m.	Se ha caído el _____.	Se ha caído el _____.	
+casa	terraza	n.f.	Tomamos algo en la _____.	Tomamos algo en la _____.	
+casa	tranquilo	adj.	Es un barrio _____.	Es un barrio _____.	
+casa	vaso	n.m.	Lléname el _____ de agua.	Lléname el _____ de agua.	
+casa	vecino	n.m.	Mi _____ es muy amable.	Mi _____ es muy amable.	
+casa	ventana	n.f.	Abre la _____ para ventilar.	Abre la _____ para ventilar.	
+comida	aceite	n.m.	_____ de oliva virgen.	_____ de oliva virgen.	
+comida	agua	n.f.	Un vaso de _____, por favor.	Un vaso de _____, por favor.	
+comida	ajo	n.m.	Le pongo _____ a casi todo.	Le pongo _____ a casi todo.	
+comida	almuerzo	n.m.	El _____ es a las dos.	El _____ es a las dos.	
+comida	amargo	adj.	El café está _____.	El café está _____.	
+comida	arroz	n.m.	El _____ está en su punto.	El _____ está en su punto.	
+comida	asar	v.	Voy a _____ el pollo.	Voy a _____ el pollo.	
+comida	azúcar	n.m.	Sin _____, gracias.	Sin _____, gracias.	
+comida	beber	v.	Hay que _____ agua.	Hay que _____ agua.	
+comida	bocadillo	n.m.	Me hago un _____ para el trabajo.	Me hago un _____ para el trabajo.	
+comida	café	n.m.	Tomo el _____ sin azúcar.	Tomo el _____ sin azúcar.	
+comida	caldo	n.m.	Un _____ caliente en invierno.	Un _____ caliente en invierno.	
+comida	carne	n.f.	No como _____ los lunes.	No como _____ los lunes.	
+comida	cebolla	n.f.	La _____ me hace llorar.	La _____ me hace llorar.	
+comida	cena	n.f.	La _____ está lista.	La _____ está lista.	
+comida	cenar	v.	_____ pronto en casa.	_____ pronto en casa.	
+comida	cerveza	n.f.	¿Una _____ bien fría?	¿Una _____ bien fría?	
+comida	cocinar	v.	Me encanta _____ los domingos.	Me encanta _____ los domingos.	
+comida	comer	v.	_____ a las dos.	_____ a las dos.	
+comida	congelar	v.	_____ el pan que sobra.	_____ el pan que sobra.	
+comida	crudo	adj.	La carne está _____ por dentro.	La carne está _____ por dentro.	
+comida	desayunar	v.	_____ a las siete.	_____ a las siete.	
+comida	desayuno	n.m.	El _____ es la mejor comida.	El _____ es la mejor comida.	
+comida	dulce	adj.	Me gusta el café _____.	Me gusta el café _____.	
+comida	ensalada	n.f.	De primero, una _____.	De primero, una _____.	
+comida	especia	n.f.	Le falta alguna _____.	Le falta alguna _____.	
+comida	fresa	n.f.	Las _____s están muy dulces.	Las _____s están muy dulces.	
+comida	freír	v.	Voy a _____ el pescado.	Voy a _____ el pescado.	
+comida	gamba	n.f.	Las _____s al ajillo están ricas.	Las _____s al ajillo están ricas.	
+comida	hambre	n.f.	Tengo mucha _____.	Tengo mucha _____.	
+comida	harina	n.f.	La _____ para el pan.	La _____ para el pan.	
+comida	hervir	v.	_____ el agua para la pasta.	_____ el agua para la pasta.	
+comida	huevo	n.m.	Quiero dos _____s fritos.	Quiero dos _____s fritos.	
+comida	jamón	n.m.	Un bocadillo de _____, por favor.	Un bocadillo de _____, por favor.	
+comida	leche	n.f.	El niño bebe _____.	El niño bebe _____.	
+comida	lechuga	n.f.	La ensalada lleva _____.	La ensalada lleva _____.	
+comida	madurar	v.	El plátano aún no ha _____.	El plátano aún no ha _____.	
+comida	manzana	n.f.	Como una _____ cada día.	Como una _____ cada día.	
+comida	naranja	n.f.	El zumo de _____ está frío.	El zumo de _____ está frío.	
+comida	pan	n.m.	Compro _____ por la mañana.	Compro _____ por la mañana.	
+comida	pasta	n.f.	Los niños adoran la _____.	Los niños adoran la _____.	
+comida	patata	n.f.	Voy a freír unas _____s.	Voy a freír unas _____s.	
+comida	pescado	n.m.	El _____ es muy fresco.	El _____ es muy fresco.	
+comida	picante	adj.	No me gusta la comida _____.	No me gusta la comida _____.	
+comida	pimienta	n.f.	Sal y _____ al gusto.	Sal y _____ al gusto.	
+comida	plátano	n.m.	El _____ es mi fruta favorita.	El _____ es mi fruta favorita.	
+comida	pollo	n.m.	Cenamos _____ con arroz.	Cenamos _____ con arroz.	
+comida	postre	n.m.	¿Qué hay de _____?	¿Qué hay de _____?	
+comida	probar	v.	¿Quieres _____ la salsa?	¿Quieres _____ la salsa?	
+comida	queso	n.m.	Este _____ huele fuerte.	Este _____ huele fuerte.	
+comida	receta	n.f.	Sigo la _____ de mi abuela.	Sigo la _____ de mi abuela.	
+comida	rico	adj.	¡Qué _____ está esto!	¡Qué _____ está esto!	
+comida	salado	adj.	La sopa está muy _____	La sopa está muy _____	
+comida	sed	n.f.	Tengo _____, ¿hay agua?	Tengo _____, ¿hay agua?	
+comida	sopa	n.f.	La _____ está caliente.	La _____ está caliente.	
+comida	soso	adj.	Está _____, le falta sal.	Está _____, le falta sal.	
+comida	ternera	n.f.	Pedí un filete de _____.	Pedí un filete de _____.	
+comida	tomate	n.m.	Corto el _____ para la ensalada.	Corto el _____ para la ensalada.	
+comida	tortilla	n.f.	La _____ de patatas es típica.	La _____ de patatas es típica.	
+comida	vino	n.m.	Una copa de _____ tinto.	Una copa de _____ tinto.	
+comida	zanahoria	n.f.	El conejo come _____s.	El conejo come _____s.	
+comida	zumo	n.m.	El _____ está recién hecho.	El _____ está recién hecho.	
+cuerpo	andar	v.	_____ media hora cada día.	_____ media hora cada día.	
+cuerpo	barriga	n.f.	Le duele la _____.	Le duele la _____.	
+cuerpo	boca	n.f.	Abre la _____, por favor.	Abre la _____, por favor.	
+cuerpo	brazo	n.m.	Me duele el _____ derecho.	Me duele el _____ derecho.	
+cuerpo	cabeza	n.f.	Me duele la _____.	Me duele la _____.	
+cuerpo	cadera	n.f.	Se lesionó la _____.	Se lesionó la _____.	
+cuerpo	cansancio	n.m.	Siento mucho _____.	Siento mucho _____.	
+cuerpo	cara	n.f.	Tiene una _____ simpática.	Tiene una _____ simpática.	
+cuerpo	ceja	n.f.	Se depila las _____s.	Se depila las _____s.	
+cuerpo	cerebro	n.m.	El _____ humano es complejo.	El _____ humano es complejo.	
+cuerpo	codo	n.m.	Se apoyó en el _____.	Se apoyó en el _____.	
+cuerpo	corazón	n.m.	El _____ late rápido.	El _____ late rápido.	
+cuerpo	correr	v.	_____ por el parque.	_____ por el parque.	
+cuerpo	cuello	n.m.	Lleva una bufanda al _____.	Lleva una bufanda al _____.	
+cuerpo	curarse	v.pron.	Se _____ rápido.	Se _____ rápido.	
+cuerpo	dedo	n.m.	Me corté el _____.	Me corté el _____.	
+cuerpo	descansar	v.	Necesito _____ un poco.	Necesito _____ un poco.	
+cuerpo	diente	n.m.	Me lavo los _____s.	Me lavo los _____s.	
+cuerpo	doler	v.	Me _____ todo el cuerpo.	Me _____ todo el cuerpo.	
+cuerpo	dolor	n.m.	Siento un _____ fuerte.	Siento un _____ fuerte.	
+cuerpo	enfermo	adj.	Estoy _____ hoy.	Estoy _____ hoy.	
+cuerpo	escuchar	v.	_____ con atención.	_____ con atención.	
+cuerpo	espalda	n.f.	Me duele la _____.	Me duele la _____.	
+cuerpo	estómago	n.m.	Me duele el _____.	Me duele el _____.	
+cuerpo	fiebre	n.f.	El niño tiene _____.	El niño tiene _____.	
+cuerpo	frente	n.f.	Tiene la _____ ancha.	Tiene la _____ ancha.	
+cuerpo	garganta	n.f.	Me duele la _____.	Me duele la _____.	
+cuerpo	herida	n.f.	Se limpió la _____.	Se limpió la _____.	
+cuerpo	hombro	n.m.	Me duele el _____.	Me duele el _____.	
+cuerpo	hueso	n.m.	Se rompió un _____.	Se rompió un _____.	
+cuerpo	labio	n.m.	Tiene los _____s secos.	Tiene los _____s secos.	
+cuerpo	lengua	n.f.	Me mordí la _____.	Me mordí la _____.	
+cuerpo	levantarse	v.pron.	Me _____ a las siete.	Me _____ a las siete.	
+cuerpo	llorar	v.	El bebé _____ de noche.	El bebé _____ de noche.	
+cuerpo	mano	n.f.	Dame la _____.	Dame la _____.	
+cuerpo	mejilla	n.f.	El bebé tiene las _____s rosadas.	El bebé tiene las _____s rosadas.	
+cuerpo	mirar	v.	_____ por la ventana.	_____ por la ventana.	
+cuerpo	muñeca	n.f.	Me duele la _____.	Me duele la _____.	
+cuerpo	músculo	n.m.	Estiro los _____s antes de correr.	Estiro los _____s antes de correr.	
+cuerpo	nariz	n.f.	Me sangra la _____.	Me sangra la _____.	
+cuerpo	ojo	n.m.	Tiene los _____s azules.	Tiene los _____s azules.	
+cuerpo	oler	v.	NULL	NULL	
+cuerpo	oreja	n.f.	Lleva un pendiente en la _____.	Lleva un pendiente en la _____.	
+cuerpo	pecho	n.m.	Siente un dolor en el _____.	Siente un dolor en el _____.	
+cuerpo	pelo	n.m.	Me voy a cortar el _____.	Me voy a cortar el _____.	
+cuerpo	pie	n.m.	Tengo los _____s fríos.	Tengo los _____s fríos.	
+cuerpo	piel	n.f.	Tiene la _____ muy suave.	Tiene la _____ muy suave.	
+cuerpo	pierna	n.f.	Cruzó las _____s.	Cruzó las _____s.	
+cuerpo	respirar	v.	_____ hondo y relájate.	_____ hondo y relájate.	
+cuerpo	reír	v.	NULL	NULL	
+cuerpo	rodilla	n.f.	Se hizo daño en la _____.	Se hizo daño en la _____.	
+cuerpo	saltar	v.	El niño _____ de alegría.	El niño _____ de alegría.	
+cuerpo	sangre	n.f.	Doné _____ ayer.	Doné _____ ayer.	
+cuerpo	sano	adj.	NULL	Lleva una vida _____.	
+cuerpo	sentarse	v.pron.	NULL	NULL	
+cuerpo	sonreír	v.	_____ para la foto.	_____ para la foto.	
+cuerpo	sudar	v.	_____ mucho cuando corro.	_____ mucho cuando corro.	
+cuerpo	tobillo	n.m.	Me torcí el _____.	Me torcí el _____.	
+cuerpo	tocar	v.	No _____ eso.	No _____ eso.	
+cuerpo	uña	n.f.	Se pinta las _____s.	Se pinta las _____s.	
+esencial	a menudo	adv.	Voy al gimnasio _____.	Voy al gimnasio _____.	
+esencial	a pesar de	prep.	Salimos _____ la lluvia.	Salimos _____ la lluvia.	
+esencial	a veces	adv.	_____ voy al cine solo.	_____ voy al cine solo.	
+esencial	acabar	v.	_____ de llegar.	_____ de llegar.	
+esencial	acaso	adv.	¿_____ no lo sabías?	¿_____ no lo sabías?	
+esencial	actual	adj.	La situación _____ es difícil.	La situación _____ es difícil.	
+esencial	adecuado	adj.	No es el momento _____.	No es el momento _____.	
+esencial	además	adv.	_____, es muy barato.	_____, es muy barato.	
+esencial	agua	n.f.	¿Puedo beber un poco de _____?	¿Puedo beber un poco de _____?	
+esencial	ahora	adv.	_____ no puedo hablar.	_____ no puedo hablar.	
+esencial	ajeno	adj.	No te metas en asuntos _____s.	No te metas en asuntos _____s.	
+esencial	algo	pron.	¿Quieres _____ de beber?	¿Quieres _____ de beber?	
+esencial	alguien	pron.	¿Hay _____ en casa?	¿Hay _____ en casa?	
+esencial	allí	adv.	El banco está _____.	El banco está _____.	
+esencial	amigo	n.m.	Voy al cine con un _____.	Voy al cine con un _____.	
+esencial	amplio	adj.	Es una casa _____ y luminosa.	Es una casa _____ y luminosa.	
+esencial	antes	adv.	Llámame _____ de venir.	Llámame _____ de venir.	
+esencial	apenas	adv.	_____ lo conozco.	_____ lo conozco.	
+esencial	apoyar	v.	Mi familia siempre me _____.	Mi familia siempre me _____.	
+esencial	apoyo	n.m.	Gracias por tu _____.	Gracias por tu _____.	
+esencial	aprovechar	v.	Hay que _____ el buen tiempo.	Hay que _____ el buen tiempo.	
+esencial	aquí	adv.	Ven _____, por favor.	Ven _____, por favor.	
+esencial	atreverse	v.pron.	No me _____ a decírselo.	No me _____ a decírselo.	
+esencial	aumentar	v.	Los precios han _____.	Los precios han _____.	
+esencial	aumento	n.m.	Hubo un _____ de precios.	Hubo un _____ de precios.	
+esencial	aunque	conj.	Salgo _____ llueva.	Salgo _____ llueva.	
+esencial	ayer	adv.	_____ llovió todo el día.	_____ llovió todo el día.	
+esencial	ayudar	v.	¿Puedes _____me?	¿Puedes _____me?	
+esencial	año	n.m.	Tengo treinta _____s.	Tengo treinta _____s.	
+esencial	barato	adj.	Encontré un hotel _____.	Encontré un hotel _____.	
+esencial	bastante	adv.	Es _____ fácil.	Es _____ fácil.	
+esencial	bueno	adj.	Es un _____ restaurante.	Es un _____ restaurante.	
+esencial	buscar	v.	_____ mis gafas.	_____ mis gafas.	
+esencial	cada	adj.	_____ día es diferente.	_____ día es diferente.	
+esencial	cambiar	v.	Quiero _____ de trabajo.	Quiero _____ de trabajo.	
+esencial	cansado	adj.	Estoy _____ después del trabajo.	Estoy _____ después del trabajo.	
+esencial	capaz	adj.	Es _____ de hacerlo solo.	Es _____ de hacerlo solo.	
+esencial	caro	adj.	Este restaurante es muy _____.	Este restaurante es muy _____.	
+esencial	casa	n.f.	Mi _____ está cerca del centro.	Mi _____ está cerca del centro.	
+esencial	casi	adv.	Ya _____ hemos llegado.	Ya _____ hemos llegado.	
+esencial	cerca	adv.	Vivo _____ del centro.	Vivo _____ del centro.	
+esencial	ciudad	n.f.	Vivo en una _____ grande.	Vivo en una _____ grande.	
+esencial	coche	n.m.	Voy en _____ al trabajo.	Voy en _____ al trabajo.	
+esencial	comida	n.f.	La _____ está muy rica.	La _____ está muy rica.	
+esencial	complejo	adj.	Es un problema _____.	Es un problema _____.	
+esencial	conocer	v.	¿_____ a María?	¿_____ a María?	
+esencial	consciente	adj.	Soy _____ del problema.	Soy _____ del problema.	
+esencial	conseguir	v.	_____ un buen trabajo.	_____ un buen trabajo.	
+esencial	convertirse	v.pron.	Se ha _____ en un experto.	Se ha _____ en un experto.	
+esencial	cosa	n.f.	Tengo muchas _____s que hacer.	Tengo muchas _____s que hacer.	
+esencial	cotidiano	adj.	Forma parte de la vida _____	Forma parte de la vida _____	
+esencial	dar	v.	¿Me _____ tu número?	¿Me _____ tu número?	
+esencial	darse cuenta	v.pron.	NULL	NULL	
+esencial	dato	n.m.	Necesito más _____s.	Necesito más _____s.	
+esencial	de hecho	adv.	_____, ya lo sabía.	_____, ya lo sabía.	
+esencial	decir	v.	Siempre _____ la verdad.	Siempre _____ la verdad.	
+esencial	dejar	v.	_____ las llaves en la mesa.	_____ las llaves en la mesa.	
+esencial	demasiado	adv.	Hace _____ calor.	Hace _____ calor.	
+esencial	dentro	adv.	Espérame _____.	Espérame _____.	
+esencial	desarrollar	v.	La empresa _____ nuevas ideas.	La empresa _____ nuevas ideas.	
+esencial	desarrollo	n.m.	El _____ del proyecto va bien.	El _____ del proyecto va bien.	
+esencial	después	adv.	Hablamos _____.	Hablamos _____.	
+esencial	diferente	adj.	Este es _____ al otro.	Este es _____ al otro.	
+esencial	difícil	adj.	El examen fue muy _____.	El examen fue muy _____.	
+esencial	dinero	n.m.	No tengo mucho _____.	No tengo mucho _____.	
+esencial	disminuir	v.	El ruido _____ por la noche.	El ruido _____ por la noche.	
+esencial	dispuesto	adj.	Estoy _____ a ayudar.	Estoy _____ a ayudar.	
+esencial	dueño	n.m.	El _____ del piso es muy amable.	El _____ del piso es muy amable.	
+esencial	día	n.m.	Cada _____ aprendo algo nuevo.	Cada _____ aprendo algo nuevo.	
+esencial	empezar	v.	La película _____ ahora.	La película _____ ahora.	
+esencial	en cambio	adv.	Él es alto; ella, _____, es baja.	Él es alto; ella, _____, es baja.	
+esencial	enseguida	adv.	Vuelvo _____.	Vuelvo _____.	
+esencial	entender	v.	No _____ la pregunta.	No _____ la pregunta.	
+esencial	enterarse	v.pron.	Me _____ ayer de la noticia.	Me _____ ayer de la noticia.	
+esencial	entonces	adv.	_____, ¿qué hacemos?	_____, ¿qué hacemos?	
+esencial	entorno	n.m.	Trabajo en un _____ tranquilo.	Trabajo en un _____ tranquilo.	
+esencial	escaso	adj.	El agua es un recurso _____.	El agua es un recurso _____.	
+esencial	esfuerzo	n.m.	Con _____ todo es posible.	Con _____ todo es posible.	
+esencial	esperar	v.	Te _____ en la puerta.	Te _____ en la puerta.	
+esencial	estar	v.	_____ muy cansado hoy.	_____ muy cansado hoy.	
+esencial	evitar	v.	Intento _____ el azúcar.	Intento _____ el azúcar.	
+esencial	exigir	v.	El trabajo _____ mucha atención.	El trabajo _____ mucha atención.	
+esencial	exitoso	adj.	Fue un evento muy _____.	Fue un evento muy _____.	
+esencial	familia	n.f.	Paso los domingos con mi _____.	Paso los domingos con mi _____.	
+esencial	feliz	adj.	Estoy muy _____ hoy.	Estoy muy _____ hoy.	
+esencial	fuera	adv.	Los niños juegan _____.	Los niños juegan _____.	
+esencial	fácil	adj.	Esta lección es _____.	Esta lección es _____.	
+esencial	gente	n.f.	Hay mucha _____ en la calle.	Hay mucha _____ en la calle.	
+esencial	grande	adj.	Viven en una casa _____.	Viven en una casa _____.	
+esencial	hacer	v.	¿Qué _____ el fin de semana?	¿Qué _____ el fin de semana?	
+esencial	hecho	n.m.	Es un _____ conocido.	Es un _____ conocido.	
+esencial	hijo	n.m.	Su _____ tiene cinco años.	Su _____ tiene cinco años.	
+esencial	hombre	n.m.	Ese _____ es mi vecino.	Ese _____ es mi vecino.	
+esencial	hora	n.f.	¿Qué _____ es?	¿Qué _____ es?	
+esencial	hoy	adv.	_____ es lunes.	_____ es lunes.	
+esencial	impedir	v.	NULL	NULL	
+esencial	importante	adj.	Es una reunión _____.	Es una reunión _____.	
+esencial	imprescindible	adj.	El pasaporte es _____.	El pasaporte es _____.	
+esencial	inconveniente	n.m.	No hay ningún _____.	No hay ningún _____.	
+esencial	intentar	v.	Voy a _____lo otra vez.	Voy a _____lo otra vez.	
+esencial	ir	v.	_____ al trabajo en coche.	_____ al trabajo en coche.	
+esencial	joven	adj.	Es demasiado _____ para eso.	Es demasiado _____ para eso.	
+esencial	lejos	adv.	La estación está _____.	La estación está _____.	
+esencial	llegar	v.	El tren _____ a las diez.	El tren _____ a las diez.	
+esencial	lleno	adj.	El vaso está _____.	El vaso está _____.	
+esencial	llevar	v.	_____ una chaqueta azul.	_____ una chaqueta azul.	
+esencial	lograr	v.	_____ terminar a tiempo.	_____ terminar a tiempo.	
+esencial	logro	n.m.	Es un gran _____ para el equipo.	Es un gran _____ para el equipo.	
+esencial	luego	adv.	Primero como y _____ trabajo.	Primero como y _____ trabajo.	
+esencial	lugar	n.m.	Es un _____ tranquilo.	Es un _____ tranquilo.	
+esencial	madre	n.f.	Mi _____ cocina muy bien.	Mi _____ cocina muy bien.	
+esencial	malo	adj.	Este libro es muy _____.	Este libro es muy _____.	
+esencial	mediante	prep.	Se paga _____ tarjeta.	Se paga _____ tarjeta.	
+esencial	medida	n.f.	Han tomado nuevas _____s.	Han tomado nuevas _____s.	
+esencial	mejorar	v.	Quiero _____ mi español.	Quiero _____ mi español.	
+esencial	meta	n.f.	Mi _____ es hablar con fluidez.	Mi _____ es hablar con fluidez.	
+esencial	mientras	conj.	Escucho música _____ trabajo.	Escucho música _____ trabajo.	
+esencial	mismo	adj.	Vivimos en la _____ calle.	Vivimos en la _____ calle.	
+esencial	momento	n.m.	Espera un _____.	Espera un _____.	
+esencial	mujer	n.f.	Es una _____ muy inteligente.	Es una _____ muy inteligente.	
+esencial	mundo	n.m.	Quiero viajar por el _____.	Quiero viajar por el _____.	
+esencial	muy	adv.	Estoy _____ contento.	Estoy _____ contento.	
+esencial	nada	pron.	No hay _____ en la nevera.	No hay _____ en la nevera.	
+esencial	necesitar	v.	_____ descansar.	_____ descansar.	
+esencial	niño	n.m.	El _____ juega en el parque.	El _____ juega en el parque.	
+esencial	noche	n.f.	Buenas _____s.	Buenas _____s.	
+esencial	nombre	n.m.	¿Cuál es tu _____?	¿Cuál es tu _____?	
+esencial	nuevo	adj.	Tengo un trabajo _____.	Tengo un trabajo _____.	
+esencial	nunca	adv.	_____ he estado en España.	_____ he estado en España.	
+esencial	ocio	n.m.	En mi tiempo de _____ leo.	En mi tiempo de _____ leo.	
+esencial	otro	adj.	¿Quieres _____ café?	¿Quieres _____ café?	
+esencial	padre	n.m.	Mi _____ es profesor.	Mi _____ es profesor.	
+esencial	palabra	n.f.	No entiendo esta _____.	No entiendo esta _____.	
+esencial	parecer	v.	_____ que va a llover.	_____ que va a llover.	
+esencial	pasar	v.	¿Qué ha _____ aquí?	¿Qué ha _____ aquí?	
+esencial	país	n.m.	España es un _____ bonito.	España es un _____ bonito.	
+esencial	pensar	v.	_____ que tienes razón.	_____ que tienes razón.	
+esencial	pequeño	adj.	Tengo un coche _____.	Tengo un coche _____.	
+esencial	plazo	n.m.	El _____ termina el viernes.	El _____ termina el viernes.	
+esencial	poder	v.	¿_____ ayudarme, por favor?	¿_____ ayudarme, por favor?	
+esencial	poner	v.	_____ los libros en la mesa.	_____ los libros en la mesa.	maskSentence now also matches (stem pon-); cloze unchanged — trusted paradigm masks it first
+esencial	ponerse	v.pron.	Se _____ el abrigo y salió.	Se _____ el abrigo y salió.	
+esencial	por lo tanto	conj.	Llueve; _____, no salgo.	Llueve; _____, no salgo.	
+esencial	primero	adj.	Es mi _____ día aquí.	Es mi _____ día aquí.	
+esencial	problema	n.m.	No hay ningún _____.	No hay ningún _____.	
+esencial	profundo	adj.	Es un tema muy _____.	Es un tema muy _____.	
+esencial	propio	adj.	Tiene su _____ estilo.	Tiene su _____ estilo.	
+esencial	próximo	adj.	La _____ semana empiezo.	La _____ semana empiezo.	
+esencial	quejarse	v.pron.	Siempre se _____ del trabajo.	Siempre se _____ del trabajo.	
+esencial	querer	v.	_____ aprender español.	_____ aprender español.	
+esencial	quizás	adv.	_____ venga mañana.	_____ venga mañana.	
+esencial	recordar	v.	No _____ su nombre.	No _____ su nombre.	
+esencial	recurso	n.m.	Internet es un buen _____.	Internet es un buen _____.	
+esencial	respecto a	prep.	_____ eso, tengo dudas.	_____ eso, tengo dudas.	
+esencial	riesgo	n.m.	Es un _____ demasiado grande.	Es un _____ demasiado grande.	
+esencial	rápido	adj.	Es un tren muy _____.	Es un tren muy _____.	
+esencial	saber	v.	No _____ dónde está la estación.	No _____ dónde está la estación.	
+esencial	salir	v.	_____ de casa a las ocho.	_____ de casa a las ocho.	
+esencial	seguir	v.	_____ todo recto.	_____ todo recto.	
+esencial	semana	n.f.	Nos vemos la próxima _____.	Nos vemos la próxima _____.	
+esencial	sencillo	adj.	Es una idea _____	Es una idea _____	
+esencial	ser	v.	Quiero _____ médico.	Quiero _____ médico.	
+esencial	siempre	adv.	_____ llego a tiempo.	_____ llego a tiempo.	
+esencial	sin embargo	adv.	Es caro; _____, lo compró.	Es caro; _____, lo compró.	
+esencial	soler	v.	NULL	NULL	
+esencial	suave	adj.	La manta es muy _____.	La manta es muy _____.	
+esencial	suficiente	adj.	No tengo _____ dinero.	No tengo _____ dinero.	
+esencial	suponer	v.	_____ que tienes razón.	_____ que tienes razón.	
+esencial	también	adv.	Yo _____ quiero ir.	Yo _____ quiero ir.	
+esencial	tampoco	adv.	Yo _____ lo sé.	Yo _____ lo sé.	
+esencial	temprano	adv.	Me levanto _____.	Me levanto _____.	
+esencial	tener	v.	_____ dos hermanos.	_____ dos hermanos.	
+esencial	tiempo	n.m.	No tengo _____ esta semana.	No tengo _____ esta semana.	
+esencial	todavía	adv.	_____ no he terminado.	_____ no he terminado.	
+esencial	trabajo	n.m.	Tengo mucho _____ hoy.	Tengo mucho _____ hoy.	
+esencial	tratar	v.	_____ de comer sano.	_____ de comer sano.	
+esencial	venir	v.	¿_____ a la fiesta?	¿_____ a la fiesta?	
+esencial	ventaja	n.f.	Tiene muchas _____s.	Tiene muchas _____s.	
+esencial	ver	v.	Desde aquí se _____ el mar.	Desde aquí se _____ el mar.	
+esencial	vez	n.f.	Es la primera _____.	Es la primera _____.	
+esencial	vida	n.f.	Así es la _____.	Así es la _____.	
+esencial	viejo	adj.	Es un coche muy _____.	Es un coche muy _____.	
+esencial	vivir	v.	_____ en Madrid.	_____ en Madrid.	
+esencial	volver	v.	_____ en cinco minutos.	_____ en cinco minutos.	
+esencial	ya	adv.	_____ he terminado.	_____ he terminado.	
+esencial	ámbito	n.m.	Es experta en el _____ de la salud.	Es experta en el _____ de la salud.	
+esencial	último	adj.	NULL	Es la _____ vez que lo digo.	
+familia	abuela	n.f.	Mi _____ hace un pastel riquísimo.	Mi _____ hace un pastel riquísimo.	
+familia	abuelo	n.m.	Mi _____ tiene noventa años.	Mi _____ tiene noventa años.	
+familia	adoptar	v.	_____ a una niña.	_____ a una niña.	
+familia	adulto	n.m.	Ya es un _____.	Ya es un _____.	
+familia	amigo	n.m.	Es un _____ de la infancia.	Es un _____ de la infancia.	
+familia	anciano	n.m.	Ayudo a los _____s del barrio.	Ayudo a los _____s del barrio.	
+familia	apellido	n.m.	Compartimos el mismo _____.	Compartimos el mismo _____.	
+familia	apoyar	v.	Mi familia siempre me _____.	Mi familia siempre me _____.	
+familia	bebé	n.m.	El _____ duerme toda la noche.	El _____ duerme toda la noche.	
+familia	boda	n.f.	La _____ es en junio.	La _____ es en junio.	
+familia	cariño	n.m.	Les tengo mucho _____.	Les tengo mucho _____.	
+familia	casado	adj.	Está _____ desde hace diez años.	Está _____ desde hace diez años.	
+familia	casarse	v.pron.	Se _____ el año que viene.	Se _____ el año que viene.	
+familia	crecer	v.	Los niños _____ deprisa.	Los niños _____ deprisa.	
+familia	criar	v.	_____ a sus hijos con cariño.	_____ a sus hijos con cariño.	
+familia	cuidar	v.	_____ a mis abuelos.	_____ a mis abuelos.	
+familia	cuñado	n.m.	Mi _____ es muy simpático.	Mi _____ es muy simpático.	
+familia	discutir	v.	A veces _____, es normal.	A veces _____, es normal.	
+familia	divorciado	adj.	Sus padres están _____s.	Sus padres están _____s.	
+familia	echar de menos	v.	NULL	NULL	
+familia	embarazada	adj.	Mi hermana está _____.	Mi hermana está _____.	
+familia	familiar	n.m.	Vino un _____ de visita.	Vino un _____ de visita.	
+familia	gemelo	n.m.	Tienen _____s.	Tienen _____s.	
+familia	generación	n.f.	Somos tres _____ en casa.	Somos tres _____ en casa.	
+familia	hermana	n.f.	Mi _____ vive en Francia.	Mi _____ vive en Francia.	
+familia	hermano	n.m.	Mi _____ es mayor que yo.	Mi _____ es mayor que yo.	
+familia	hija	n.f.	Tienen una _____ pequeña.	Tienen una _____ pequeña.	
+familia	hijo	n.m.	Su _____ mayor estudia fuera.	Su _____ mayor estudia fuera.	
+familia	hogar	n.m.	Crecí en un _____ feliz.	Crecí en un _____ feliz.	
+familia	infancia	n.f.	Tengo buenos recuerdos de mi _____.	Tengo buenos recuerdos de mi _____.	
+familia	joven	adj.	De _____ vivía aquí.	De _____ vivía aquí.	
+familia	llevarse	v.pron.	Me _____ bien con mis hermanos.	Me _____ bien con mis hermanos.	
+familia	madre	n.f.	Mi _____ vive cerca.	Mi _____ vive cerca.	
+familia	marido	n.m.	Su _____ cocina muy bien.	Su _____ cocina muy bien.	
+familia	morir	v.	Su abuelo _____ en invierno.	Su abuelo _____ en invierno.	
+familia	mujer	n.f.	Voy al cine con mi _____.	Voy al cine con mi _____.	
+familia	nacer	v.	El bebé _____ ayer.	El bebé _____ ayer.	
+familia	nieta	n.f.	Su _____ empieza el colegio.	Su _____ empieza el colegio.	
+familia	nieto	n.m.	Los abuelos cuidan al _____.	Los abuelos cuidan al _____.	
+familia	niño	n.m.	Los _____s juegan en el jardín.	Los _____s juegan en el jardín.	
+familia	novia	n.f.	Conocí a su _____ ayer.	Conocí a su _____ ayer.	
+familia	novio	n.m.	Su _____ es músico.	Su _____ es músico.	
+familia	padre	n.m.	Mi _____ se jubiló.	Mi _____ se jubiló.	
+familia	padres	n.m.	Visito a mis _____ los domingos.	Visito a mis _____ los domingos.	
+familia	parecerse	v.pron.	Te _____ a tu madre.	Te _____ a tu madre.	
+familia	pareja	n.f.	Viven en _____.	Viven en _____.	
+familia	pariente	n.m.	Tengo _____s en México.	Tengo _____s en México.	
+familia	primo	n.m.	Juego con mis _____s.	Juego con mis _____s.	
+familia	querer	v.	_____ mucho a mi familia.	_____ mucho a mi familia.	
+familia	reunirse	v.pron.	La familia se _____ en Navidad.	La familia se _____ en Navidad.	maskSentence now also matches (stem reun-); cloze unchanged — trusted paradigm masks it first
+familia	separarse	v.pron.	Se _____ el año pasado.	Se _____ el año pasado.	
+familia	sobrino	n.m.	Mi _____ cumple cinco años.	Mi _____ cumple cinco años.	
+familia	soltero	adj.	Sigue _____.	Sigue _____.	
+familia	suegra	n.f.	Mi _____ viene a cenar.	Mi _____ viene a cenar.	
+familia	suegro	n.m.	Mi _____ juega al golf.	Mi _____ juega al golf.	
+familia	tía	n.f.	Mi _____ es enfermera.	Mi _____ es enfermera.	
+familia	tío	n.m.	Mi _____ vive en el pueblo.	Mi _____ vive en el pueblo.	
+familia	vecino	n.m.	Los _____s son muy amables.	Los _____s son muy amables.	
+familia	visitar	v.	Nos _____ cada verano.	Nos _____ cada verano.	
+familia	yerno	n.m.	Su _____ trabaja con él.	Su _____ trabaja con él.	
+fiesta	Año Nuevo	n.m.	Celebramos el _____ juntos.	Celebramos el _____ juntos.	
+fiesta	Navidad	n.f.	Pasamos la _____ en familia.	Pasamos la _____ en familia.	
+fiesta	adorno	n.m.	Colgamos los _____s.	Colgamos los _____s.	
+fiesta	alegría	n.f.	La fiesta fue pura _____.	La fiesta fue pura _____.	
+fiesta	ambiente	n.m.	Había muy buen _____.	Había muy buen _____.	
+fiesta	anfitrión	n.m.	El _____ nos recibió bien.	El _____ nos recibió bien.	
+fiesta	aniversario	n.m.	Es su _____ de boda.	Es su _____ de boda.	
+fiesta	aplaudir	v.	Todos _____ al final.	Todos _____ al final.	
+fiesta	bailar	v.	_____ toda la noche.	_____ toda la noche.	
+fiesta	baile	n.m.	El _____ duró hasta tarde.	El _____ duró hasta tarde.	
+fiesta	bebida	n.f.	Hay _____s en la nevera.	Hay _____s en la nevera.	
+fiesta	boda	n.f.	Bailamos toda la _____.	Bailamos toda la _____.	
+fiesta	brindar	v.	_____ por los novios.	_____ por los novios.	
+fiesta	brindis	n.m.	Hizo un _____ emotivo.	Hizo un _____ emotivo.	
+fiesta	cantar	v.	_____ el cumpleaños feliz.	_____ el cumpleaños feliz.	
+fiesta	celebración	n.f.	Fue una _____ preciosa.	Fue una _____ preciosa.	
+fiesta	celebrar	v.	_____ el ascenso.	_____ el ascenso.	
+fiesta	champán	n.m.	Abrimos una botella de _____.	Abrimos una botella de _____.	
+fiesta	concierto	n.m.	El _____ empieza a las nueve.	El _____ empieza a las nueve.	
+fiesta	confeti	n.m.	Tiraron _____ al final.	Tiraron _____ al final.	
+fiesta	copa	n.f.	Levantamos la _____.	Levantamos la _____.	
+fiesta	cumpleaños	n.m.	Hoy es mi _____.	Hoy es mi _____.	
+fiesta	decorar	v.	_____ el salón.	_____ el salón.	
+fiesta	deseo	n.m.	Pide un _____.	Pide un _____.	
+fiesta	discoteca	n.f.	Salimos a la _____.	Salimos a la _____.	
+fiesta	discurso	n.m.	El padre dio un _____.	El padre dio un _____.	
+fiesta	disfraz	n.m.	Llevo un _____ de pirata.	Llevo un _____ de pirata.	
+fiesta	disfrutar	v.	_____ de la fiesta.	_____ de la fiesta.	
+fiesta	divertirse	v.pron.	Nos _____ mucho.	Nos _____ mucho.	
+fiesta	emoción	n.f.	Lloró de la _____.	Lloró de la _____.	
+fiesta	enhorabuena	n.f.	¡_____ por la boda!	¡_____ por la boda!	
+fiesta	entrada	n.f.	Compré las _____s del concierto.	Compré las _____s del concierto.	
+fiesta	felicidad	n.f.	Les deseo mucha _____.	Les deseo mucha _____.	
+fiesta	felicitar	v.	Te _____ por el premio.	Te _____ por el premio.	
+fiesta	feliz	adj.	¡_____ cumpleaños!	¡_____ cumpleaños!	
+fiesta	feria	n.f.	La _____ del pueblo es en agosto.	La _____ del pueblo es en agosto.	
+fiesta	fiesta	n.f.	Vamos a una _____ el sábado.	Vamos a una _____ el sábado.	
+fiesta	fuegos artificiales	n.m.	Vimos los _____.	Vimos los _____.	
+fiesta	gente	n.f.	Había mucha _____ en la fiesta.	Había mucha _____ en la fiesta.	
+fiesta	globo	n.m.	Decoramos con _____s.	Decoramos con _____s.	
+fiesta	invitación	n.f.	Recibí la _____ por correo.	Recibí la _____ por correo.	
+fiesta	invitado	n.m.	Llegaron todos los _____s.	Llegaron todos los _____s.	
+fiesta	invitados	n.m.	Somos veinte _____.	Somos veinte _____.	
+fiesta	invitar	v.	Te _____ a mi fiesta.	Te _____ a mi fiesta.	
+fiesta	máscara	n.f.	Lleva una _____ de carnaval.	Lleva una _____ de carnaval.	
+fiesta	música	n.f.	Pon _____ alegre.	Pon _____ alegre.	
+fiesta	organizar	v.	_____ la fiesta sorpresa.	_____ la fiesta sorpresa.	
+fiesta	pastel	n.m.	El _____ tiene velas.	El _____ tiene velas.	
+fiesta	piñata	n.f.	Los niños rompieron la _____.	Los niños rompieron la _____.	
+fiesta	preparar	v.	_____ todo la víspera.	_____ todo la víspera.	
+fiesta	recordar	v.	_____ este día.	_____ este día.	
+fiesta	recuerdo	n.m.	Guardo un buen _____ de la boda.	Guardo un buen _____ de la boda.	
+fiesta	regalo	n.m.	Abre tu _____.	Abre tu _____.	
+fiesta	reunir	v.	La fiesta _____ a toda la familia.	La fiesta _____ a toda la familia.	
+fiesta	reír	v.	NULL	NULL	
+fiesta	sorpresa	n.f.	Es una fiesta _____.	Es una fiesta _____.	
+fiesta	tarta	n.f.	Cortamos la _____.	Cortamos la _____.	
+fiesta	tradición	n.f.	Es una _____ familiar.	Es una _____ familiar.	
+fiesta	vela	n.f.	Sopla las _____s.	Sopla las _____s.	
+fiesta	villancico	n.m.	Cantamos _____s en Navidad.	Cantamos _____s en Navidad.	
+ropa	abrigo	n.m.	En invierno llevo _____.	En invierno llevo _____.	
+ropa	algodón	n.m.	Prefiero las camisetas de _____.	Prefiero las camisetas de _____.	
+ropa	amarillo	adj.	Una camiseta _____	Una camiseta _____	
+ropa	ancho	adj.	Prefiero la ropa _____	Prefiero la ropa _____	
+ropa	apretar	v.	NULL	NULL	
+ropa	azul	adj.	Unos vaqueros _____es.	Unos vaqueros _____es.	
+ropa	blanco	adj.	Una camisa _____	Una camisa _____	
+ropa	blusa	n.f.	Lleva una _____ de seda.	Lleva una _____ de seda.	
+ropa	bolsillo	n.m.	Lo llevo en el _____.	Lo llevo en el _____.	
+ropa	bolso	n.m.	Guardo las llaves en el _____.	Guardo las llaves en el _____.	
+ropa	bota	n.f.	Con la lluvia llevo _____s.	Con la lluvia llevo _____s.	
+ropa	botón	n.m.	Se me cayó un _____.	Se me cayó un _____.	
+ropa	bufanda	n.f.	Me pongo la _____.	Me pongo la _____.	
+ropa	calcetín	n.m.	Falta un _____.	Falta un _____.	
+ropa	calzoncillo	n.m.	Compró _____s nuevos.	Compró _____s nuevos.	
+ropa	camisa	n.f.	Se puso una _____ azul.	Se puso una _____ azul.	
+ropa	camiseta	n.f.	Llevo una _____ blanca.	Llevo una _____ blanca.	
+ropa	chaleco	n.m.	Un _____ sin mangas.	Un _____ sin mangas.	
+ropa	chaqueta	n.f.	Cuelga la _____ ahí.	Cuelga la _____ ahí.	
+ropa	chándal	n.m.	Se puso el _____ para entrenar.	Se puso el _____ para entrenar.	
+ropa	cinturón	n.m.	Se abrocha el _____.	Se abrocha el _____.	
+ropa	corbata	n.f.	Lleva _____ a la reunión.	Lleva _____ a la reunión.	
+ropa	cremallera	n.f.	Se rompió la _____.	Se rompió la _____.	
+ropa	cuero	n.m.	Una chaqueta de _____.	Una chaqueta de _____.	
+ropa	estrecho	adj.	Este pantalón es muy _____.	Este pantalón es muy _____.	
+ropa	falda	n.f.	Lleva una _____ larga.	Lleva una _____ larga.	
+ropa	gafas	n.f.	Llevo _____ para leer.	Llevo _____ para leer.	
+ropa	gorra	n.f.	Lleva una _____ roja.	Lleva una _____ roja.	
+ropa	guante	n.m.	Necesito _____s en invierno.	Necesito _____s en invierno.	
+ropa	jersey	n.m.	Hace frío, ponte el _____.	Hace frío, ponte el _____.	
+ropa	lana	n.f.	Un jersey de _____.	Un jersey de _____.	
+ropa	llevar	v.	Hoy _____ vaqueros.	Hoy _____ vaqueros.	
+ropa	manga	n.f.	La camisa tiene las _____s largas.	La camisa tiene las _____s largas.	
+ropa	marca	n.f.	Es una _____ muy conocida.	Es una _____ muy conocida.	
+ropa	moda	n.f.	Sigue la última _____.	Sigue la última _____.	
+ropa	negro	adj.	Un vestido _____.	Un vestido _____.	
+ropa	pantalón	n.m.	Estos _____ me quedan bien.	Estos _____ me quedan bien.	
+ropa	pantalón corto	n.m.	En verano llevo _____.	En verano llevo _____.	
+ropa	paraguas	n.m.	Coge el _____, va a llover.	Coge el _____, va a llover.	
+ropa	pañuelo	n.m.	Se puso un _____ al cuello.	Se puso un _____ al cuello.	
+ropa	pijama	n.m.	Se puso el _____.	Se puso el _____.	
+ropa	ponerse	v.pron.	NULL	_____ el abrigo.	
+ropa	probador	n.m.	El _____ está a la derecha.	El _____ está a la derecha.	
+ropa	probarse	v.pron.	¿Puedo _____ esta camisa?	¿Puedo _____ esta camisa?	
+ropa	quedar	v.	Ese vestido te _____ muy bien.	Ese vestido te _____ muy bien.	
+ropa	quitarse	v.pron.	Me _____ los zapatos en casa.	Me _____ los zapatos en casa.	
+ropa	rojo	adj.	Zapatos _____s.	Zapatos _____s.	
+ropa	ropa interior	n.f.	Guardo la _____ en el cajón.	Guardo la _____ en el cajón.	
+ropa	sandalia	n.f.	En verano llevo _____s.	En verano llevo _____s.	
+ropa	seda	n.f.	Una bufanda de _____.	Una bufanda de _____.	
+ropa	sombrero	n.m.	Un _____ para el sol.	Un _____ para el sol.	
+ropa	sudadera	n.f.	Una _____ con capucha.	Una _____ con capucha.	
+ropa	talla	n.f.	¿Qué _____ usas?	¿Qué _____ usas?	
+ropa	traje	n.m.	Va al trabajo con _____.	Va al trabajo con _____.	
+ropa	vaqueros	n.m.	Me pongo los _____.	Me pongo los _____.	
+ropa	verde	adj.	Un jersey _____.	Un jersey _____.	
+ropa	vestido	n.m.	Un _____ rojo precioso.	Un _____ rojo precioso.	
+ropa	vestirse	v.pron.	Me _____ rápido por la mañana.	Me _____ rápido por la mañana.	
+ropa	zapatilla	n.f.	Corro con _____s.	Corro con _____s.	
+ropa	zapato	n.m.	Me aprietan los _____s.	Me aprietan los _____s.	
+trabajo	ascenso	n.m.	Le dieron un _____.	Le dieron un _____.	
+trabajo	becario	n.m.	El _____ aprende rápido.	El _____ aprende rápido.	
+trabajo	beneficio	n.m.	La empresa tuvo grandes _____s.	La empresa tuvo grandes _____s.	
+trabajo	carrera	n.f.	Estudió una _____ de derecho.	Estudió una _____ de derecho.	
+trabajo	cliente	n.m.	El _____ siempre tiene prisa.	El _____ siempre tiene prisa.	
+trabajo	compañero	n.m.	Como con mis _____s.	Como con mis _____s.	
+trabajo	contratar	v.	Van a _____ a más gente.	Van a _____ a más gente.	
+trabajo	contrato	n.m.	Firmé un _____ de un año.	Firmé un _____ de un año.	
+trabajo	correo	n.m.	Te mando un _____.	Te mando un _____.	
+trabajo	currículum	n.m.	Actualicé mi _____.	Actualicé mi _____.	
+trabajo	descanso	n.m.	Hago un _____ a las once.	Hago un _____ a las once.	
+trabajo	despacho	n.m.	El jefe está en su _____.	El jefe está en su _____.	
+trabajo	despedir	v.	Lo _____ el mes pasado.	Lo _____ el mes pasado.	
+trabajo	director	n.m.	El _____ dirige la reunión.	El _____ dirige la reunión.	
+trabajo	documento	n.m.	Firma el _____ aquí.	Firma el _____ aquí.	
+trabajo	empleado	n.m.	La empresa tiene cien _____s.	La empresa tiene cien _____s.	
+trabajo	empresa	n.f.	Trabajo en una _____ grande.	Trabajo en una _____ grande.	
+trabajo	entregar	v.	_____ el informe mañana.	_____ el informe mañana.	
+trabajo	entrevista	n.f.	Tengo una _____ el jueves.	Tengo una _____ el jueves.	
+trabajo	equipo	n.m.	Trabajo en un buen _____.	Trabajo en un buen _____.	
+trabajo	esfuerzo	n.m.	Con _____ se consigue.	Con _____ se consigue.	
+trabajo	estrés	n.m.	Tengo mucho _____ últimamente.	Tengo mucho _____ últimamente.	
+trabajo	experiencia	n.f.	Tiene mucha _____.	Tiene mucha _____.	
+trabajo	firmar	v.	_____ aquí, por favor.	_____ aquí, por favor.	
+trabajo	formación	n.f.	La empresa ofrece _____.	La empresa ofrece _____.	
+trabajo	fracaso	n.m.	Aprendí del _____.	Aprendí del _____.	
+trabajo	fábrica	n.f.	Trabaja en una _____.	Trabaja en una _____.	
+trabajo	herramienta	n.f.	Necesito la _____ adecuada.	Necesito la _____ adecuada.	
+trabajo	horario	n.m.	Tengo un _____ flexible.	Tengo un _____ flexible.	
+trabajo	informe	n.m.	Escribo el _____ hoy.	Escribo el _____ hoy.	
+trabajo	jefa	n.f.	Mi _____ es muy justa.	Mi _____ es muy justa.	
+trabajo	jefe	n.m.	Mi _____ es exigente.	Mi _____ es exigente.	
+trabajo	jornada	n.f.	La _____ es de ocho horas.	La _____ es de ocho horas.	
+trabajo	jubilación	n.f.	La _____ llega a los 65.	La _____ llega a los 65.	
+trabajo	jubilarse	v.pron.	Se _____ el año que viene.	Se _____ el año que viene.	
+trabajo	llamada	n.f.	Tengo una _____ importante.	Tengo una _____ importante.	
+trabajo	meta	n.f.	Cumplimos la _____ del mes.	Cumplimos la _____ del mes.	
+trabajo	nómina	n.f.	Recibí la _____ hoy.	Recibí la _____ hoy.	
+trabajo	ocupado	adj.	Estoy muy _____ esta semana.	Estoy muy _____ esta semana.	
+trabajo	oficina	n.f.	Llego a la _____ a las nueve.	Llego a la _____ a las nueve.	
+trabajo	ordenador	n.m.	Enciendo el _____.	Enciendo el _____.	
+trabajo	organizar	v.	_____ mi semana el domingo.	_____ mi semana el domingo.	
+trabajo	paro	n.m.	Está en el _____ desde marzo.	Está en el _____ desde marzo.	
+trabajo	plantilla	n.f.	La _____ ha crecido este año.	La _____ ha crecido este año.	
+trabajo	plazo	n.m.	El _____ es muy corto.	El _____ es muy corto.	
+trabajo	profesión	n.f.	¿Cuál es tu _____?	¿Cuál es tu _____?	
+trabajo	proyecto	n.m.	Estamos en un _____ nuevo.	Estamos en un _____ nuevo.	
+trabajo	puesto	n.m.	Busco un _____ de responsabilidad.	Busco un _____ de responsabilidad.	
+trabajo	red	n.f.	Amplío mi _____ de contactos.	Amplío mi _____ de contactos.	
+trabajo	responsable	adj.	Es muy _____ en el trabajo.	Es muy _____ en el trabajo.	
+trabajo	reunirse	v.pron.	Nos _____ cada lunes.	Nos _____ cada lunes.	
+trabajo	reunión	n.f.	Tengo una _____ a las tres.	Tengo una _____ a las tres.	
+trabajo	sindicato	n.m.	Se afilió al _____.	Se afilió al _____.	
+trabajo	socio	n.m.	Es mi _____ desde hace años.	Es mi _____ desde hace años.	
+trabajo	sueldo	n.m.	Cobro el _____ a fin de mes.	Cobro el _____ a fin de mes.	
+trabajo	sueldo mínimo	n.m.	Cobra el _____.	Cobra el _____.	
+trabajo	tarea	n.f.	Termino esta _____ y me voy.	Termino esta _____ y me voy.	
+trabajo	trabajar	v.	_____ de lunes a viernes.	_____ de lunes a viernes.	
+trabajo	vacante	n.f.	Hay una _____ en mi equipo.	Hay una _____ en mi equipo.	
+trabajo	éxito	n.m.	El proyecto fue un _____.	El proyecto fue un _____.	
+viaje	aduana	n.f.	Pasamos por la _____.	Pasamos por la _____.	
+viaje	aeropuerto	n.m.	Llego al _____ pronto.	Llego al _____ pronto.	
+viaje	alojarse	v.pron.	Nos _____ en el centro.	Nos _____ en el centro.	
+viaje	autobús	n.m.	El _____ llega tarde.	El _____ llega tarde.	
+viaje	aventura	n.f.	El viaje fue una _____.	El viaje fue una _____.	
+viaje	avión	n.m.	El _____ sale a las diez.	El _____ sale a las diez.	
+viaje	barco	n.m.	Cruzamos en _____.	Cruzamos en _____.	
+viaje	bicicleta	n.f.	Voy en _____ al trabajo.	Voy en _____ al trabajo.	
+viaje	billete	n.m.	Compré el _____ por internet.	Compré el _____ por internet.	
+viaje	calle	n.f.	Vive en esta _____.	Vive en esta _____.	
+viaje	carretera	n.f.	La _____ está cortada.	La _____ está cortada.	
+viaje	cerca	adv.	El hotel está _____.	El hotel está _____.	
+viaje	ciudad	n.f.	Visitamos una _____ preciosa.	Visitamos una _____ preciosa.	
+viaje	coche	n.m.	Vamos en _____.	Vamos en _____.	
+viaje	cámara	n.f.	Saqué muchas fotos con la _____.	Saqué muchas fotos con la _____.	
+viaje	derecha	n.f.	Gira a la _____.	Gira a la _____.	
+viaje	destino	n.m.	¿Cuál es tu _____?	¿Cuál es tu _____?	
+viaje	embarcar	v.	_____ dentro de una hora.	_____ dentro de una hora.	
+viaje	equipaje	n.m.	Facturé el _____.	Facturé el _____.	
+viaje	escala	n.f.	Hicimos _____ en París.	Hicimos _____ en París.	
+viaje	estación	n.f.	Te espero en la _____.	Te espero en la _____.	
+viaje	extranjero	n.m.	Trabaja en el _____.	Trabaja en el _____.	
+viaje	fin de semana	n.m.	Nos vamos el _____.	Nos vamos el _____.	
+viaje	frontera	n.f.	Cruzamos la _____ de noche.	Cruzamos la _____ de noche.	
+viaje	guía	n.m.	El _____ habla tres idiomas.	El _____ habla tres idiomas.	
+viaje	hotel	n.m.	Reservamos un _____ barato.	Reservamos un _____ barato.	
+viaje	idioma	n.m.	No hablo el _____ local.	No hablo el _____ local.	
+viaje	invierno	n.m.	En _____ vamos a la montaña.	En _____ vamos a la montaña.	
+viaje	izquierda	n.f.	La tienda está a la _____.	La tienda está a la _____.	
+viaje	lejos	adv.	La playa está _____.	La playa está _____.	
+viaje	llegada	n.f.	La _____ es a mediodía.	La _____ es a mediodía.	
+viaje	maleta	n.f.	Hago la _____ esta noche.	Hago la _____ esta noche.	
+viaje	mapa	n.m.	Miramos el _____.	Miramos el _____.	
+viaje	metro	n.m.	El _____ es muy rápido.	El _____ es muy rápido.	
+viaje	mochila	n.f.	Llevo lo justo en la _____.	Llevo lo justo en la _____.	
+viaje	moneda	n.f.	Cambié la _____ en el banco.	Cambié la _____ en el banco.	
+viaje	montaña	n.f.	Subimos a la _____.	Subimos a la _____.	
+viaje	origen	n.m.	El vuelo con _____ en Madrid.	El vuelo con _____ en Madrid.	
+viaje	paisaje	n.m.	El _____ es impresionante.	El _____ es impresionante.	
+viaje	pasaporte	n.m.	No olvides el _____.	No olvides el _____.	
+viaje	perderse	v.pron.	Nos _____ en la ciudad.	Nos _____ en la ciudad.	
+viaje	playa	n.f.	Pasamos el día en la _____.	Pasamos el día en la _____.	
+viaje	plaza	n.f.	Quedamos en la _____ mayor.	Quedamos en la _____ mayor.	
+viaje	propina	n.f.	Dejé _____ al camarero.	Dejé _____ al camarero.	
+viaje	pueblo	n.m.	Nací en un _____ pequeño.	Nací en un _____ pequeño.	
+viaje	recto	adv.	Sigue todo _____.	Sigue todo _____.	
+viaje	recuerdo	n.m.	Compré un _____ para mi madre.	Compré un _____ para mi madre.	
+viaje	reserva	n.f.	Tengo una _____ a mi nombre.	Tengo una _____ a mi nombre.	
+viaje	reservar	v.	_____ una mesa.	_____ una mesa.	
+viaje	retraso	n.m.	Hubo un _____ de una hora.	Hubo un _____ de una hora.	
+viaje	ruta	n.f.	Planeamos la _____ juntos.	Planeamos la _____ juntos.	
+viaje	salida	n.f.	La _____ es a las nueve.	La _____ es a las nueve.	
+viaje	seguro	n.m.	Contraté un _____ de viaje.	Contraté un _____ de viaje.	
+viaje	taxi	n.m.	Cogimos un _____ al aeropuerto.	Cogimos un _____ al aeropuerto.	
+viaje	trayecto	n.m.	El _____ dura dos horas.	El _____ dura dos horas.	
+viaje	tren	n.m.	Cojo el _____ de las ocho.	Cojo el _____ de las ocho.	
+viaje	turista	n.m.	El barrio está lleno de _____s.	El barrio está lleno de _____s.	
+viaje	vacaciones	n.f.	Estamos de _____.	Estamos de _____.	
+viaje	verano	n.m.	Viajamos en _____.	Viajamos en _____.	
+viaje	viajar	v.	Me encanta _____.	Me encanta _____.	
+viaje	viajero	n.m.	Es un _____ incansable.	Es un _____ incansable.	
+viaje	visitar	v.	_____ el museo.	_____ el museo.	
+viaje	vuelo	n.m.	El _____ se retrasó.	El _____ se retrasó.	

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { maskSentence, maskVerbSentence } from './mask'
-import { canDisplayParadigm } from './conjugator'
+import { maskSentence } from './mask'
+import { pickClozeExample } from './review-cloze'
 
 // ── Roadmap 8b — the pool-example maskability guard ──────────────────────────────────────────────
 //
@@ -32,65 +32,52 @@ const rows: Row[] = readFileSync(FIXTURE, 'utf8')
     return { theme, word, pos, es }
   })
 
-// Mirrors lib/review-cloze.ts `maskOne`: a verb with a trusted lemma goes through the paradigm
-// masker, everything else through the string masker. Simplified in one direction only — the real
-// maskOne also tries maskInfinitive and maskProcliticReflexive first, both of which can only ADD
-// maskable cases. So a row this helper calls maskable is genuinely maskable; a row it calls
-// unmaskable is the honest worst case.
+// ⚠️ CORRECTED at v0.12.35. This previously hand-rolled the maskOne chain and gated the verb path on
+// `canDisplayParadigm` — the DISPLAY gate (TRUSTED_LEMMAS, 78 lemmas). But `maskVerbSentence` gates
+// on `isConjugable`, a far looser FORM test (does the lemma end -ar/-er/-ir). The approximation
+// therefore reported 21 unmaskable rows when the true figure was **14**: seven regular verbs
+// (`andar`, `curarse`, `sudar`, `vivir`, `criar`, `nacer`, `poder`) mask fine from a computed
+// paradigm. Same lesson as 8b, one level deeper — so this now calls the real thing.
 function isMaskable(r: Row): boolean {
-  if (r.pos.startsWith('v.') && canDisplayParadigm(r.word)) {
-    if (maskVerbSentence(r.es, r.word) !== null) return true
-  }
-  return maskSentence(r.es, r.word) !== null
+  return (
+    pickClozeExample({
+      examples: [{ es: r.es, fr: '' }],
+      word: r.word,
+      id: `${r.theme}-${r.word}`,
+      lemma: null,
+      pos: r.pos,
+      reps: 0,
+    }) !== null
+  )
 }
 
-// Rows that cannot be masked for a reason that is NOT a content defect: the example DOES contain a
-// valid inflected form of the headword, and the masker simply cannot reach it. Every one of these
-// was verified by hand. Tracked as roadmap item 8d; grouped by root cause so that work starts from
-// a diagnosis rather than a list.
+// Rows that still cannot produce a cloze after 8d. NOT content defects: each example contains a
+// valid inflected form the masker cannot reach. Tracked as roadmap item 8e.
 //
-// ⚠️ This set is 21 rows, not the 5 estimated when 8b was planned. The plan's estimate came from a
-// heuristic that assumed "trusted lemma ⇒ maskable"; in reality maskVerbSentence also needs the
-// surface form to be IN the generated paradigm, which excludes imperatives carrying an enclitic.
-// Running the app's own masker is what surfaced the true number.
+// The count has moved twice, and both moves were corrections to measurement rather than to code:
+//   21 (8b)  — inflated: the guard gated the verb path on canDisplayParadigm instead of isConjugable
+//   14       — the true pre-8d figure, measured through pickClozeExample
+//   11 (now) — 8d's folded/length-aware fallback cleared `sano`, `último` and `ponerse`
 //
-// CAUSE 1 — untrusted verb lemma, so maskVerbSentence never runs and maskSentence falls back to a
-// 4-char stem prefix. That fails whenever the inflected form diverges inside the first 4 characters:
-// a stem change (fregar→friego, poder→puedes), an accent (criar→crían), or simply a short stem where
-// character 4 is the ending vowel (vivir→vivo, sudar→sudo, nacer→nació). The 4-char stem is the weak
-// point, not the irregularity — `vivir` is perfectly regular and still fails.
-//
-// CAUSE 2 — adjective gender. The masker has no gender rule at all, so a feminine agreement in the
-// example is unreachable (sano→sana, último→última).
-//
-// CAUSE 3 — imperative with an enclitic pronoun, even for a TRUSTED lemma. maskVerbSentence matches
-// bare paradigm surfaces, and "siéntate" / "ponte" are verb+clitic units that no paradigm entry
-// equals. Note maskProcliticReflexive handles the PRO-clitic direction ("te levantas"), not this one.
+// What remains is ONE class plus two phrases. Every entry needs a trusted paradigm (8e):
+//   stem-changing verbs — the stem mutates at the vowel, so no prefix of the infinitive is a prefix
+//   of the form; `reír` is the degenerate case (stripping -ir leaves "re", too short to be safe).
 const KNOWN_UNMASKABLE = new Set([
-  // cause 1 — untrusted lemma + 4-char stem miss
-  'casa/fregar', // "Friego los platos."            freg ≠ frie   (e→ie)
-  'casa/tender', // "Tiendo la ropa fuera."         tend ≠ tien   (e→ie)
-  'cuerpo/andar', // "Ando media hora cada día."     anda ≠ ando
-  'cuerpo/curarse', // "Se curó rápido."               cura ≠ curó
-  'cuerpo/oler', // "Huele muy bien."               oler ≠ huel   (o→hue + h-)
-  'cuerpo/reír', // "Nos reímos mucho."             reír ≠ reím
-  'cuerpo/sudar', // "Sudo mucho cuando corro."      suda ≠ sudo
-  'esencial/darse cuenta', // "Me di cuenta de mi error."     phrase lemma; stripReflexive is a no-op
-  'esencial/impedir', // "La lluvia impidió el partido." impe ≠ impi  (e→i)
-  'esencial/poder', // "¿Puedes ayudarme, por favor?"  pode ≠ pued  (deliberately excluded lemma)
-  'esencial/soler', // "Suelo levantarme temprano."    sole ≠ suel  (o→ue)
-  'esencial/vivir', // "Vivo en Madrid."               vivi ≠ vivo  ← regular verb, still fails
-  'familia/criar', // "Crían a sus hijos con cariño." cria ≠ crí   (accent, no folding in maskSentence)
-  'familia/echar de menos', // "Echo de menos a mi hermana."   phrase lemma, untrusted
-  'familia/nacer', // "El bebé nació ayer."           nace ≠ naci
-  'fiesta/reír', // "Reímos sin parar."             reír ≠ reím
-  'ropa/apretar', // "Estos zapatos me aprietan."    apre ≠ apri  (e→ie)
-  // cause 2 — adjective gender
-  'cuerpo/sano', // "Lleva una vida sana."          sano ≠ sana
-  'esencial/último', // "Es la última vez que lo digo."  últi ≠ últa
-  // cause 3 — imperative + enclitic, TRUSTED lemma
-  'cuerpo/sentarse', // "Siéntate aquí."                paradigm has "siéntate"? no — verb+clitic
-  'ropa/ponerse', // "Ponte el abrigo."              same
+  // stem-changing verbs — e→ie, o→ue, e→i, o→hue
+  'casa/fregar', // "Friego los platos."            freg → frie
+  'casa/tender', // "Tiendo la ropa fuera."         tend → tien
+  'cuerpo/oler', // "Huele muy bien."               ol   → huel
+  'cuerpo/sentarse', // "Siéntate aquí."                sent → sient  (the enclitic is NOT the problem)
+  'esencial/impedir', // "La lluvia impidió el partido." imped → impid
+  'esencial/soler', // "Suelo levantarme temprano."    sol  → suel
+  'ropa/apretar', // "Estos zapatos me aprietan."    apret → apriet
+  // stem too short to match safely
+  'cuerpo/reír', // "Nos reímos mucho."             stem "re" would match recto/reunión/relación
+  'fiesta/reír', // "Reímos sin parar."             same
+  // multiword headwords — the inflection lands on the head verb; blanking one token of a phrase is
+  // a different exercise, and stripReflexive's (ar|er|ir)se$ anchor is a no-op on them
+  'esencial/darse cuenta', // "Me di cuenta de mi error."
+  'familia/echar de menos', // "Echo de menos a mi hermana."
 ])
 
 const key = (r: Row) => `${r.theme}/${r.word}`
@@ -113,7 +100,7 @@ describe('discovery_pool examples are maskable', () => {
     for (const k of KNOWN_UNMASKABLE) {
       expect(failing.has(k), `${k} is now maskable — remove it from KNOWN_UNMASKABLE`).toBe(true)
     }
-    expect(KNOWN_UNMASKABLE.size).toBe(21)
+    expect(KNOWN_UNMASKABLE.size).toBe(11)
   })
 })
 
@@ -134,10 +121,13 @@ describe('roadmap 8b — the two fixed rows', () => {
   it('malo: the example uses the full form, not the apocope', () => {
     const r = find('esencial', 'malo')
     expect(r.es).toBe('Este libro es muy malo.')
-    // The regression being guarded: "Hace mal tiempo hoy." contains `mal`, never `malo`, so the
-    // 4-char stem `malo` cannot match a 3-letter token.
+    // The regression being guarded: "Hace mal tiempo hoy." contains `mal`, never `malo`. 8d's
+    // folded-stem fallback could reach it (stem "mal" + an empty remainder) — which would mask
+    // successfully and produce an UNGRADEABLE card, since the stored headword is "malo" and the
+    // only form fitting the slot is "mal". Rejected both with and without a pos.
+    expect(maskSentence('Hace mal tiempo hoy.', 'malo', r.pos)).toBeNull()
     expect(maskSentence('Hace mal tiempo hoy.', 'malo')).toBeNull()
-    expect(maskSentence(r.es, r.word)).toBe('Este libro es muy _____.')
+    expect(maskSentence(r.es, r.word, r.pos)).toBe('Este libro es muy _____.')
   })
 
   it('neither fixed row relies on the 4-char stem fallback', () => {
@@ -149,6 +139,83 @@ describe('roadmap 8b — the two fixed rows', () => {
     ] as const) {
       const r = find(theme, word)
       expect(new RegExp(word, 'i').test(r.es), `${word} not present verbatim`).toBe(true)
+    }
+  })
+})
+
+// ── Roadmap 8d — the append-only drift guard ─────────────────────────────────────────────────────
+// Asserted at the CLOZE level (pickClozeExample), not raw maskSentence. That distinction is the
+// whole point: `esencial/poner` and `familia/reunirse` DO change at the maskSentence level in 8d,
+// and are unchanged here, because maskVerbSentence resolves them first from a computed paradigm.
+// A raw-maskSentence drift test would report two regressions the learner never sees.
+//
+// lib/__fixtures__/pool-mask-expectations.tsv holds `before` (captured at pre-change HEAD, then
+// preserved verbatim on every re-emit) and `after` (recomputed). Generated by
+// scripts/dump-mask-expectations.ts.
+describe('8d — masking is append-only', () => {
+  type Exp = { theme: string; word: string; pos: string; before: string; after: string; note: string }
+  const exp: Exp[] = readFileSync('lib/__fixtures__/pool-mask-expectations.tsv', 'utf8')
+    .trimEnd()
+    .split('\n')
+    .slice(1)
+    .map((l) => {
+      const [theme, word, pos, before, after, note] = l.split('\t')
+      return { theme, word, pos, before, after, note: note ?? '' }
+    })
+
+  const NONE = 'NULL'
+
+  it('covers the whole corpus', () => {
+    expect(exp).toHaveLength(672)
+  })
+
+  it('no row that masked before masks differently now — 0 regressions', () => {
+    const regressions = exp
+      .filter((e) => e.before !== NONE && e.before !== e.after)
+      .map((e) => `${e.theme}/${e.word}: ${e.before} -> ${e.after}`)
+    expect(regressions).toEqual([])
+  })
+
+  it('the live masker still produces exactly what the snapshot records', () => {
+    // Catches drift that a stale fixture would hide: the committed `after` must equal what the code
+    // does right now, for every row, not just the ones that changed.
+    for (const e of exp) {
+      const src = rows.find((r) => r.theme === e.theme && r.word === e.word)
+      expect(src, `${e.theme}/${e.word} missing from pool-examples.tsv`).toBeDefined()
+      const picked = pickClozeExample({
+        examples: [{ es: src!.es, fr: '' }],
+        word: src!.word,
+        id: `${src!.theme}-${src!.word}`,
+        lemma: null,
+        pos: src!.pos,
+        reps: 0,
+      })
+      expect(picked ? picked.masked : NONE, `${e.theme}/${e.word}`).toBe(e.after)
+    }
+  })
+
+  it('records exactly the three rows 8d newly masks', () => {
+    const newlyMasked = exp.filter((e) => e.before === NONE && e.after !== NONE)
+    expect(newlyMasked.map((e) => `${e.theme}/${e.word}`).sort()).toEqual([
+      'cuerpo/sano',
+      'esencial/último',
+      'ropa/ponerse',
+    ])
+    // The reviewed sentences. Changing any of these is a content decision, not a refactor.
+    expect(newlyMasked.find((e) => e.word === 'sano')!.after).toBe('Lleva una vida _____.')
+    expect(newlyMasked.find((e) => e.word === 'último')!.after).toBe('Es la _____ vez que lo digo.')
+    expect(newlyMasked.find((e) => e.word === 'ponerse')!.after).toBe('_____ el abrigo.')
+  })
+
+  it('notes the two rows that differ at the maskSentence level but not at the cloze level', () => {
+    const noted = exp.filter((e) => e.note !== '')
+    expect(noted.map((e) => `${e.theme}/${e.word}`).sort()).toEqual([
+      'esencial/poner',
+      'familia/reunirse',
+    ])
+    for (const e of noted) {
+      expect(e.before, `${e.word} must be unchanged at the cloze level`).toBe(e.after)
+      expect(e.note).toContain('trusted paradigm masks it first')
     }
   })
 })

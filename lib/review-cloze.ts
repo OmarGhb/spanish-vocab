@@ -64,7 +64,9 @@ export function pickClozeExample({ examples, word, id, lemma, pos, reps = 0 }: C
       const vr = maskVerbSentence(ex.es, verbLemma)
       if (vr) return { example: ex, masked: vr.masked, target: vr.target }
     }
-    const masked = maskSentence(ex.es, word)
+    // pos threads through so the 8d suffix gate knows whether to expect nominal or verbal
+    // endings; without it the gate accepts either, which is looser than it needs to be.
+    const masked = maskSentence(ex.es, word, pos)
     if (masked !== null) return { example: ex, masked, target: null }
     return null
   }

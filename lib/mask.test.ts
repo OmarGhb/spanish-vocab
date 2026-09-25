@@ -194,3 +194,86 @@ describe('maskSentence — unchanged non-verb path', () => {
     expect(maskSentence('La casa es azul.', 'mercado')).toBeNull()
   })
 })
+
+// ── Roadmap 8d — the folded / length-aware fallback ──────────────────────────────────────────────
+describe('maskSentence — 8d strategies 3 and 4', () => {
+  it('S3: matches across an accent the raw regex cannot reach', () => {
+    // JS `\b` is ASCII-only, so `\búlti\S*` never fires before "última" — the bug that made every
+    // accent-initial headword unmaskable.
+    expect(maskSentence('Es la última vez que lo digo.', 'última', 'adj.')).toBe(
+      `Es la ${BLANK} vez que lo digo.`,
+    )
+  })
+
+  it('S4: gender agreement (the whole "adjective gender" class)', () => {
+    expect(maskSentence('Lleva una vida sana.', 'sano', 'adj.')).toBe(`Lleva una vida ${BLANK}.`)
+    expect(maskSentence('Es la última vez que lo digo.', 'último', 'adj.')).toBe(
+      `Es la ${BLANK} vez que lo digo.`,
+    )
+  })
+
+  it('S4: a bare imperative carrying an enclitic', () => {
+    // "Ponte" = pon + te. The ending is empty and the enclitic carries the match.
+    expect(maskSentence('Ponte el abrigo.', 'ponerse', 'v.pron.')).toBe(`${BLANK} el abrigo.`)
+  })
+
+  it('S4: a regular verb whose 4th character is the ending vowel', () => {
+    // The old 4-char stem "vivi" cannot prefix "vivo" — regularity was never the issue.
+    expect(maskSentence('Vivo en Madrid.', 'vivir', 'v.')).toBe(`${BLANK} en Madrid.`)
+  })
+
+  it('S4 declines a stem too short to be safe', () => {
+    // "reír" strips to "re", which would match recto / reunión / relación.
+    expect(maskSentence('Nos reímos mucho.', 'reír', 'v.')).toBeNull()
+  })
+
+  it('S4 declines multiword headwords', () => {
+    expect(maskSentence('Me di cuenta de mi error.', 'darse cuenta', 'v.pron.')).toBeNull()
+  })
+
+  it('keeps surrounding punctuation outside the blank', () => {
+    // `andar` has a stable stem; `venir` would NOT match here (e→ie makes "vienes" unreachable from
+    // "ven"), which is the stem-change class 8e owns.
+    expect(maskSentence('¿Andas mucho?', 'andar', 'v.')).toBe(`¿${BLANK} mucho?`)
+    expect(maskSentence('¿Vienes a la fiesta?', 'venir', 'v.')).toBeNull()
+  })
+})
+
+describe('maskSentence — 8d false-positive guards', () => {
+  // A looser stem can blank the WRONG word. These four are the adversarial set: the suffix
+  // constraint must reject a remainder that is not a plausible inflection. Returning null is the
+  // right answer — the definition fallback is a worse exercise than a sentence, but a blank over
+  // the wrong word is worse than both.
+  it('does not blank an unrelated word that merely shares a stem', () => {
+    expect(maskSentence('El santo bebe sangre.', 'sano', 'adj.')).toBeNull() // san + "to"
+    expect(maskSentence('El ponche está en la mesa.', 'poner', 'v.')).toBeNull() // pon + "che"
+    expect(maskSentence('El crimen fue cruel.', 'criar', 'v.')).toBeNull() // cri + "men"
+  })
+
+  it('prefers the real form over a decoy that precedes it', () => {
+    // "nación" comes first and shares the stem; "ion" is not a verb ending, "io" is.
+    expect(maskSentence('La nación nació ayer.', 'nacer', 'v.')).toBe(`La nación ${BLANK} ayer.`)
+  })
+
+  it('never masks an apocope, which would be ungradeable', () => {
+    // The card stores "malo"; the only form fitting the slot is "mal". Masking it would show a
+    // blank the learner cannot correctly fill from the stored headword.
+    expect(maskSentence('Hace mal tiempo hoy.', 'malo', 'adj.')).toBeNull()
+    expect(maskSentence('Hace mal tiempo hoy.', 'malo')).toBeNull()
+  })
+
+  it('S1 and S2 are untouched — existing behaviour is preserved exactly', () => {
+    expect(maskSentence('El mercado está cerrado.', 'mercado')).toBe(`El ${BLANK} está cerrado.`)
+    expect(maskSentence('La casa es azul.', 'mercado')).toBeNull()
+  })
+
+  it('preserves S1 quirks rather than quietly fixing them', () => {
+    // S1 is a bare case-insensitive regex with no word boundary, so a plural leaves its "s" outside
+    // the blank: "mercados" → "_____s". That is pre-existing behaviour on a path that fires for
+    // hundreds of rows; 8d is append-only and deliberately does NOT touch it. Pinned here so the
+    // quirk is a recorded decision rather than an accident, and so a future fix is a visible change.
+    expect(maskSentence('Los mercados están cerrados.', 'mercado')).toBe(
+      `Los ${BLANK}s están cerrados.`,
+    )
+  })
+})
