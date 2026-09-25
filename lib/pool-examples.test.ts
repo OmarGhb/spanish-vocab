@@ -170,11 +170,37 @@ describe('8d — masking is append-only', () => {
     expect(exp).toHaveLength(672)
   })
 
-  it('no row that masked before masks differently now — 0 regressions', () => {
+  // Rows whose masked OUTPUT deliberately changed at v0.12.35: S2 used to blank `\S*`, swallowing a
+  // trailing full stop into the blank. Routing it through blankToken restores the punctuation. Listed
+  // individually so the change is reviewed, not absorbed — and so anything NOT on this list still
+  // fails as a regression.
+  const APPROVED_MASK_CHANGES = new Set([
+    'casa/limpio',
+    'comida/salado',
+    'esencial/cotidiano',
+    'esencial/sencillo',
+    'ropa/amarillo',
+    'ropa/ancho',
+    'ropa/blanco',
+  ])
+
+  it('no UNAPPROVED row that masked before masks differently now', () => {
     const regressions = exp
       .filter((e) => e.before !== NONE && e.before !== e.after)
+      .filter((e) => !APPROVED_MASK_CHANGES.has(`${e.theme}/${e.word}`))
       .map((e) => `${e.theme}/${e.word}: ${e.before} -> ${e.after}`)
     expect(regressions).toEqual([])
+  })
+
+  it('every approved change is a restored full stop, nothing more', () => {
+    // The only difference permitted is punctuation moving OUT of the blank. If one of these ever
+    // changes the words too, it stops being an approved punctuation fix.
+    for (const key of APPROVED_MASK_CHANGES) {
+      const e = exp.find((x) => `${x.theme}/${x.word}` === key)
+      expect(e, key).toBeDefined()
+      expect(e!.before, key).not.toBe(NONE)
+      expect(e!.after, key).toBe(`${e!.before}.`)
+    }
   })
 
   it('the live masker still produces exactly what the snapshot records', () => {
@@ -272,6 +298,57 @@ describe('8d — grading the three newly-masked rows', () => {
 
   it('a row whose blank IS the headword records no surface', () => {
     // The overwhelming majority. `surface` is only set when it differs, so nothing changes for them.
+    const p = pick('casa', 'cama')
+    expect(p.surface).toBeUndefined()
+  })
+})
+
+// ── v0.12.35 — S2 adopts the blanked form too ────────────────────────────────────────────────────
+// 18 rows reach maskSentence's 4-char-stem path with a token that differs from the headword. Before
+// this they graded correct Spanish as a near-miss. Two representative cases are pinned here: the
+// punctuation-swallowing case and the apocope case.
+describe('S2 — grading the blanked form', () => {
+  const pick = (theme: string, word: string) => {
+    const r = rows.find((x) => x.theme === theme && x.word === word)!
+    return pickClozeExample({
+      examples: [{ es: r.es, fr: '' }],
+      word: r.word,
+      id: `${r.theme}-${r.word}`,
+      lemma: null,
+      pos: r.pos,
+      reps: 0,
+    })!
+  }
+  const grade = (correct: string, answer: string) => classifyBlankAnswer(correct, answer).quality
+
+  it('limpio: the full stop is back outside the blank, and "limpia" is what grades', () => {
+    const p = pick('casa', 'limpio')
+    // Was "La cocina está _____" — the period lived inside the blank because S2 replaced `\S*`.
+    expect(p.masked).toBe('La cocina está _____.')
+    expect(p.surface).toBe('limpia')
+    expect(grade(p.surface!, 'limpia')).toBe('exact')
+    expect(grade(p.surface!, 'limpio')).toBe('near') // headword: right word, wrong agreement
+  })
+
+  it('bueno: the apocope "buen" is what the slot needs, so it is what grades', () => {
+    const p = pick('esencial', 'bueno')
+    expect(p.masked).toBe('Es un _____ restaurante.')
+    expect(p.surface).toBe('buen')
+    expect(grade(p.surface!, 'buen')).toBe('exact')
+    // "bueno" before a masculine noun is ungrammatical, so it is genuinely not the answer. It is
+    // 1 edit away, so it lands on near — the "you know the word, wrong form" signal, which is the
+    // right teaching outcome. Contrast malo/mal in 8b, where the example was REWRITTEN because the
+    // apocope was the only form present and the card could not be graded at all.
+    expect(grade(p.surface!, 'bueno')).toBe('near')
+  })
+
+  it('a plural S2 match grades against the plural', () => {
+    const p = pick('ropa', 'pantalón')
+    expect(p.surface).toBe('pantalones')
+    expect(grade(p.surface!, 'pantalones')).toBe('exact')
+  })
+
+  it('S1 is unaffected — it matches the headword, so no surface is recorded', () => {
     const p = pick('casa', 'cama')
     expect(p.surface).toBeUndefined()
   })

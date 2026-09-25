@@ -29,7 +29,7 @@ casa	hogar	n.m.	No hay nada como el _____.	No hay nada como el _____.
 casa	horno	n.m.	El pollo está en el _____.	El pollo está en el _____.	
 casa	jardín	n.m.	Comemos en el _____ en verano.	Comemos en el _____ en verano.	
 casa	limpiar	v.	_____ la casa los sábados.	_____ la casa los sábados.	
-casa	limpio	adj.	La cocina está _____	La cocina está _____	
+casa	limpio	adj.	La cocina está _____	La cocina está _____.	
 casa	llave	n.f.	He perdido las _____s.	He perdido las _____s.	
 casa	luz	n.f.	Apaga la _____ al salir.	Apaga la _____ al salir.	
 casa	mesa	n.f.	Pon los platos en la _____.	Pon los platos en la _____.	
@@ -111,7 +111,7 @@ comida	probar	v.	¿Quieres _____ la salsa?	¿Quieres _____ la salsa?
 comida	queso	n.m.	Este _____ huele fuerte.	Este _____ huele fuerte.	
 comida	receta	n.f.	Sigo la _____ de mi abuela.	Sigo la _____ de mi abuela.	
 comida	rico	adj.	¡Qué _____ está esto!	¡Qué _____ está esto!	
-comida	salado	adj.	La sopa está muy _____	La sopa está muy _____	
+comida	salado	adj.	La sopa está muy _____	La sopa está muy _____.	
 comida	sed	n.f.	Tengo _____, ¿hay agua?	Tengo _____, ¿hay agua?	
 comida	sopa	n.f.	La _____ está caliente.	La _____ está caliente.	
 comida	soso	adj.	Está _____, le falta sal.	Está _____, le falta sal.	
@@ -231,7 +231,7 @@ esencial	consciente	adj.	Soy _____ del problema.	Soy _____ del problema.
 esencial	conseguir	v.	_____ un buen trabajo.	_____ un buen trabajo.	
 esencial	convertirse	v.pron.	Se ha _____ en un experto.	Se ha _____ en un experto.	
 esencial	cosa	n.f.	Tengo muchas _____s que hacer.	Tengo muchas _____s que hacer.	
-esencial	cotidiano	adj.	Forma parte de la vida _____	Forma parte de la vida _____	
+esencial	cotidiano	adj.	Forma parte de la vida _____	Forma parte de la vida _____.	
 esencial	dar	v.	¿Me _____ tu número?	¿Me _____ tu número?	
 esencial	darse cuenta	v.pron.	NULL	NULL	
 esencial	dato	n.m.	Necesito más _____s.	Necesito más _____s.	
@@ -341,7 +341,7 @@ esencial	saber	v.	No _____ dónde está la estación.	No _____ dónde está la e
 esencial	salir	v.	_____ de casa a las ocho.	_____ de casa a las ocho.	
 esencial	seguir	v.	_____ todo recto.	_____ todo recto.	
 esencial	semana	n.f.	Nos vemos la próxima _____.	Nos vemos la próxima _____.	
-esencial	sencillo	adj.	Es una idea _____	Es una idea _____	
+esencial	sencillo	adj.	Es una idea _____	Es una idea _____.	
 esencial	ser	v.	Quiero _____ médico.	Quiero _____ médico.	
 esencial	siempre	adv.	_____ llego a tiempo.	_____ llego a tiempo.	
 esencial	sin embargo	adv.	Es caro; _____, lo compró.	Es caro; _____, lo compró.	
@@ -490,11 +490,11 @@ fiesta	vela	n.f.	Sopla las _____s.	Sopla las _____s.
 fiesta	villancico	n.m.	Cantamos _____s en Navidad.	Cantamos _____s en Navidad.	
 ropa	abrigo	n.m.	En invierno llevo _____.	En invierno llevo _____.	
 ropa	algodón	n.m.	Prefiero las camisetas de _____.	Prefiero las camisetas de _____.	
-ropa	amarillo	adj.	Una camiseta _____	Una camiseta _____	
-ropa	ancho	adj.	Prefiero la ropa _____	Prefiero la ropa _____	
+ropa	amarillo	adj.	Una camiseta _____	Una camiseta _____.	
+ropa	ancho	adj.	Prefiero la ropa _____	Prefiero la ropa _____.	
 ropa	apretar	v.	NULL	NULL	
 ropa	azul	adj.	Unos vaqueros _____es.	Unos vaqueros _____es.	
-ropa	blanco	adj.	Una camisa _____	Una camisa _____	
+ropa	blanco	adj.	Una camisa _____	Una camisa _____.	
 ropa	blusa	n.f.	Lleva una _____ de seda.	Lleva una _____ de seda.	
 ropa	bolsillo	n.m.	Lo llevo en el _____.	Lo llevo en el _____.	
 ropa	bolso	n.m.	Guardo las llaves en el _____.	Guardo las llaves en el _____.	

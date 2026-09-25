@@ -76,12 +76,12 @@ export function pickClozeExample({ examples, word, id, lemma, pos, reps = 0 }: C
       // Only record `surface` when the blanked form differs from the headword — folding accents and
       // case so "Ponte"/"ponte" counts as different from "ponerse" but "Casa"/"casa" does not.
       //
-      // Scoped to the 8d strategies ON PURPOSE. S2's 4-char stem also blanks a whole token that can
-      // differ from the headword (plurals, gender), and those rows grade against the headword in
-      // production today. Extending this to S2 is a listed behaviour change under review — doing it
-      // here would ship it silently, which is the opposite of the point.
-      const fromNewStrategy = m.strategy === 'folded' || m.strategy === 'stem-inflect'
-      const differs = fromNewStrategy && normalize(m.surface) !== normalize(word)
+      // Applies to EVERY strategy as of v0.12.35. S2's 4-char stem blanks a whole token that often
+      // differs from the headword — gender ("limpio" → "limpia"), number ("pantalón" →
+      // "pantalones"), apocope ("bueno" → "buen") — and all 18 such rows graded correct Spanish as
+      // a near-miss before this. S1 is unaffected in practice: it matches the headword literally,
+      // so `differs` is false.
+      const differs = normalize(m.surface) !== normalize(word)
       return { example: ex, masked: m.masked, target: null, ...(differs ? { surface: m.surface } : {}) }
     }
     return null

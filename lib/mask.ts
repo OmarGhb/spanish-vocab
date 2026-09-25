@@ -174,9 +174,7 @@ export function maskSentenceWithToken(sentence: string, word: string, pos?: stri
   const exactEscaped = trimmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   const exactRegex = new RegExp(exactEscaped, 'i')
   const exactHit = sentence.match(exactRegex)
-  if (exactHit) {
-    return { masked: sentence.replace(exactRegex, BLANK), surface: exactHit[0], strategy: 'exact' }
-  }
+  if (exactHit) return blankToken(sentence, exactHit, 'exact')
 
   // Strategy 2: stem match on first 4 chars with word boundary
   // \b ensures we don't partially match inside an unrelated word
@@ -185,9 +183,11 @@ export function maskSentenceWithToken(sentence: string, word: string, pos?: stri
     const stemEscaped = stem.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     const stemRegex = new RegExp(`\\b${stemEscaped}\\S*`, 'i')
     const stemHit = sentence.match(stemRegex)
-    if (stemHit) {
-      return { masked: sentence.replace(stemRegex, BLANK), surface: stemHit[0], strategy: 'stem4' }
-    }
+    // Routed through blankToken so the blank covers the WORD only. `\S*` otherwise swallows a
+    // trailing full stop — "La cocina está limpia." became "La cocina está _____" with the period
+    // inside the blank, and the surface reported back was "limpia." with a period a learner could
+    // never type. Restoring it is a visible change to 7 rows, listed in APPROVED_MASK_CHANGES.
+    if (stemHit) return blankToken(sentence, stemHit, 'stem4')
   }
 
   // ── Strategies 3 and 4 (roadmap 8d) — APPEND-ONLY ────────────────────────────────────────────
