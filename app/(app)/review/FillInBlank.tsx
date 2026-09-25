@@ -95,7 +95,11 @@ export default function FillInBlank({ card, cardStartRef, onRate, onResult }: Pr
     }),
   )
   const verbLemma = lemma ?? word
-  const correctWord = picked?.target?.surface ?? word
+  // What the learner must type. Priority: the verb paradigm's surface (conjugated cards) → the
+  // form the plain masker actually blanked (gender agreement, enclitic imperatives) → the headword.
+  // Skipping the middle term is what would grade "sana" wrong on a card whose blank is "sana"
+  // (roadmap 8d review).
+  const correctWord = picked?.target?.surface ?? picked?.surface ?? word
   const isVerbCard = !!picked?.target
   // Defensive: blank the Spanish headword in the cloze example's FR translation too, so a translation
   // that happens to contain the raw Spanish word can't leak it (a no-match is a pure passthrough; the

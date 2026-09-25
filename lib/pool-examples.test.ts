@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { maskSentence } from './mask'
 import { pickClozeExample } from './review-cloze'
+import { classifyBlankAnswer } from './rating'
 
 // ── Roadmap 8b — the pool-example maskability guard ──────────────────────────────────────────────
 //
@@ -217,5 +218,61 @@ describe('8d — masking is append-only', () => {
       expect(e.before, `${e.word} must be unchanged at the cloze level`).toBe(e.after)
       expect(e.note).toContain('trusted paradigm masks it first')
     }
+  })
+})
+
+// ── Roadmap 8d review — the blanked form is what gets graded ─────────────────────────────────────
+// The three rows 8d newly masks all blank a form that is NOT the stored headword. Before this fix
+// `correctWord` fell back to the headword, so a learner typing the only word that fits the slot was
+// marked down. These assert the whole path: what is blanked, what is graded, and what each answer
+// scores.
+describe('8d — grading the three newly-masked rows', () => {
+  const pick = (theme: string, word: string) => {
+    const r = rows.find((x) => x.theme === theme && x.word === word)!
+    return pickClozeExample({
+      examples: [{ es: r.es, fr: '' }],
+      word: r.word,
+      id: `${r.theme}-${r.word}`,
+      lemma: null,
+      pos: r.pos,
+      reps: 0,
+    })!
+  }
+  const grade = (correctWord: string, userAnswer: string) =>
+    classifyBlankAnswer(correctWord, userAnswer).quality
+
+  it('sano: blanks "sana", grades against it', () => {
+    const p = pick('cuerpo', 'sano')
+    expect(p.masked).toBe('Lleva una vida _____.')
+    expect(p.surface).toBe('sana')
+    expect(grade(p.surface!, 'sana')).toBe('exact')
+    expect(grade(p.surface!, 'sano')).toBe('near') // the headword: right word, wrong agreement
+  })
+
+  it('último: blanks "última", grades against it', () => {
+    const p = pick('esencial', 'último')
+    expect(p.masked).toBe('Es la _____ vez que lo digo.')
+    expect(p.surface).toBe('última')
+    expect(grade(p.surface!, 'última')).toBe('exact')
+    expect(grade(p.surface!, 'último')).toBe('near')
+  })
+
+  it('ponerse: blanks "Ponte", grades against it', () => {
+    const p = pick('ropa', 'ponerse')
+    expect(p.masked).toBe('_____ el abrigo.')
+    expect(p.surface).toBe('Ponte')
+    expect(grade(p.surface!, 'Ponte')).toBe('exact')
+    expect(grade(p.surface!, 'ponte')).toBe('exact') // case-insensitive
+    // NOTE: the headword scores 'wrong', not 'near' — levenshtein("ponte","ponerse") is 3, past the
+    // near-miss cushion of 2. That is the honest outcome of the existing grader, and it is arguably
+    // right: "ponerse" is an infinitive where the slot needs an imperative, which is a form error
+    // rather than a typo. Pinned so the behaviour is a recorded decision, not a surprise.
+    expect(grade(p.surface!, 'ponerse')).toBe('wrong')
+  })
+
+  it('a row whose blank IS the headword records no surface', () => {
+    // The overwhelming majority. `surface` is only set when it differs, so nothing changes for them.
+    const p = pick('casa', 'cama')
+    expect(p.surface).toBeUndefined()
   })
 })

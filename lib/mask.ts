@@ -150,14 +150,32 @@ export function maskProcliticReflexive(
  * Returns the masked sentence, or null if no match was found.
  * Callers should fall back to MC mode when null is returned.
  */
+// The form actually blanked, alongside the masked sentence. `surface` is what a learner must type
+// — which is NOT always the headword: gender agreement ("sano" → "sana") and enclitic imperatives
+// ("ponerse" → "Ponte") both blank a different form. Callers that grade an answer must use it, or
+// they mark correct Spanish wrong (roadmap 8d review).
+// `strategy` records WHICH rule matched, so callers can adopt the new S3/S4 behaviour without
+// silently changing S1/S2. Roadmap 8d deliberately ships S3/S4 grading first; extending it to S2
+// (whose stem match blanks a whole token, e.g. a plural) is a listed behaviour change awaiting
+// review, not a refactor.
+export type MaskStrategy = 'exact' | 'stem4' | 'folded' | 'stem-inflect'
+export type MaskedWord = { masked: string; surface: string; strategy: MaskStrategy }
+
+// Back-compat entry point: the masked sentence alone. Kept because most callers and every existing
+// test only care about the sentence; grading callers use maskSentenceWithToken.
 export function maskSentence(sentence: string, word: string, pos?: string): string | null {
+  return maskSentenceWithToken(sentence, word, pos)?.masked ?? null
+}
+
+export function maskSentenceWithToken(sentence: string, word: string, pos?: string): MaskedWord | null {
   const trimmed = word.trim()
 
   // Strategy 1: exact case-insensitive
   const exactEscaped = trimmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   const exactRegex = new RegExp(exactEscaped, 'i')
-  if (exactRegex.test(sentence)) {
-    return sentence.replace(exactRegex, '_____')
+  const exactHit = sentence.match(exactRegex)
+  if (exactHit) {
+    return { masked: sentence.replace(exactRegex, BLANK), surface: exactHit[0], strategy: 'exact' }
   }
 
   // Strategy 2: stem match on first 4 chars with word boundary
@@ -166,8 +184,9 @@ export function maskSentence(sentence: string, word: string, pos?: string): stri
   if (stem.length >= 4) {
     const stemEscaped = stem.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     const stemRegex = new RegExp(`\\b${stemEscaped}\\S*`, 'i')
-    if (stemRegex.test(sentence)) {
-      return sentence.replace(stemRegex, '_____')
+    const stemHit = sentence.match(stemRegex)
+    if (stemHit) {
+      return { masked: sentence.replace(stemRegex, BLANK), surface: stemHit[0], strategy: 'stem4' }
     }
   }
 
@@ -187,7 +206,7 @@ export function maskSentence(sentence: string, word: string, pos?: string): stri
 
   // Strategy 3: accent-folded whole-token match.
   for (const m of tokens) {
-    if (normalize(stripEdgePunctuation(m[0])) === foldedWord) return blankToken(sentence, m)
+    if (normalize(stripEdgePunctuation(m[0])) === foldedWord) return blankToken(sentence, m, 'folded')
   }
 
   // Strategy 4: accent-folded stem + a plausible inflectional suffix for the pos.
@@ -205,7 +224,7 @@ export function maskSentence(sentence: string, word: string, pos?: string): stri
       const delta = Math.abs(folded.length - foldedWord.length)
       if (!best || delta < best.delta) best = { m, delta }
     }
-    if (best) return blankToken(sentence, best.m)
+    if (best) return blankToken(sentence, best.m, 'stem-inflect')
   }
 
   // No match — caller should force MC for this card
@@ -218,12 +237,16 @@ function stripEdgePunctuation(token: string): string {
 }
 
 // Blank the word inside a matched token, keeping any surrounding punctuation ("¿Puedes" → "¿_____").
-function blankToken(sentence: string, m: RegExpMatchArray): string {
+function blankToken(sentence: string, m: RegExpMatchArray, strategy: MaskStrategy): MaskedWord {
   const start = m.index ?? 0
   const token = m[0]
   const core = stripEdgePunctuation(token)
   const replaced = core ? token.replace(core, BLANK) : token
-  return sentence.slice(0, start) + replaced + sentence.slice(start + token.length)
+  return {
+    masked: sentence.slice(0, start) + replaced + sentence.slice(start + token.length),
+    surface: core || token,
+    strategy,
+  }
 }
 
 // The stem an inflected form should share with the headword. For an infinitive, the real stem

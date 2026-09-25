@@ -1,4 +1,4 @@
-import { maskVerbSentence, maskInfinitive, maskSentence, maskProcliticReflexive, type VerbTarget } from './mask'
+import { maskVerbSentence, maskInfinitive, maskSentenceWithToken, maskProcliticReflexive, type VerbTarget } from './mask'
 import { normalize } from './conjugator'
 
 // Pure, client-safe (no server-only, no Next/Supabase) — runs in the client review
@@ -11,6 +11,11 @@ export const isVerbPos = (pos?: string): boolean => pos === 'v.' || pos === 'v.p
 export type ClozeExample = {
   example: { es: string; fr: string }
   masked: string
+  // The form actually blanked, when it differs from the stored headword — gender agreement
+  // ("sano" → "sana") and enclitic imperatives ("ponerse" → "Ponte"). The grader must compare
+  // against THIS, not the headword, or it marks the only correct answer wrong (roadmap 8d).
+  // Undefined when the blanked token is the headword itself, which is the overwhelming majority.
+  surface?: string
   // Verb cards: the blanked token's surface + coordinates (paradigm-aware masking). null for
   // non-verbs and for the verb fallback to plain maskSentence.
   target: VerbTarget | null
@@ -66,8 +71,19 @@ export function pickClozeExample({ examples, word, id, lemma, pos, reps = 0 }: C
     }
     // pos threads through so the 8d suffix gate knows whether to expect nominal or verbal
     // endings; without it the gate accepts either, which is looser than it needs to be.
-    const masked = maskSentence(ex.es, word, pos)
-    if (masked !== null) return { example: ex, masked, target: null }
+    const m = maskSentenceWithToken(ex.es, word, pos)
+    if (m) {
+      // Only record `surface` when the blanked form differs from the headword — folding accents and
+      // case so "Ponte"/"ponte" counts as different from "ponerse" but "Casa"/"casa" does not.
+      //
+      // Scoped to the 8d strategies ON PURPOSE. S2's 4-char stem also blanks a whole token that can
+      // differ from the headword (plurals, gender), and those rows grade against the headword in
+      // production today. Extending this to S2 is a listed behaviour change under review — doing it
+      // here would ship it silently, which is the opposite of the point.
+      const fromNewStrategy = m.strategy === 'folded' || m.strategy === 'stem-inflect'
+      const differs = fromNewStrategy && normalize(m.surface) !== normalize(word)
+      return { example: ex, masked: m.masked, target: null, ...(differs ? { surface: m.surface } : {}) }
+    }
     return null
   }
 
