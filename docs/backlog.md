@@ -84,6 +84,25 @@
 - **`color-mix` legacy fallback — accepted, noted.** Lightning CSS emits a static fallback hex (computed against the *default* `:root` scope, so slightly wrong per non-Sépia theme) before each derived-tint `color-mix`, for browsers without `color-mix` support. Modern mobile browsers (the target) use the correct runtime `color-mix`; only a legacy no-`color-mix` browser would see the off tint. No action unless legacy support becomes a requirement; recorded so it isn't re-diagnosed.
 
 ## Error handling / observability
+
+- **Count cloze fallbacks (`cloze_fallback` telemetry).** Parked from roadmap 8d (v0.12.35) — scoped,
+  not built. **The lesson it answers, from 8b:** *a working fallback is how a defect hides.* When
+  `pickClozeExample` returns null, `FillInBlank` degrades gracefully to its definition prompt — no
+  error, no log, a card that looks fine. That is how 23 of 672 pool rows went unnoticed for the life
+  of the corpus, and 8d's guard only covers the **deck**; users' own added words are still unmeasured
+  in production.
+  - **Shape:** reuse `add_events` (own-row RLS + insert policy + `app/api/events/log/route.ts`
+    already exist) — one `CHECK` widen plus one Zod enum entry. Log from a sweep at review-session
+    start in `ReviewSession`, **not** `FillInBlank`: `chooseMode` alternates blank/MC by index, so an
+    unmaskable card is invisible half the time, while the session sees every card and
+    `pickClozeExample` is pure and cheap. One row per affected card per session — `event_type:
+    'cloze_fallback'`, `input_word: word`, `lemma: lemma ?? word` (both columns are `NOT NULL`).
+  - **No user-facing noise:** fire-and-forget, no UI, no blocking. A typical session writes 0 rows.
+  - **Reading it:** a sibling of `supabase/queries/user_activity.sql` ranking words by fallback count.
+  - **Interim substitute, already shipped:** `scripts/score-user-examples.ts` scores an exported TSV
+    of users' words offline. Cheaper, zero runtime cost, and answers the same question on demand —
+    which is why this is parked rather than scheduled. Promote it if the offline pass shows the rate
+    is material, or if the export becomes a chore.
 - **`getDictionaryState` swallows its own `words`-fetch error (logged at M5.5i).** `lib/dictionary.ts` does `const { data } = await supabase.from('words')…` and never inspects `.error`, so on a DB read failure it silently returns `memorizedCount: 0` / `totalReviews: 0` / `entries: []` — a real error renders as honest-looking zeros. Shared by **four consumers** (the /dictionary page + unlock actions + Home + the /account stats strip), so a fix should capture/log `.error` once inside the function (mirrors the `console.error` guard M5.5i added for the /account `totalWords` count). Small, isolated; deliberately NOT folded into M5.5i (touches a function shared beyond the surface). Low urgency (single user; a words-table read failure is rare and loud elsewhere).
 
 ## Word list improvements
